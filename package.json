@@ -30,7 +30,9 @@
     "styles",
     "utils",
     "tailwind.config.js",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "LICENSE_EXCEPTIONS.md"
   ],
   "sideEffects": [
     "**/*.css"
@@ -39,7 +41,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "vite build && cp package.json dist/package.json && cp README.md dist/README.md"
+    "build": "vite build && cp package.json dist/package.json && cp README.md dist/README.md && cp LICENSE dist/LICENSE && cp LICENSE_EXCEPTIONS.md dist/LICENSE_EXCEPTIONS.md"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
