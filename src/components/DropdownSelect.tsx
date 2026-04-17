@@ -1,0 +1,301 @@
+/*
+ * Copyright (C) [2025] [Netzint GmbH]
+ * All rights reserved.
+ *
+ * This software is dual-licensed under the terms of:
+ *
+ * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
+ *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
+ *
+ *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
+ *
+ * OR
+ *
+ * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
+ *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
+ *
+ * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ */
+
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import cn from '../utils/cn';
+import { INPUT_BASE_CLASSES, VARIANT_COLORS } from '../constants/inputClassNames';
+
+const DROPDOWN_SELECT_CLASSES = `${INPUT_BASE_CLASSES} box-border truncate pl-2.5 pr-8 text-start placeholder:text-foreground`;
+
+export type DropdownVariant = 'dialog' | 'default';
+
+export type DropdownOptions = {
+  id: string;
+  name: string;
+  disabled?: boolean;
+};
+
+export interface DropdownSelectProps {
+  options: DropdownOptions[];
+  selectedVal: string;
+  handleChange: (value: string) => void;
+  openToTop?: boolean;
+  classname?: string;
+  inputClassName?: string;
+  menuClassName?: string;
+  variant?: DropdownVariant;
+  placeholder?: string;
+  noResultsText?: string;
+  renderLabel?: (name: string) => string;
+  maxMenuHeight?: number;
+}
+
+const MENU_MAX_HEIGHT = 125;
+const MENU_MARGIN = 2;
+
+const DropdownSelect: React.FC<DropdownSelectProps> = ({
+  options,
+  selectedVal,
+  handleChange,
+  openToTop: openToTopProp = false,
+  classname,
+  inputClassName,
+  menuClassName,
+  variant = 'default',
+  placeholder = '',
+  noResultsText = 'No results',
+  renderLabel = (name: string) => name,
+  maxMenuHeight,
+}) => {
+  const searchEnabled = options.length > 3;
+  const [query, setQuery] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [openToTop, setOpenToTop] = useState(openToTopProp);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const closeMenu = () => setIsOpen(false);
+
+  const resolvedMaxHeight = maxMenuHeight ?? MENU_MAX_HEIGHT;
+
+  const calculatePosition = useCallback(() => {
+    if (!dropdownRef.current) return;
+
+    const rect = dropdownRef.current.getBoundingClientRect();
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const shouldOpenToTop = openToTopProp || (spaceBelow < resolvedMaxHeight + MENU_MARGIN && spaceAbove > spaceBelow);
+    const menuHeight = Math.min(menuRef.current?.scrollHeight ?? resolvedMaxHeight, resolvedMaxHeight);
+
+    const viewportOffsetTop = window.visualViewport?.offsetTop ?? 0;
+    const calculatedTop = shouldOpenToTop
+      ? rect.top - menuHeight - MENU_MARGIN + viewportOffsetTop
+      : rect.bottom + MENU_MARGIN + viewportOffsetTop;
+
+    setOpenToTop(shouldOpenToTop);
+    setMenuPosition({
+      top: calculatedTop,
+      left: rect.left,
+      width: rect.width,
+    });
+  }, [openToTopProp, resolvedMaxHeight]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    let requestAnimationFrameId: number;
+
+    const updatePosition = () => {
+      calculatePosition();
+      requestAnimationFrameId = requestAnimationFrame(updatePosition);
+    };
+
+    updatePosition();
+
+    return () => {
+      cancelAnimationFrame(requestAnimationFrameId);
+    };
+  }, [isOpen, calculatePosition]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const isOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(target);
+      const isOutsideMenu = menuRef.current && !menuRef.current.contains(target);
+
+      if (isOutsideDropdown && isOutsideMenu) {
+        closeMenu();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const selectedOption = options.find((o) => o.id === selectedVal);
+  const selectedLabel = selectedOption ? renderLabel(selectedOption.name) : '';
+
+  const filteredOptions = useMemo(() => {
+    if (!query) return options;
+    const q = query.toLowerCase();
+    return options.filter((option) => renderLabel(option.name).toLowerCase().includes(q));
+  }, [options, query, renderLabel]);
+
+  const openMenu = () => {
+    setIsOpen(true);
+    if (searchEnabled) setQuery('');
+  };
+
+  const selectOption = (option: DropdownOptions) => {
+    setQuery('');
+    handleChange(option.id);
+    closeMenu();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, option: DropdownOptions) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      selectOption(option);
+    }
+  };
+
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    e.currentTarget.scrollTop += e.deltaY;
+  };
+
+  const touchStartY = useRef(0);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    const deltaY = touchStartY.current - e.touches[0].clientY;
+    e.currentTarget.scrollTop += deltaY;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const arrowPointsDown = (isOpen && !openToTop) || (!isOpen && openToTop);
+
+  const variantClasses = {
+    default: VARIANT_COLORS.default,
+    dialog: VARIANT_COLORS.dialog,
+  };
+
+  const optionVariantClasses = {
+    default: {
+      base: 'hover:bg-muted',
+      selected: 'bg-muted',
+    },
+    dialog: {
+      base: 'hover:bg-muted-light',
+      selected: 'bg-muted-light',
+    },
+  };
+
+  return (
+    <div
+      className={cn('relative cursor-default', classname)}
+      ref={dropdownRef}
+      role="combobox"
+      aria-expanded={isOpen}
+      aria-haspopup="listbox"
+      aria-controls="dropdown-listbox"
+    >
+      <input
+        type="text"
+        name={searchEnabled ? 'searchTerm' : undefined}
+        value={searchEnabled ? query : selectedLabel || placeholder}
+        placeholder={searchEnabled ? selectedLabel || placeholder : undefined}
+        onChange={searchEnabled ? (e) => setQuery(e.target.value) : undefined}
+        onClick={openMenu}
+        onFocus={searchEnabled ? openMenu : undefined}
+        readOnly={!searchEnabled}
+        disabled={options.length === 0}
+        className={cn(
+          DROPDOWN_SELECT_CLASSES,
+          variantClasses[variant],
+          {
+            'cursor-text': searchEnabled,
+            'cursor-pointer': !searchEnabled,
+          },
+          inputClassName,
+        )}
+        aria-autocomplete={searchEnabled ? 'list' : undefined}
+        aria-controls="dropdown-listbox"
+      />
+
+      <div
+        className={cn(
+          'pointer-events-none absolute right-2.5 top-1/2 block h-0 w-0 -translate-y-1/2 border-solid border-border',
+          {
+            'border-x-[5px] border-b-0 border-t-[5px] border-x-transparent': !arrowPointsDown,
+            'border-x-[5px] border-b-[5px] border-t-0 border-x-transparent': arrowPointsDown,
+          },
+        )}
+      />
+
+      {isOpen &&
+        createPortal(
+          <div
+            ref={menuRef}
+            className={cn(
+              'pointer-events-auto fixed z-[1000] box-border overflow-y-auto rounded-lg text-p scrollbar-thin',
+              variantClasses[variant],
+              menuClassName,
+            )}
+            style={{
+              maxHeight: resolvedMaxHeight,
+              top: menuPosition.top,
+              left: menuPosition.left,
+              width: menuPosition.width,
+            }}
+            role="listbox"
+            id="dropdown-listbox"
+            onWheel={handleWheel}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+          >
+            {filteredOptions.map((option) => {
+              const label = renderLabel(option.name);
+              const selected = option.id === selectedVal;
+              const classes = optionVariantClasses[variant];
+
+              return (
+                <div
+                  key={option.id}
+                  role="option"
+                  aria-selected={selected}
+                  aria-disabled={option.disabled || undefined}
+                  tabIndex={option.disabled ? -1 : 0}
+                  onClick={option.disabled ? undefined : () => selectOption(option)}
+                  onKeyDown={option.disabled ? undefined : (e) => handleKeyDown(e, option)}
+                  className={cn(
+                    'box-border block px-2.5 py-2',
+                    option.disabled
+                      ? 'cursor-not-allowed opacity-50'
+                      : cn('cursor-pointer', selected ? classes.selected : classes.base),
+                  )}
+                  title={label}
+                >
+                  {label}
+                </div>
+              );
+            })}
+            {filteredOptions.length === 0 && (
+              <div
+                className="box-border block cursor-default px-2.5 py-2"
+                aria-disabled="true"
+              >
+                {noResultsText}
+              </div>
+            )}
+          </div>,
+          document.body,
+        )}
+    </div>
+  );
+};
+
+export default DropdownSelect;
