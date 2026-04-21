@@ -128,13 +128,18 @@ export type { CardProps, CardVariant } from './components/Card';
 export { default as cn } from './utils/cn';
 
 /**
- * MenuBar – A responsive navigation bar with collapsible sub-items and mobile support.
+ * MenuBar – A responsive navigation bar with recursively nested sub-items and mobile support.
+ *
+ * Supports arbitrarily deep submenus: nodes up to `maxDepth` render inline as expandable
+ * accordions; deeper nodes switch to a drill-down view with a back button (`backLabel`).
+ * Use `onChildClick` to observe child selections at the parent level (e.g. for route
+ * highlighting that cannot be derived from the tree alone).
  *
  * Composable parts:
  * - `MenuBar` – High-level component that accepts a config object to render the full menu bar.
  * - `MenuBarLayout` – The outer layout shell (desktop sidebar / mobile bottom bar).
  * - `MenuBarHeader` – The header area with logo and collapse toggle.
- * - `MenuBarItem` – A single navigation item with optional child dropdown.
+ * - `MenuBarItem` – A single top-level navigation item with a recursive child tree.
  * - `MenuBarItemList` – A scrollable list of `MenuBarItem` entries.
  */
 export { default as MenuBarLayout } from './components/MenuBarLayout';
@@ -144,13 +149,14 @@ export { default as MenuBarHeader } from './components/MenuBarHeader';
 export type { MenuBarHeaderProps } from './components/MenuBarHeader';
 
 export { default as MenuBarItem } from './components/MenuBarItem';
-export type { MenuBarItemProps, MenuBarChildItem } from './components/MenuBarItem';
+export type { MenuBarItemProps } from './components/MenuBarItem';
 
 export { default as MenuBarItemList } from './components/MenuBarItemList';
 export type { MenuBarItemListProps } from './components/MenuBarItemList';
 
 export { default as MenuBar } from './components/MenuBar';
-export type { MenuBarProps, MenuBarConfig, MenuBarConfigItem, MenuBarConfigChildItem } from './components/MenuBar';
+export type { MenuBarProps, MenuBarConfig } from './components/MenuBar';
+export type { default as MenuBarConfigItem } from './components/MenuBarConfigItem';
 
 /**
  * useMediaQuery – Hook that tracks whether a CSS media query matches (e.g. responsive breakpoints).

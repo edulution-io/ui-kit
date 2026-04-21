@@ -18,9 +18,13 @@
  */
 
 import * as React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useMediaQuery from '../hooks/useMediaQuery';
 import useOnClickOutside from '../hooks/useOnClickOutside';
+import buildActionMap from '../utils/buildActionMap';
+import findInTree from '../utils/findInTree';
+import findPathToNode from '../utils/findPathToNode';
+import type MenuBarConfigItem from './MenuBarConfigItem';
 import MenuBarLayout from './MenuBarLayout';
 import MenuBarHeader from './MenuBarHeader';
 import MenuBarItem from './MenuBarItem';
@@ -31,20 +35,6 @@ const TABLET_QUERY = '(min-width: 768px) and (max-width: 1023px)';
 
 const DEFAULT_COLLAPSE_LABEL = 'Collapse';
 const DEFAULT_EXPAND_LABEL = 'Expand';
-
-export interface MenuBarConfigChildItem {
-  id: string;
-  label: string;
-  action: () => void;
-}
-
-export interface MenuBarConfigItem {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  action: () => void;
-  children?: MenuBarConfigChildItem[];
-}
 
 export interface MenuBarConfig {
   title: string;
@@ -57,7 +47,12 @@ export interface MenuBarConfig {
 export type MenuBarProps = {
   config: MenuBarConfig;
   activeItemId: string;
-  activeChildId?: string | null;
+  /**
+   * Predicate evaluated against every child (at any depth) to determine which one is
+   * currently active. The matching child is highlighted and its ancestors are
+   * auto-expanded. Memoize with `useCallback` to avoid unnecessary re-walks.
+   */
+  isChildActive?: (item: MenuBarConfigItem) => boolean;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   forceMobileLayout?: boolean;
@@ -65,6 +60,22 @@ export type MenuBarProps = {
   expandLabel?: string;
   footer?: React.ReactNode;
   className?: string;
+  /**
+   * Fires whenever a child (at any depth) is clicked, before its own `action` runs.
+   * Use this to track the clicked child id at the parent level, e.g. for active-state
+   * highlighting when the active child cannot be derived from the route alone.
+   */
+  onChildClick?: (childId: string) => void;
+  /**
+   * Maximum depth rendered as inline expandable accordions. Nodes deeper than this
+   * switch to a drill-down view (tap to descend, back button to ascend). Defaults to 5.
+   */
+  maxDepth?: number;
+  /**
+   * Label for the drill-down back button shown when descending past `maxDepth`.
+   * Pass a translated string. Defaults to `"Back"`.
+   */
+  backLabel?: string;
 };
 
 const getActiveColorClass = (color: string) => color.split(':')[1] ?? color;
@@ -72,7 +83,7 @@ const getActiveColorClass = (color: string) => color.split(':')[1] ?? color;
 const MenuBar: React.FC<MenuBarProps> = ({
   config,
   activeItemId,
-  activeChildId,
+  isChildActive,
   isOpen,
   onOpenChange,
   forceMobileLayout = false,
@@ -80,27 +91,38 @@ const MenuBar: React.FC<MenuBarProps> = ({
   expandLabel = DEFAULT_EXPAND_LABEL,
   footer,
   className,
+  onChildClick: onChildClickProp,
+  maxDepth = 5,
+  backLabel = 'Back',
 }) => {
   const menuBarRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const isTablet = useMediaQuery(TABLET_QUERY);
   const isDesktop = !isMobile && !isTablet && !forceMobileLayout;
 
+  const activeChildId = useMemo(
+    () => (isChildActive ? findInTree(config.items, isChildActive)?.id : undefined),
+    [config.items, isChildActive],
+  );
+
   const [expandedItems, setExpandedItems] = useState<Set<string>>(() => {
     if (activeItemId) return new Set([activeItemId]);
     return new Set();
   });
 
-  useEffect(() => {
-    if (activeItemId) {
-      setExpandedItems((prev) => {
-        if (prev.has(activeItemId)) return prev;
-        return new Set(prev).add(activeItemId);
-      });
-    }
-  }, [activeItemId]);
+  const configItemsRef = useRef(config.items);
+  configItemsRef.current = config.items;
 
-  const toggleExpanded = useCallback((itemId: string) => {
+  useEffect(() => {
+    const next = new Set<string>();
+    if (activeItemId) next.add(activeItemId);
+    if (activeChildId) {
+      findPathToNode(configItemsRef.current, activeChildId).forEach((id) => next.add(id));
+    }
+    setExpandedItems(next);
+  }, [activeItemId, activeChildId]);
+
+  const toggleChildExpanded = useCallback((itemId: string) => {
     setExpandedItems((prev) => {
       const next = new Set(prev);
       if (next.has(itemId)) {
@@ -112,6 +134,27 @@ const MenuBar: React.FC<MenuBarProps> = ({
     });
   }, []);
 
+  const topLevelIds = useMemo(() => new Set(config.items.map((item) => item.id)), [config.items]);
+
+  const toggleTopLevelExpanded = useCallback(
+    (itemId: string) => {
+      setExpandedItems((prev) => {
+        if (prev.has(itemId)) {
+          const next = new Set(prev);
+          next.delete(itemId);
+          return next;
+        }
+        const next = new Set<string>();
+        prev.forEach((id) => {
+          if (!topLevelIds.has(id)) next.add(id);
+        });
+        next.add(itemId);
+        return next;
+      });
+    },
+    [topLevelIds],
+  );
+
   const closeMobileMenu = useCallback(() => {
     if (!isDesktop) {
       onOpenChange(false);
@@ -121,28 +164,27 @@ const MenuBar: React.FC<MenuBarProps> = ({
   useOnClickOutside(menuBarRef, closeMobileMenu);
 
   const activeColorClass = getActiveColorClass(config.color);
+  const actionMap = useMemo(() => buildActionMap(config.items), [config.items]);
 
   const handleItemClick = useCallback(
-    (itemId: string) => {
+    (id: string) => {
       if (!isDesktop) {
         onOpenChange(false);
       }
-      const item = config.items.find((i) => i.id === itemId);
-      item?.action();
+      actionMap.get(id)?.();
     },
-    [isDesktop, onOpenChange, config.items],
+    [isDesktop, onOpenChange, actionMap],
   );
 
   const handleChildClick = useCallback(
-    (itemId: string, childId: string) => {
+    (childId: string) => {
       if (!isDesktop) {
         onOpenChange(false);
       }
-      const item = config.items.find((i) => i.id === itemId);
-      const child = item?.children?.find((c) => c.id === childId);
-      child?.action();
+      onChildClickProp?.(childId);
+      actionMap.get(childId)?.();
     },
-    [isDesktop, onOpenChange, config.items],
+    [isDesktop, onOpenChange, onChildClickProp, actionMap],
   );
 
   return (
@@ -172,11 +214,15 @@ const MenuBar: React.FC<MenuBarProps> = ({
               activeColorClass={activeColorClass}
               collapseLabel={collapseLabel}
               expandLabel={expandLabel}
-              childItems={item.children?.map((child) => ({ id: child.id, label: child.label }))}
+              childItems={item.children}
               activeChildId={activeChildId}
+              expandedItems={expandedItems}
               onItemClick={() => handleItemClick(item.id)}
-              onToggleExpand={() => toggleExpanded(item.id)}
-              onChildClick={(childId) => handleChildClick(item.id, childId)}
+              onToggleExpand={() => toggleTopLevelExpanded(item.id)}
+              onChildClick={handleChildClick}
+              onToggleChildExpand={toggleChildExpanded}
+              maxDepth={maxDepth}
+              backLabel={backLabel}
             />
           );
         })}
