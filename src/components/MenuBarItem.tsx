@@ -19,14 +19,12 @@
 
 import * as React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+import findInTree from '../utils/findInTree';
 import cn from '../utils/cn';
 import { Button } from './Button';
-
-export interface MenuBarChildItem {
-  id: string;
-  label: string;
-}
+import type MenuBarConfigItem from './MenuBarConfigItem';
+import MenuBarSubItem from './MenuBarSubItem';
 
 export type MenuBarItemProps = React.HTMLAttributes<HTMLDivElement> & {
   itemId: string;
@@ -37,11 +35,15 @@ export type MenuBarItemProps = React.HTMLAttributes<HTMLDivElement> & {
   activeColorClass: string;
   collapseLabel: string;
   expandLabel: string;
-  childItems?: MenuBarChildItem[];
+  childItems?: MenuBarConfigItem[];
   activeChildId?: string | null;
   onItemClick: () => void;
   onToggleExpand: () => void;
   onChildClick?: (childId: string) => void;
+  expandedItems?: Set<string>;
+  onToggleChildExpand?: (childId: string) => void;
+  maxDepth?: number;
+  backLabel?: string;
 };
 
 const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
@@ -60,12 +62,35 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
       onItemClick,
       onToggleExpand,
       onChildClick,
+      expandedItems,
+      onToggleChildExpand,
+      maxDepth = 5,
+      backLabel = 'Back',
       className,
       ...props
     },
     ref,
   ) => {
     const hasChildren = childItems.length > 0;
+    const [drillDownStack, setDrillDownStack] = React.useState<string[]>([]);
+
+    const handleDrillDown = React.useCallback((drillId: string) => {
+      setDrillDownStack((prev) => [...prev, drillId]);
+    }, []);
+
+    const handleDrillUp = React.useCallback(() => {
+      setDrillDownStack((prev) => prev.slice(0, -1));
+    }, []);
+
+    const drillDownItem = React.useMemo(() => {
+      if (drillDownStack.length === 0) return undefined;
+      let current: MenuBarConfigItem | undefined;
+      drillDownStack.forEach((id) => {
+        const searchIn = current?.children ?? childItems;
+        current = findInTree(searchIn, (n) => n.id === id);
+      });
+      return current;
+    }, [drillDownStack, childItems]);
 
     const handleItemClick = React.useCallback(() => {
       onItemClick();
@@ -131,6 +156,8 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
       </div>
     );
 
+    const itemsToRender = drillDownItem?.children ?? childItems;
+
     const childrenContent = hasChildren && (
       <div
         id={childrenId}
@@ -143,21 +170,37 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
       >
         <div className="overflow-hidden">
           <div className="ml-2">
-            {childItems.map((child) => (
-              <Button
+            {drillDownItem && (
+              <>
+                <Button
+                  type="button"
+                  variant="btn-ghost"
+                  onClick={handleDrillUp}
+                  className="flex w-full items-center gap-2 py-1 pl-2 pr-3 text-sm font-normal text-muted-foreground"
+                >
+                  <FontAwesomeIcon
+                    icon={faChevronLeft}
+                    className="h-3 w-3"
+                  />
+                  <span>{backLabel}</span>
+                </Button>
+                <div className="py-1 pl-4 text-sm font-semibold">{drillDownItem.label}</div>
+              </>
+            )}
+            {itemsToRender.map((child) => (
+              <MenuBarSubItem
                 key={child.id}
-                type="button"
-                variant="btn-ghost"
-                onClick={() => onChildClick?.(child.id)}
-                className={cn(
-                  'flex w-full items-center justify-start py-2 pl-4 pr-3 font-normal',
-                  'transition-all duration-150',
-                  'hover:pl-5',
-                  activeChildId === child.id && 'bg-accent font-bold',
-                )}
-              >
-                <span className="truncate">{child.label}</span>
-              </Button>
+                item={child}
+                depth={0}
+                activeChildId={activeChildId}
+                expandedItems={expandedItems}
+                onChildClick={onChildClick}
+                onToggleChildExpand={onToggleChildExpand}
+                collapseLabel={collapseLabel}
+                expandLabel={expandLabel}
+                maxDepth={maxDepth}
+                onDrillDown={handleDrillDown}
+              />
             ))}
           </div>
         </div>

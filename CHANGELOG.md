@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.87] - 2026-04-21
+
+## [2.0.86] - 2026-04-20
+
+### Added
+
+- `MenuBar`: recursively nested submenus. Items can now declare `children` of arbitrary depth. Up to `maxDepth` (default 5) nodes render inline as expandable accordions; deeper nodes switch to a drill-down view with a back button.
+- `MenuBar`: new props `isChildActive`, `onChildClick`, `maxDepth`, `backLabel`. `isChildActive` is a predicate evaluated against every child at any depth to determine the active node — MenuBar walks the tree internally, so consumers no longer need their own tree traversal to derive the active child id.
+
+### Changed
+
+- `MenuBarConfigItem.icon` is now optional.
+- `MenuBarConfigItem.children` is now `MenuBarConfigItem[]` (recursive) instead of the previous flat child type.
+
+### Removed
+
+- `MenuBar`: `activeChildId` prop removed. Pass `isChildActive` instead (e.g. `isChildActive={(item) => item.id === activeId}`).
+- `MenuBarConfigChildItem` type export. Use `MenuBarConfigItem` (recursive) instead.
+
+## [2.0.85] - 2026-04-20
+
 ## [2.0.84] - 2026-04-17
 
 ## [2.0.83] - 2026-04-16

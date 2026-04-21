@@ -190,4 +190,113 @@ describe('MenuBarItem', () => {
     );
     expect(ref.current?.className).toContain('my-custom-class');
   });
+
+  describe('nested children (recursive submenus)', () => {
+    const nestedChildItems = [
+      {
+        id: 'child-1',
+        label: 'Child 1',
+        children: [
+          { id: 'grandchild-1', label: 'Grandchild 1' },
+          { id: 'grandchild-2', label: 'Grandchild 2' },
+        ],
+      },
+      { id: 'child-2', label: 'Child 2' },
+    ];
+
+    it('renders grandchildren when both parent and child are expanded', () => {
+      render(
+        <MenuBarItem
+          {...defaultProps}
+          isExpanded
+          childItems={nestedChildItems}
+          expandedItems={new Set(['child-1'])}
+        />,
+      );
+      expect(screen.getByText('Grandchild 1')).toBeInTheDocument();
+      expect(screen.getByText('Grandchild 2')).toBeInTheDocument();
+    });
+
+    it('shows chevron on child items that have their own children', () => {
+      render(
+        <MenuBarItem
+          {...defaultProps}
+          isExpanded
+          childItems={nestedChildItems}
+          expandedItems={new Set()}
+          collapseLabel="Collapse"
+          expandLabel="Expand"
+        />,
+      );
+      expect(screen.getByLabelText('Collapse')).toBeInTheDocument();
+      const childExpandButtons = screen.getAllByLabelText('Expand');
+      expect(childExpandButtons).toHaveLength(1);
+    });
+
+    it('calls onChildClick with correct ID for deeply nested child', async () => {
+      const user = userEvent.setup();
+      const handleChildClick = vi.fn();
+      render(
+        <MenuBarItem
+          {...defaultProps}
+          isExpanded
+          childItems={nestedChildItems}
+          expandedItems={new Set(['child-1'])}
+          onChildClick={handleChildClick}
+        />,
+      );
+      await user.click(screen.getByText('Grandchild 1'));
+      expect(handleChildClick).toHaveBeenCalledWith('grandchild-1');
+    });
+
+    it('highlights active child at depth 2', () => {
+      render(
+        <MenuBarItem
+          {...defaultProps}
+          isExpanded
+          childItems={nestedChildItems}
+          expandedItems={new Set(['child-1'])}
+          activeChildId="grandchild-1"
+        />,
+      );
+      const activeChild = screen.getByText('Grandchild 1').closest('button');
+      expect(activeChild?.className).toContain('bg-accent');
+      expect(activeChild?.className).toContain('font-bold');
+    });
+
+    it('calls onToggleChildExpand when chevron on nested child is clicked', async () => {
+      const user = userEvent.setup();
+      const handleToggleChildExpand = vi.fn();
+      render(
+        <MenuBarItem
+          {...defaultProps}
+          isExpanded
+          childItems={nestedChildItems}
+          expandedItems={new Set()}
+          onToggleChildExpand={handleToggleChildExpand}
+          collapseLabel="Collapse"
+          expandLabel="Expand"
+        />,
+      );
+      const expandButtons = screen.getAllByLabelText('Expand');
+      const childExpandButton = expandButtons[expandButtons.length - 1];
+      await user.click(childExpandButton);
+      expect(handleToggleChildExpand).toHaveBeenCalledWith('child-1');
+    });
+
+    it('does not render grandchildren when child is collapsed', () => {
+      render(
+        <MenuBarItem
+          {...defaultProps}
+          isExpanded
+          childItems={nestedChildItems}
+          expandedItems={new Set()}
+        />,
+      );
+      expect(screen.getByText('Child 1')).toBeInTheDocument();
+      expect(screen.getByText('Grandchild 1')).toBeInTheDocument();
+      const grandchildRegion = screen.getByText('Grandchild 1').closest('[role="region"]');
+      expect(grandchildRegion?.className).toContain('grid-rows-[0fr]');
+    });
+  });
 });
