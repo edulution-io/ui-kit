@@ -21,6 +21,7 @@ import * as React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import cn from '../utils/cn';
+import sumChildBadges from '../utils/sumChildBadges';
 import { Button } from './Button';
 import type MenuBarConfigItem from './MenuBarConfigItem';
 
@@ -35,6 +36,7 @@ interface MenuBarSubItemProps {
   expandLabel: string;
   maxDepth: number;
   onDrillDown?: (itemId: string) => void;
+  aggregateChildBadges?: boolean;
 }
 
 const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
@@ -48,9 +50,17 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
   expandLabel,
   maxDepth,
   onDrillDown,
+  aggregateChildBadges = false,
 }) => {
   const hasChildren = (item.children?.length ?? 0) > 0;
   const isExpanded = expandedItems?.has(item.id) ?? false;
+  const aggregatedBadge = React.useMemo(
+    () => (aggregateChildBadges && hasChildren ? sumChildBadges(item.children) : 0),
+    [aggregateChildBadges, hasChildren, item.children],
+  );
+  const ownBadge = item.badge ?? 0;
+  const showAggregatedBadge = aggregateChildBadges && hasChildren && aggregatedBadge > 0;
+  const displayedBadge = showAggregatedBadge ? aggregatedBadge + ownBadge : ownBadge;
   const isDrillDown = hasChildren && depth >= maxDepth;
   const paddingLeft = `${(depth + 1) * 0.5}rem`;
   const childrenId = `${item.id}-children`;
@@ -96,6 +106,14 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
         >
           <span className="mr-2 w-4 shrink-0">{item.icon}</span>
           <span className="flex-1 truncate text-left">{item.label}</span>
+          {displayedBadge > 0 && (
+            <span
+              aria-label={`${displayedBadge} unread`}
+              className="ml-2 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-ciRed px-1.5 text-xs font-semibold text-white"
+            >
+              {displayedBadge > 99 ? '99+' : displayedBadge}
+            </span>
+          )}
         </Button>
         {hasChildren && (
           <Button
@@ -140,6 +158,7 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
                 expandLabel={expandLabel}
                 maxDepth={maxDepth}
                 onDrillDown={onDrillDown}
+                aggregateChildBadges={aggregateChildBadges}
               />
             ))}
           </div>

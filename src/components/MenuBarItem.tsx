@@ -22,6 +22,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import findInTree from '../utils/findInTree';
 import cn from '../utils/cn';
+import sumChildBadges from '../utils/sumChildBadges';
 import { Button } from './Button';
 import type MenuBarConfigItem from './MenuBarConfigItem';
 import MenuBarSubItem from './MenuBarSubItem';
@@ -44,6 +45,7 @@ export type MenuBarItemProps = React.HTMLAttributes<HTMLDivElement> & {
   onToggleChildExpand?: (childId: string) => void;
   maxDepth?: number;
   backLabel?: string;
+  aggregateChildBadges?: boolean;
 };
 
 const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
@@ -66,12 +68,18 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
       onToggleChildExpand,
       maxDepth = 5,
       backLabel = 'Back',
+      aggregateChildBadges = false,
       className,
       ...props
     },
     ref,
   ) => {
     const hasChildren = childItems.length > 0;
+    const aggregatedBadge = React.useMemo(
+      () => (aggregateChildBadges ? sumChildBadges(childItems) : 0),
+      [aggregateChildBadges, childItems],
+    );
+    const showAggregatedBadge = aggregateChildBadges && aggregatedBadge > 0;
     const [drillDownStack, setDrillDownStack] = React.useState<string[]>([]);
 
     const handleDrillDown = React.useCallback((drillId: string) => {
@@ -135,6 +143,14 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
       >
         {icon}
         <span className={cn('flex-1 text-left', isActive ? 'text-white' : '')}>{label}</span>
+        {showAggregatedBadge && (
+          <span
+            aria-label={`${aggregatedBadge} unread`}
+            className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-ciRed px-1.5 text-xs font-semibold text-white"
+          >
+            {aggregatedBadge > 99 ? '99+' : aggregatedBadge}
+          </span>
+        )}
         {hasChildren && (
           <Button
             type="button"
@@ -200,6 +216,7 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
                 expandLabel={expandLabel}
                 maxDepth={maxDepth}
                 onDrillDown={handleDrillDown}
+                aggregateChildBadges={aggregateChildBadges}
               />
             ))}
           </div>

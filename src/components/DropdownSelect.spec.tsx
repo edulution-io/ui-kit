@@ -198,4 +198,100 @@ describe('DropdownSelect', () => {
     expect(within(listbox).getByText('[Option A]')).toBeInTheDocument();
     expect(within(listbox).getByText('[Option B]')).toBeInTheDocument();
   });
+
+  it('suppresses the search input when enableSearch=false even with more than 3 options', async () => {
+    const user = userEvent.setup();
+    const props = {
+      ...defaultProps(),
+      options: FIVE_OPTIONS,
+      selectedVal: 'opt-1',
+      enableSearch: false,
+    };
+    render(<DropdownSelect {...props} />);
+    const input = screen.getByRole('combobox').querySelector('input');
+    expect(input).toHaveAttribute('readonly');
+    expect(input.value).toBe('Alpha');
+    await user.click(input);
+    await user.type(input, 'Gam');
+    expect(input.value).toBe('Alpha');
+    const listbox = screen.getByRole('listbox');
+    expect(within(listbox).getAllByRole('option')).toHaveLength(5);
+  });
+
+  it('renders the listbox in document.body when enablePortalUsage is the default', async () => {
+    const user = userEvent.setup();
+    render(<DropdownSelect {...defaultProps()} />);
+    const combobox = screen.getByRole('combobox');
+    const input = combobox.querySelector('input');
+    await user.click(input);
+    const listbox = screen.getByRole('listbox');
+    expect(combobox.contains(listbox)).toBe(false);
+    expect(document.body.contains(listbox)).toBe(true);
+  });
+
+  it('renders the listbox inline next to the trigger when enablePortalUsage=false', async () => {
+    const user = userEvent.setup();
+    const props = { ...defaultProps(), enablePortalUsage: false };
+    render(<DropdownSelect {...props} />);
+    const combobox = screen.getByRole('combobox');
+    const input = combobox.querySelector('input');
+    await user.click(input);
+    const listbox = screen.getByRole('listbox');
+    expect(combobox.contains(listbox)).toBe(true);
+    expect(listbox.className).toContain('absolute');
+    expect(listbox.className).not.toContain('fixed');
+  });
+
+  it('points combobox and input aria-controls at the rendered listbox id', async () => {
+    const user = userEvent.setup();
+    render(<DropdownSelect {...defaultProps()} />);
+    const combobox = screen.getByRole('combobox');
+    const input = combobox.querySelector('input');
+    await user.click(input);
+    const listbox = screen.getByRole('listbox');
+    const listboxId = listbox.getAttribute('id');
+    expect(listboxId).toBeTruthy();
+    expect(combobox).toHaveAttribute('aria-controls', listboxId);
+    expect(input).toHaveAttribute('aria-controls', listboxId);
+  });
+
+  it('does not open the menu on programmatic focus (e.g. parent autofocus)', () => {
+    const props = { ...defaultProps(), options: FIVE_OPTIONS, selectedVal: 'opt-1' };
+    render(<DropdownSelect {...props} />);
+    const input = screen.getByRole('combobox').querySelector('input');
+    input.focus();
+    expect(input).toHaveFocus();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
+  it('does not open the menu when the input is reached via keyboard tab', async () => {
+    const user = userEvent.setup();
+    const props = { ...defaultProps(), options: FIVE_OPTIONS, selectedVal: 'opt-1' };
+    render(
+      <>
+        <button type="button">Before</button>
+        <DropdownSelect {...props} />
+      </>,
+    );
+    await user.tab();
+    await user.tab();
+    const input = screen.getByRole('combobox').querySelector('input');
+    expect(input).toHaveFocus();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
+  it('generates a unique listbox id per instance', () => {
+    render(
+      <>
+        <DropdownSelect {...defaultProps()} />
+        <DropdownSelect {...defaultProps()} />
+      </>,
+    );
+    const [firstCombobox, secondCombobox] = screen.getAllByRole('combobox');
+    const firstId = firstCombobox.getAttribute('aria-controls');
+    const secondId = secondCombobox.getAttribute('aria-controls');
+    expect(firstId).toBeTruthy();
+    expect(secondId).toBeTruthy();
+    expect(firstId).not.toBe(secondId);
+  });
 });

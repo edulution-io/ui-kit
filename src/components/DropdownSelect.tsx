@@ -17,7 +17,7 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import cn from '../utils/cn';
 import { INPUT_BASE_CLASSES, VARIANT_COLORS } from '../constants/inputClassNames';
@@ -42,6 +42,8 @@ export interface DropdownSelectProps {
   menuClassName?: string;
   variant?: DropdownVariant;
   placeholder?: string;
+  enableSearch?: boolean;
+  enablePortalUsage?: boolean;
   noResultsText?: string;
   renderLabel?: (name: string) => string;
   maxMenuHeight?: number;
@@ -60,19 +62,22 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
   menuClassName,
   variant = 'default',
   placeholder = '',
+  enableSearch = true,
+  enablePortalUsage = true,
   noResultsText = 'No results',
   renderLabel = (name: string) => name,
   maxMenuHeight,
-}) => {
-  const searchEnabled = options.length > 3;
+}: DropdownSelectProps) => {
+  const searchEnabled = enableSearch && options.length > 3;
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, width: 0 });
   const [openToTop, setOpenToTop] = useState(openToTopProp);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const listboxId = useId();
 
-  const closeMenu = () => setIsOpen(false);
+  const closeMenu = useCallback(() => setIsOpen(false), []);
 
   const resolvedMaxHeight = maxMenuHeight ?? MENU_MAX_HEIGHT;
 
@@ -84,20 +89,25 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
     const spaceBelow = viewportHeight - rect.bottom;
     const spaceAbove = rect.top;
     const shouldOpenToTop = openToTopProp || (spaceBelow < resolvedMaxHeight + MENU_MARGIN && spaceAbove > spaceBelow);
-    const menuHeight = Math.min(menuRef.current?.scrollHeight ?? resolvedMaxHeight, resolvedMaxHeight);
+    setOpenToTop(shouldOpenToTop);
 
+    if (!enablePortalUsage) {
+      setMenuPosition({ top: 0, left: 0, width: rect.width });
+      return;
+    }
+
+    const menuHeight = Math.min(menuRef.current?.scrollHeight ?? resolvedMaxHeight, resolvedMaxHeight);
     const viewportOffsetTop = window.visualViewport?.offsetTop ?? 0;
     const calculatedTop = shouldOpenToTop
       ? rect.top - menuHeight - MENU_MARGIN + viewportOffsetTop
       : rect.bottom + MENU_MARGIN + viewportOffsetTop;
 
-    setOpenToTop(shouldOpenToTop);
     setMenuPosition({
       top: calculatedTop,
       left: rect.left,
       width: rect.width,
     });
-  }, [openToTopProp, resolvedMaxHeight]);
+  }, [openToTopProp, resolvedMaxHeight, enablePortalUsage]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -194,6 +204,65 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
     },
   };
 
+  const renderPanel = () => {
+    const panelStyle: React.CSSProperties = enablePortalUsage
+      ? { maxHeight: resolvedMaxHeight, top: menuPosition.top, left: menuPosition.left, width: menuPosition.width }
+      : { maxHeight: resolvedMaxHeight, width: Math.max(menuPosition.width, 150) };
+
+    return (
+      <div
+        ref={menuRef}
+        className={cn(
+          'pointer-events-auto z-[1000] box-border overflow-y-auto rounded-lg text-p scrollbar-thin',
+          enablePortalUsage ? 'fixed' : cn('absolute left-0', openToTop ? 'bottom-full mb-0.5' : 'top-full mt-0.5'),
+          variantClasses[variant],
+          menuClassName,
+        )}
+        style={panelStyle}
+        role="listbox"
+        id={listboxId}
+        onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+      >
+        {filteredOptions.map((option) => {
+          const label = renderLabel(option.name);
+          const selected = option.id === selectedVal;
+          const classes = optionVariantClasses[variant];
+
+          return (
+            <div
+              key={option.id}
+              role="option"
+              aria-selected={selected}
+              aria-disabled={option.disabled || undefined}
+              tabIndex={option.disabled ? -1 : 0}
+              onClick={option.disabled ? undefined : () => selectOption(option)}
+              onKeyDown={option.disabled ? undefined : (e) => handleKeyDown(e, option)}
+              className={cn(
+                'box-border block px-2.5 py-2',
+                option.disabled
+                  ? 'cursor-not-allowed opacity-50'
+                  : cn('cursor-pointer', selected ? classes.selected : classes.base),
+              )}
+              title={label}
+            >
+              {label}
+            </div>
+          );
+        })}
+        {filteredOptions.length === 0 && (
+          <div
+            className="box-border block cursor-default px-2.5 py-2"
+            aria-disabled="true"
+          >
+            {noResultsText}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div
       className={cn('relative cursor-default', classname)}
@@ -201,7 +270,7 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
       role="combobox"
       aria-expanded={isOpen}
       aria-haspopup="listbox"
-      aria-controls="dropdown-listbox"
+      aria-controls={listboxId}
     >
       <input
         type="text"
@@ -210,7 +279,6 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
         placeholder={searchEnabled ? selectedLabel || placeholder : undefined}
         onChange={searchEnabled ? (e) => setQuery(e.target.value) : undefined}
         onClick={openMenu}
-        onFocus={searchEnabled ? openMenu : undefined}
         readOnly={!searchEnabled}
         disabled={options.length === 0}
         className={cn(
@@ -223,7 +291,7 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
           inputClassName,
         )}
         aria-autocomplete={searchEnabled ? 'list' : undefined}
-        aria-controls="dropdown-listbox"
+        aria-controls={listboxId}
       />
 
       <div
@@ -236,64 +304,7 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
         )}
       />
 
-      {isOpen &&
-        createPortal(
-          <div
-            ref={menuRef}
-            className={cn(
-              'pointer-events-auto fixed z-[1000] box-border overflow-y-auto rounded-lg text-p scrollbar-thin',
-              variantClasses[variant],
-              menuClassName,
-            )}
-            style={{
-              maxHeight: resolvedMaxHeight,
-              top: menuPosition.top,
-              left: menuPosition.left,
-              width: menuPosition.width,
-            }}
-            role="listbox"
-            id="dropdown-listbox"
-            onWheel={handleWheel}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-          >
-            {filteredOptions.map((option) => {
-              const label = renderLabel(option.name);
-              const selected = option.id === selectedVal;
-              const classes = optionVariantClasses[variant];
-
-              return (
-                <div
-                  key={option.id}
-                  role="option"
-                  aria-selected={selected}
-                  aria-disabled={option.disabled || undefined}
-                  tabIndex={option.disabled ? -1 : 0}
-                  onClick={option.disabled ? undefined : () => selectOption(option)}
-                  onKeyDown={option.disabled ? undefined : (e) => handleKeyDown(e, option)}
-                  className={cn(
-                    'box-border block px-2.5 py-2',
-                    option.disabled
-                      ? 'cursor-not-allowed opacity-50'
-                      : cn('cursor-pointer', selected ? classes.selected : classes.base),
-                  )}
-                  title={label}
-                >
-                  {label}
-                </div>
-              );
-            })}
-            {filteredOptions.length === 0 && (
-              <div
-                className="box-border block cursor-default px-2.5 py-2"
-                aria-disabled="true"
-              >
-                {noResultsText}
-              </div>
-            )}
-          </div>,
-          document.body,
-        )}
+      {isOpen && (enablePortalUsage ? createPortal(renderPanel(), document.body) : renderPanel())}
     </div>
   );
 };

@@ -28,7 +28,7 @@ const buttonVariants = cva(
     'inline-flex items-center justify-center whitespace-nowrap text-sm font-bold transition-colors',
     'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
     'disabled:pointer-events-none disabled:opacity-50',
-    'w-fit gap-2 p-4 hover:opacity-90 rounded-xl',
+    'w-fit gap-2 p-4 hover:opacity-90 rounded-lg',
   ],
   {
     variants: {
@@ -55,6 +55,7 @@ const buttonVariants = cva(
         sm: 'h-8 px-3 text-xs',
         md: 'h-9 px-3',
         lg: 'h-10 px-8',
+        xl: 'h-11 px-8',
         icon: 'h-10 w-10 p-0',
       },
     },
