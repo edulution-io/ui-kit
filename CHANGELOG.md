@@ -7,7 +7,91 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.102] - 2026-04-29
+
+### Added
+
+- `DropdownSelect`: new optional prop `enableSearch` (default `true`). When set to `false`, the search input is suppressed even if more than three options are passed; the trigger renders the selected label as a read-only field. Backwards compatible — existing call sites keep the previous "search above 3 options" behavior.
+- `DropdownSelect`: new optional prop `enablePortalUsage` (default `true`). When set to `false`, the option panel is rendered inline next to the trigger via CSS absolute positioning (`top-full` / `bottom-full`) instead of being portaled to `document.body` and positioned in viewport coordinates. The viewport-based `openToTop` heuristic still runs so up-opening works in both modes. Intended for embeddings inside a third-party-managed DOM tree (e.g. SurveyJS) where a portal target is unreachable. Backwards compatible — existing call sites keep the previous portal behavior.
+
+### Changed
+
+- `DropdownSelect`: the listbox `id` is now generated via `useId()` instead of the hardcoded `"dropdown-listbox"`. The `aria-controls` attributes on the combobox wrapper and the input now reference the generated id, so screen-reader association stays correct when multiple `DropdownSelect` instances render on the same page.
+
+### Fixed
+
+- `DropdownSelect`: option panel is no longer constructed on every render — `createPortal` and the option list only run while the menu is open.
+- `DropdownSelect`: the menu no longer auto-opens on programmatic focus. Previously, when the search input was active (`enableSearch` and more than three options), any focus event — including parent autofocus on mount (e.g. Radix Dialog focusing its first focusable element) or keyboard tab — opened the menu. The trigger now opens only on user click; tab/programmatic focus leaves the menu closed.
+
+## [2.0.101] - 2026-04-29
+
+## [2.0.100] - 2026-04-28
+
+## [2.0.99] - 2026-04-28
+
+## [2.0.98] - 2026-04-27
+
+## [2.0.97] - 2026-04-27
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.96] - 2026-04-27
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.95] - 2026-04-24
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.94] - 2026-04-24
+
+### Added
+
+- `MenuBar`: opt-in integrated search via the new optional `MenuBarConfig.search` field. When provided, a `MenuBarSearchInput` renders below the header and the tree is filtered to matching items. Matching descendants auto-expand their ancestors, and the prior user expansion state is restored byte-identically when the query clears (auto-expansions are merged into a derived set, not into `expandedItems`). When the query has zero results, an empty-state message renders (configurable via `search.noMatchesLabel`, defaults to `"No matches"`). The active route highlight is resolved against the full tree, so it survives searches that hide the active node.
+- New `MenuBarSearchInput` component — controlled input with magnifier icon, clear-X button, Escape-to-clear (stops propagation so wrapping dialogs are not closed), and Enter submit forwarding the trimmed query. Exposes `role="searchbox"` and `aria-label` for screen readers.
+- New `filterMenuTreeByQuery` utility and `FilterMenuTreeResult` type — recursive, locale-aware case-insensitive substring filter over a `MenuBarConfigItem` tree. Returns the visible subtree plus the set of ancestor ids that must be auto-expanded so a matching descendant is reachable. A self-match keeps all children intact so the user can still drill into the node.
+- New `MenuBarSearchConfig` type export.
+
+## [2.0.93] - 2026-04-23
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.92] - 2026-04-23
+
+### Changed
+
+- `Button`: base shape changed from `rounded-xl` to `rounded-lg` to match the style guide for buttons. Visible on every variant.
+- `Input`: `login` variant restyled to use semantic tokens (`bg-background`, `text-foreground`) and an inset focus ring (`ring-2 ring-primary`) instead of a fixed gray border on a white background. The variant now adapts to the active theme — consumers rendering the login screen in dark mode will see theme-aware surface colors and a ring-based focus state instead of the previous border-color change.
+
+### Added
+
+- `Button`: new `xl` size (`h-11 px-8`) for the refreshed login screen.
+
+## [2.0.91] - 2026-04-23
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.90] - 2026-04-22
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.89] - 2026-04-21
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.88] - 2026-04-21
+
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.87] - 2026-04-21
+
+### Added
+
+- `LICENSE` and `LICENSE_EXCEPTIONS.md` files shipped with the package.
+
+### Changed
+
+- Package made standalone: publish flow replaced with a sync-based workflow (`sync-ui-kit.yml`). Repository URL in `package.json` updated to the standalone repo.
 
 ## [2.0.86] - 2026-04-20
 
@@ -74,10 +158,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add dependency sync/check tooling for `libs/ui-kit/package.json` version alignment with root `package.json`
 - Add pre-commit validation for UI-kit dependency version drift (`check:ui-kit-deps`)
 
-## [2.0.60] - 2026-03-26
-
-## [2.0.59] - 2026-03-26
-
 ## [2.0.58] - 2026-03-26
 
 ### Added
@@ -99,8 +179,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bundle all dependencies except react, react-dom, and tailwindcss to reduce consumer install footprint
 - Add tailwindcss as peer dependency
 - Add tailwind.config.ts as Vite build entry
-
-## [1.0.1] - 2026-03-26
 
 ## [1.0.0] - 2026-03-24
 

@@ -104,6 +104,15 @@ export type { ButtonProps, ButtonVariant } from './components/Button';
 
 /**
  * Input – A styled text input with variant support and consistent theming.
+ *
+ * Variants: `default`, `dialog`, `login`, `lightGrayDisabled`.
+ *
+ * The `login` variant is tuned for the login screen and renders focus as an
+ * inset ring (`ring-2 ring-primary`) instead of a border color change. It uses
+ * semantic tokens (`bg-background`, `text-foreground`) so it adapts to the
+ * active theme. Previously it relied on a fixed border color and white
+ * background — consumers upgrading past 2.0.90 will see the ring-based focus
+ * style and theme-aware surface colors.
  */
 export { Input, inputVariants } from './components/Input';
 export { INPUT_BASE_CLASSES, VARIANT_COLORS } from './constants/inputClassNames';
@@ -157,6 +166,24 @@ export type { MenuBarItemListProps } from './components/MenuBarItemList';
 export { default as MenuBar } from './components/MenuBar';
 export type { MenuBarProps, MenuBarConfig } from './components/MenuBar';
 export type { default as MenuBarConfigItem } from './components/MenuBarConfigItem';
+
+/**
+ * MenuBarSearchInput – Opt-in search input rendered inside `MenuBar` when `MenuBarConfig.search`
+ * is provided. Controlled input with a magnifier icon, clear-X button, Enter-to-submit (forwards
+ * the trimmed query), and Escape-to-clear. Escape always stops propagation while the input is
+ * focused so wrapping dialogs do not close.
+ */
+export { default as MenuBarSearchInput } from './components/MenuBarSearchInput';
+export type { MenuBarSearchInputProps } from './components/MenuBarSearchInput';
+
+/**
+ * filterMenuTreeByQuery – Recursive, case-insensitive substring filter over a `MenuBarConfigItem`
+ * tree. Returns the visible subtree plus the set of ancestor ids that must be auto-expanded so a
+ * matching descendant is reachable. Siblings of unmatched nodes are dropped; a self-match keeps
+ * all children intact so the user can still drill into the node.
+ */
+export { default as filterMenuTreeByQuery } from './utils/filterMenuTreeByQuery';
+export type { FilterMenuTreeResult } from './utils/filterMenuTreeByQuery';
 
 /**
  * useMediaQuery – Hook that tracks whether a CSS media query matches (e.g. responsive breakpoints).
@@ -393,7 +420,14 @@ export { default as MinuteButton } from './components/MinuteButton';
 export type { MinuteButtonProps } from './components/MinuteButton';
 
 /**
- * DropdownSelect – A searchable dropdown select component with portal-based menu.
+ * DropdownSelect – A dropdown select with optional search filter and a portal- or absolute-positioned option panel.
+ *
+ * Defaults match the previous behavior: the search input appears when more than three options are passed, and the
+ * panel is rendered into `document.body` via `createPortal`. Both behaviors can be disabled per call site:
+ * - `enableSearch={false}` keeps the trigger as a read-only field even with many options.
+ * - `enablePortalUsage={false}` renders the panel inline next to the trigger using CSS absolute positioning, for
+ *   embeddings in third-party-managed DOM trees (e.g. SurveyJS) where a portal target outside the host tree is
+ *   unreachable.
  */
 export { default as DropdownSelect } from './components/DropdownSelect';
 export type { DropdownSelectProps, DropdownOptions, DropdownVariant } from './components/DropdownSelect';

@@ -30,7 +30,7 @@ const inputVariants = cva(INPUT_BASE_CLASSES, {
     variant: {
       default: `${VARIANT_COLORS.default} placeholder:text-p`,
       dialog: `${VARIANT_COLORS.dialog} placeholder:text-p`,
-      login: `${VARIANT_COLORS.login} placeholder:text-p focus:border-gray-600 focus:bg-white focus:placeholder-muted`,
+      login: `${VARIANT_COLORS.login} placeholder:text-p focus:placeholder-muted`,
       lightGrayDisabled: `${VARIANT_COLORS.lightGrayDisabled} placeholder:text-p`,
     },
   },

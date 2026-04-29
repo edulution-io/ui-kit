@@ -414,4 +414,313 @@ describe('MenuBar', () => {
       expect(screen.getByText('Grandchild 1').closest('button')?.className).not.toContain('font-bold');
     });
   });
+
+  describe('search integration (opt-in)', () => {
+    const createDeepConfig = (searchOverride?: MenuBarConfig['search']): MenuBarConfig =>
+      createConfig({
+        items: [
+          {
+            id: 'root',
+            label: 'Root',
+            icon: <span>R</span>,
+            action: vi.fn(),
+            children: [
+              {
+                id: 'branch-a',
+                label: 'BranchAlpha',
+                action: vi.fn(),
+                children: [
+                  { id: 'leaf-target', label: 'TargetLeaf', action: vi.fn() },
+                  { id: 'leaf-other', label: 'OtherLeaf', action: vi.fn() },
+                ],
+              },
+              { id: 'branch-b', label: 'BranchBeta', action: vi.fn() },
+            ],
+          },
+          {
+            id: 'sibling',
+            label: 'Sibling',
+            icon: <span>S</span>,
+            action: vi.fn(),
+          },
+        ],
+        search: searchOverride,
+      });
+
+    it('does not render a search input when config.search is absent', () => {
+      const config = createDeepConfig();
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+        />,
+      );
+      expect(screen.queryByPlaceholderText('Find…')).not.toBeInTheDocument();
+      expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    });
+
+    it('renders the search input with the consumer placeholder when config.search is set', () => {
+      const config = createDeepConfig({
+        query: '',
+        onQueryChange: vi.fn(),
+        placeholder: 'Find pages',
+      });
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+        />,
+      );
+      expect(screen.getByPlaceholderText('Find pages')).toBeInTheDocument();
+    });
+
+    it('leaves items visible when the query is empty', () => {
+      const config = createDeepConfig({
+        query: '',
+        onQueryChange: vi.fn(),
+        placeholder: 'Find',
+      });
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+        />,
+      );
+      expect(screen.getByText('Root')).toBeInTheDocument();
+      expect(screen.getByText('Sibling')).toBeInTheDocument();
+    });
+
+    it('treats a whitespace-only query as empty (no filtering)', () => {
+      const config = createDeepConfig({
+        query: '   ',
+        onQueryChange: vi.fn(),
+        placeholder: 'Find',
+      });
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+        />,
+      );
+      expect(screen.getByText('Root')).toBeInTheDocument();
+      expect(screen.getByText('Sibling')).toBeInTheDocument();
+      expect(screen.queryByText('No matches')).not.toBeInTheDocument();
+    });
+
+    it('keeps a top-level match visible and filters siblings out', () => {
+      const config = createDeepConfig({
+        query: 'sibling',
+        onQueryChange: vi.fn(),
+        placeholder: 'Find',
+      });
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+        />,
+      );
+      expect(screen.getByText('Sibling')).toBeInTheDocument();
+      expect(screen.queryByText('Root')).not.toBeInTheDocument();
+    });
+
+    it('auto-expands ancestors when only a deep descendant matches', () => {
+      const config = createDeepConfig({
+        query: 'targetleaf',
+        onQueryChange: vi.fn(),
+        placeholder: 'Find',
+      });
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+          activeItemId="sibling"
+        />,
+      );
+      expect(screen.getByText('Root')).toBeInTheDocument();
+      expect(screen.getByText('BranchAlpha')).toBeInTheDocument();
+      expect(screen.getByText('TargetLeaf')).toBeInTheDocument();
+      expect(screen.queryByText('OtherLeaf')).not.toBeInTheDocument();
+      expect(screen.queryByText('BranchBeta')).not.toBeInTheDocument();
+      expect(screen.queryByText('Sibling')).not.toBeInTheDocument();
+    });
+
+    it('matches case-insensitively', () => {
+      const config = createDeepConfig({
+        query: 'SIBLING',
+        onQueryChange: vi.fn(),
+        placeholder: 'Find',
+      });
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+        />,
+      );
+      expect(screen.getByText('Sibling')).toBeInTheDocument();
+    });
+
+    it('renders the consumer no-matches label when nothing matches', () => {
+      const config = createDeepConfig({
+        query: 'zzz-no-hit',
+        onQueryChange: vi.fn(),
+        placeholder: 'Find',
+        noMatchesLabel: 'Nothing here',
+      });
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+        />,
+      );
+      expect(screen.getByText('Nothing here')).toBeInTheDocument();
+      expect(screen.queryByText('Root')).not.toBeInTheDocument();
+    });
+
+    it('falls back to a default "No matches" label when none provided', () => {
+      const config = createDeepConfig({
+        query: 'zzz-no-hit',
+        onQueryChange: vi.fn(),
+        placeholder: 'Find',
+      });
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+        />,
+      );
+      expect(screen.getByText('No matches')).toBeInTheDocument();
+    });
+
+    it('calls onQueryChange with empty string when the clear button is pressed', async () => {
+      const onQueryChange = vi.fn();
+      const config = createDeepConfig({
+        query: 'sibling',
+        onQueryChange,
+        placeholder: 'Find',
+      });
+      const user = userEvent.setup();
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+        />,
+      );
+      await user.click(screen.getByRole('button', { name: 'Clear' }));
+      expect(onQueryChange).toHaveBeenCalledWith('');
+    });
+
+    it('clears via Escape without bubbling the key event to wrapping dialogs', async () => {
+      const onQueryChange = vi.fn();
+      const parentKeyDown = vi.fn();
+      const config = createDeepConfig({
+        query: 'sibling',
+        onQueryChange,
+        placeholder: 'Find',
+      });
+      const user = userEvent.setup();
+      render(
+        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+        <div onKeyDown={parentKeyDown}>
+          <MenuBar
+            {...defaultProps}
+            config={config}
+          />
+        </div>,
+      );
+      screen.getByPlaceholderText('Find').focus();
+      await user.keyboard('{Escape}');
+      expect(onQueryChange).toHaveBeenCalledWith('');
+      expect(parentKeyDown).not.toHaveBeenCalled();
+    });
+
+    it('fires onSubmit with the trimmed query on Enter', async () => {
+      const onSubmit = vi.fn();
+      const config = createDeepConfig({
+        query: '  target  ',
+        onQueryChange: vi.fn(),
+        placeholder: 'Find',
+        onSubmit,
+      });
+      const user = userEvent.setup();
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+        />,
+      );
+      screen.getByPlaceholderText('Find').focus();
+      await user.keyboard('{Enter}');
+      expect(onSubmit).toHaveBeenCalledWith('target');
+    });
+
+    it('does not fire onSubmit on Enter when the query is effectively empty', async () => {
+      const onSubmit = vi.fn();
+      const config = createDeepConfig({
+        query: '   ',
+        onQueryChange: vi.fn(),
+        placeholder: 'Find',
+        onSubmit,
+      });
+      const user = userEvent.setup();
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+        />,
+      );
+      screen.getByPlaceholderText('Find').focus();
+      await user.keyboard('{Enter}');
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('still renders the search input in mobile layout', () => {
+      matchMediaMatches = true;
+      const config = createDeepConfig({
+        query: '',
+        onQueryChange: vi.fn(),
+        placeholder: 'Find mobile',
+      });
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+          isOpen
+        />,
+      );
+      expect(screen.getByPlaceholderText('Find mobile')).toBeInTheDocument();
+    });
+
+    it('restores the original expansion state after the query clears', () => {
+      const config = createDeepConfig({
+        query: 'targetleaf',
+        onQueryChange: vi.fn(),
+        placeholder: 'Find',
+      });
+      const { rerender } = render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+          activeItemId="sibling"
+        />,
+      );
+      expect(screen.getByText('TargetLeaf')).toBeInTheDocument();
+      expect(screen.queryByText('Sibling')).not.toBeInTheDocument();
+
+      const clearedConfig = createDeepConfig({
+        query: '',
+        onQueryChange: vi.fn(),
+        placeholder: 'Find',
+      });
+      rerender(
+        <MenuBar
+          {...defaultProps}
+          config={clearedConfig}
+          activeItemId="sibling"
+        />,
+      );
+      expect(screen.getByText('Sibling')).toBeInTheDocument();
+      const rootRegion = screen.getByText('BranchAlpha').closest('[role="region"]');
+      expect(rootRegion?.className).toContain('grid-rows-[0fr]');
+    });
+  });
 });

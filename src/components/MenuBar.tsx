@@ -22,6 +22,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useMediaQuery from '../hooks/useMediaQuery';
 import useOnClickOutside from '../hooks/useOnClickOutside';
 import buildActionMap from '../utils/buildActionMap';
+import filterMenuTreeByQuery from '../utils/filterMenuTreeByQuery';
 import findInTree from '../utils/findInTree';
 import findPathToNode from '../utils/findPathToNode';
 import type MenuBarConfigItem from './MenuBarConfigItem';
@@ -29,12 +30,14 @@ import MenuBarLayout from './MenuBarLayout';
 import MenuBarHeader from './MenuBarHeader';
 import MenuBarItem from './MenuBarItem';
 import MenuBarItemList from './MenuBarItemList';
+import MenuBarSearchInput from './MenuBarSearchInput';
 
 const MOBILE_QUERY = '(max-width: 767px)';
 const TABLET_QUERY = '(min-width: 768px) and (max-width: 1023px)';
 
 const DEFAULT_COLLAPSE_LABEL = 'Collapse';
 const DEFAULT_EXPAND_LABEL = 'Expand';
+const DEFAULT_NO_MATCHES_LABEL = 'No matches';
 
 export interface MenuBarConfig {
   title: string;
@@ -42,6 +45,14 @@ export interface MenuBarConfig {
   color: string;
   onHeaderClick: () => void;
   items: MenuBarConfigItem[];
+  search?: {
+    query: string;
+    onQueryChange: (query: string) => void;
+    onSubmit?: (query: string) => void;
+    placeholder: string;
+    clearLabel?: string;
+    noMatchesLabel?: string;
+  };
 }
 
 export type MenuBarProps = {
@@ -76,6 +87,18 @@ export type MenuBarProps = {
    * Pass a translated string. Defaults to `"Back"`.
    */
   backLabel?: string;
+  /**
+   * When true, collapsed parents display the sum of all descendant `badge` values.
+   * The aggregated badge hides automatically when the parent is expanded, to avoid
+   * duplicating what the children already show.
+   */
+  aggregateChildBadges?: boolean;
+  /**
+   * When true, expanding one top-level item does not collapse sibling top-level items;
+   * multiple top-level sections may stay open simultaneously. Defaults to false
+   * (classic accordion behaviour).
+   */
+  allowMultipleTopLevelExpanded?: boolean;
 };
 
 const getActiveColorClass = (color: string) => color.split(':')[1] ?? color;
@@ -94,11 +117,19 @@ const MenuBar: React.FC<MenuBarProps> = ({
   onChildClick: onChildClickProp,
   maxDepth = 5,
   backLabel = 'Back',
+  aggregateChildBadges = false,
+  allowMultipleTopLevelExpanded = false,
 }) => {
   const menuBarRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const isTablet = useMediaQuery(TABLET_QUERY);
   const isDesktop = !isMobile && !isTablet && !forceMobileLayout;
+
+  const searchQuery = config.search?.query ?? '';
+  const { visibleItems, autoExpandIds } = useMemo(
+    () => filterMenuTreeByQuery(config.items, searchQuery),
+    [config.items, searchQuery],
+  );
 
   const activeChildId = useMemo(
     () => (isChildActive ? findInTree(config.items, isChildActive)?.id : undefined),
@@ -106,21 +137,41 @@ const MenuBar: React.FC<MenuBarProps> = ({
   );
 
   const [expandedItems, setExpandedItems] = useState<Set<string>>(() => {
-    if (activeItemId) return new Set([activeItemId]);
-    return new Set();
+    const initial = new Set<string>();
+    if (allowMultipleTopLevelExpanded) {
+      config.items.forEach((item) => initial.add(item.id));
+    }
+    if (activeItemId) initial.add(activeItemId);
+    return initial;
   });
 
   const configItemsRef = useRef(config.items);
   configItemsRef.current = config.items;
 
+  const topLevelIds = useMemo(() => new Set(config.items.map((item) => item.id)), [config.items]);
+
   useEffect(() => {
-    const next = new Set<string>();
-    if (activeItemId) next.add(activeItemId);
-    if (activeChildId) {
-      findPathToNode(configItemsRef.current, activeChildId).forEach((id) => next.add(id));
-    }
-    setExpandedItems(next);
-  }, [activeItemId, activeChildId]);
+    setExpandedItems((prev) => {
+      const next = new Set<string>();
+      if (allowMultipleTopLevelExpanded) {
+        prev.forEach((id) => {
+          if (topLevelIds.has(id)) next.add(id);
+        });
+      }
+      if (activeItemId) next.add(activeItemId);
+      if (activeChildId) {
+        findPathToNode(configItemsRef.current, activeChildId).forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  }, [activeItemId, activeChildId, allowMultipleTopLevelExpanded, topLevelIds]);
+
+  const effectiveExpandedItems = useMemo(() => {
+    if (autoExpandIds.size === 0) return expandedItems;
+    const merged = new Set(expandedItems);
+    autoExpandIds.forEach((id) => merged.add(id));
+    return merged;
+  }, [expandedItems, autoExpandIds]);
 
   const toggleChildExpanded = useCallback((itemId: string) => {
     setExpandedItems((prev) => {
@@ -134,14 +185,17 @@ const MenuBar: React.FC<MenuBarProps> = ({
     });
   }, []);
 
-  const topLevelIds = useMemo(() => new Set(config.items.map((item) => item.id)), [config.items]);
-
   const toggleTopLevelExpanded = useCallback(
     (itemId: string) => {
       setExpandedItems((prev) => {
         if (prev.has(itemId)) {
           const next = new Set(prev);
           next.delete(itemId);
+          return next;
+        }
+        if (allowMultipleTopLevelExpanded) {
+          const next = new Set(prev);
+          next.add(itemId);
           return next;
         }
         const next = new Set<string>();
@@ -152,7 +206,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
         return next;
       });
     },
-    [topLevelIds],
+    [allowMultipleTopLevelExpanded, topLevelIds],
   );
 
   const closeMobileMenu = useCallback(() => {
@@ -200,32 +254,49 @@ const MenuBar: React.FC<MenuBarProps> = ({
         onHeaderClick={config.onHeaderClick}
       />
 
+      {config.search && (
+        <MenuBarSearchInput
+          query={config.search.query}
+          onQueryChange={config.search.onQueryChange}
+          onSubmit={config.search.onSubmit}
+          placeholder={config.search.placeholder}
+          clearLabel={config.search.clearLabel}
+        />
+      )}
+
       <MenuBarItemList>
-        {config.items.map((item) => {
-          const isActive = activeItemId === item.id;
-          return (
-            <MenuBarItem
-              key={item.id}
-              itemId={item.id}
-              icon={item.icon}
-              label={item.label}
-              isActive={isActive}
-              isExpanded={expandedItems.has(item.id)}
-              activeColorClass={activeColorClass}
-              collapseLabel={collapseLabel}
-              expandLabel={expandLabel}
-              childItems={item.children}
-              activeChildId={activeChildId}
-              expandedItems={expandedItems}
-              onItemClick={() => handleItemClick(item.id)}
-              onToggleExpand={() => toggleTopLevelExpanded(item.id)}
-              onChildClick={handleChildClick}
-              onToggleChildExpand={toggleChildExpanded}
-              maxDepth={maxDepth}
-              backLabel={backLabel}
-            />
-          );
-        })}
+        {config.search && searchQuery.trim().length > 0 && visibleItems.length === 0 ? (
+          <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+            {config.search.noMatchesLabel ?? DEFAULT_NO_MATCHES_LABEL}
+          </div>
+        ) : (
+          visibleItems.map((item) => {
+            const isActive = activeItemId === item.id;
+            return (
+              <MenuBarItem
+                key={item.id}
+                itemId={item.id}
+                icon={item.icon}
+                label={item.label}
+                isActive={isActive}
+                isExpanded={effectiveExpandedItems.has(item.id)}
+                activeColorClass={activeColorClass}
+                collapseLabel={collapseLabel}
+                expandLabel={expandLabel}
+                childItems={item.children}
+                activeChildId={activeChildId}
+                expandedItems={effectiveExpandedItems}
+                onItemClick={() => handleItemClick(item.id)}
+                onToggleExpand={() => toggleTopLevelExpanded(item.id)}
+                onChildClick={handleChildClick}
+                onToggleChildExpand={toggleChildExpanded}
+                maxDepth={maxDepth}
+                backLabel={backLabel}
+                aggregateChildBadges={aggregateChildBadges}
+              />
+            );
+          })
+        )}
       </MenuBarItemList>
 
       {footer}

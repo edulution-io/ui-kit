@@ -25,6 +25,7 @@ interface MenuBarConfigItem {
   icon?: React.ReactNode;
   action: () => void;
   children?: MenuBarConfigItem[];
+  badge?: number;
 }
 
 export default MenuBarConfigItem;
