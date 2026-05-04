@@ -137,16 +137,21 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
         aria-controls={hasChildren ? childrenId : undefined}
         aria-label={label}
         className={cn(
-          'flex w-full cursor-pointer items-center gap-3 py-1 pl-3 pr-3 transition-colors hover:bg-muted-background',
-          isActive ? activeColorClass : '',
+          'relative flex w-full cursor-pointer items-center gap-3 rounded-lg py-2 pl-3 pr-3 text-foreground outline-none transition-colors',
+          'before:absolute before:bottom-1 before:left-0 before:top-1 before:w-[3px] before:rounded-r before:bg-ciGreen before:opacity-0 before:transition-opacity before:content-[""]',
+          'hover:bg-accent/50 hover:before:opacity-100',
+          'focus-visible:bg-accent/50 focus-visible:before:opacity-100',
+          isActive && cn(activeColorClass, 'text-primary-foreground before:opacity-100'),
         )}
       >
         {icon}
-        <span className={cn('flex-1 text-left', isActive ? 'text-white' : '')}>{label}</span>
+        <span className={cn('min-w-0 flex-1 truncate text-left text-base', isActive ? 'text-primary-foreground' : '')}>
+          {label}
+        </span>
         {showAggregatedBadge && (
           <span
             aria-label={`${aggregatedBadge} unread`}
-            className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-ciRed px-1.5 text-xs font-semibold text-white"
+            className="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-ciRed px-1.5 text-xs font-semibold text-primary-foreground"
           >
             {aggregatedBadge > 99 ? '99+' : aggregatedBadge}
           </span>
@@ -157,13 +162,13 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
             variant="btn-ghost"
             onClick={handleExpandClick}
             aria-label={isExpanded ? collapseLabel : expandLabel}
-            className="p-1"
+            className="shrink-0 p-1"
           >
             <FontAwesomeIcon
               icon={faChevronDown}
               className={cn(
                 'h-4 w-4 shrink-0 transition-transform duration-200',
-                isActive && 'text-white',
+                isActive && 'text-primary-foreground',
                 isExpanded && 'rotate-180',
               )}
             />

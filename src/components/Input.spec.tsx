@@ -17,9 +17,10 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import { createRef } from 'react';
+import { createRef, useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { Input } from './Input';
 import type { InputVariant } from './Input';
 
@@ -212,5 +213,166 @@ describe('Input', () => {
 
   it('has displayName set to Input', () => {
     expect(Input.displayName).toBe('Input');
+  });
+
+  describe('leftIcon', () => {
+    it('renders a left icon when leftIcon is provided', () => {
+      render(
+        <Input
+          leftIcon={faSearch}
+          placeholder="Search"
+        />,
+      );
+
+      const input = screen.getByPlaceholderText('Search');
+      const wrapper = input.parentElement;
+      expect(wrapper).toHaveClass('relative');
+      expect(wrapper?.querySelector('svg')).toBeInTheDocument();
+    });
+
+    it('adds left padding to the input when leftIcon is provided', () => {
+      render(
+        <Input
+          leftIcon={faSearch}
+          placeholder="Search"
+        />,
+      );
+      expect(screen.getByPlaceholderText('Search').className).toContain('pl-9');
+    });
+
+    it('does not add left padding when leftIcon is omitted', () => {
+      render(<Input placeholder="No icon" />);
+      expect(screen.getByPlaceholderText('No icon').className).not.toContain('pl-9');
+    });
+
+    it('wraps the input in a relative container only because of leftIcon', () => {
+      const { container } = render(
+        <Input
+          leftIcon={faSearch}
+          placeholder="search"
+        />,
+      );
+      expect(container.querySelector('div.relative')).toBeInTheDocument();
+    });
+  });
+
+  describe('onClear', () => {
+    it('does not show the clear button when value is empty string', () => {
+      render(
+        <Input
+          value=""
+          onChange={() => {}}
+          onClear={vi.fn()}
+          placeholder="empty"
+        />,
+      );
+
+      const wrapper = screen.getByPlaceholderText('empty').parentElement!;
+      expect(wrapper.querySelector('button[type="button"]')).toBeNull();
+    });
+
+    it('does not show the clear button when value is undefined', () => {
+      render(
+        <Input
+          onClear={vi.fn()}
+          placeholder="undef"
+        />,
+      );
+
+      const wrapper = screen.getByPlaceholderText('undef').parentElement!;
+      expect(wrapper.querySelector('button[type="button"]')).toBeNull();
+    });
+
+    it('shows the clear button when value is non-empty', () => {
+      render(
+        <Input
+          value="hello"
+          onChange={() => {}}
+          onClear={vi.fn()}
+          placeholder="filled"
+        />,
+      );
+
+      const wrapper = screen.getByPlaceholderText('filled').parentElement!;
+      expect(wrapper.querySelector('button[type="button"]')).toBeInTheDocument();
+    });
+
+    it('invokes onClear when the clear button is clicked', async () => {
+      const user = userEvent.setup();
+      const onClear = vi.fn();
+      render(
+        <Input
+          value="hello"
+          onChange={() => {}}
+          onClear={onClear}
+          placeholder="clear-me"
+        />,
+      );
+
+      const wrapper = screen.getByPlaceholderText('clear-me').parentElement!;
+      const button = wrapper.querySelector('button[type="button"]') as HTMLElement;
+      await user.click(button);
+
+      expect(onClear).toHaveBeenCalledTimes(1);
+    });
+
+    it('adds right padding to the input when onClear is provided', () => {
+      render(
+        <Input
+          value="hi"
+          onChange={() => {}}
+          onClear={vi.fn()}
+          placeholder="pad"
+        />,
+      );
+      expect(screen.getByPlaceholderText('pad').className).toContain('pr-8');
+    });
+
+    it('toggles the clear button visibility as a controlled value changes', async () => {
+      const user = userEvent.setup();
+      const ControlledClear = () => {
+        const [value, setValue] = useState('');
+        return (
+          <Input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onClear={() => setValue('')}
+            placeholder="controlled"
+          />
+        );
+      };
+
+      render(<ControlledClear />);
+      const input = screen.getByPlaceholderText('controlled');
+      const wrapper = input.parentElement!;
+
+      expect(wrapper.querySelector('button[type="button"]')).toBeNull();
+
+      await user.type(input, 'a');
+      expect(wrapper.querySelector('button[type="button"]')).toBeInTheDocument();
+
+      await user.click(wrapper.querySelector('button[type="button"]') as HTMLElement);
+      expect(wrapper.querySelector('button[type="button"]')).toBeNull();
+    });
+
+    it('renders both leftIcon and onClear button together', () => {
+      render(
+        <Input
+          value="x"
+          onChange={() => {}}
+          leftIcon={faSearch}
+          onClear={vi.fn()}
+          placeholder="combo"
+        />,
+      );
+
+      const input = screen.getByPlaceholderText('combo');
+      expect(input.className).toContain('pl-9');
+      expect(input.className).toContain('pr-8');
+
+      const wrapper = input.parentElement!;
+      expect(wrapper.querySelector('svg')).toBeInTheDocument();
+      expect(wrapper.querySelector('button[type="button"]')).toBeInTheDocument();
+    });
   });
 });

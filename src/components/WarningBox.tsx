@@ -40,7 +40,7 @@ const WarningBox: React.FC<WarningBoxProps> = ({
 }: WarningBoxProps) => (
   <div
     className={`
-        mb-4 rounded-xl border ${borderColor} ${backgroundColor} p-3 ${textColor}
+        mb-4 rounded-lg border ${borderColor} ${backgroundColor} p-3 ${textColor}
         flex flex-col items-center text-center
       `}
   >

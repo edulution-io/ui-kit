@@ -112,8 +112,24 @@ describe('MinuteButton', () => {
       />,
     );
     const { className } = screen.getByTestId('minute-button');
-    expect(className).not.toContain('bg-foreground');
+    expect(className).not.toContain('text-background');
+    expect(className).toContain('bg-foreground/10');
+    expect(className).toContain('dark:border-[color-mix(in_srgb,var(--foreground)_15%,transparent)]');
     expect(className).toContain('text-foreground');
+  });
+
+  it('uses primary styling for the selected dialog minute', () => {
+    render(
+      <MinuteButton
+        minute={10}
+        currentMinute={10}
+        onChangeMinute={vi.fn()}
+        variant="dialog"
+      />,
+    );
+    const { className } = screen.getByTestId('minute-button');
+    expect(className).toContain('bg-primary');
+    expect(className).toContain('text-primary-foreground');
   });
 
   it('renders minute 0 as 00', () => {

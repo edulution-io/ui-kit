@@ -21,25 +21,24 @@ import * as React from 'react';
 import cn from '../utils/cn';
 
 export type MenuBarHeaderProps = React.HTMLAttributes<HTMLDivElement> & {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   title: string;
   onHeaderClick: () => void;
 };
 
 const MenuBarHeader = React.forwardRef<HTMLDivElement, MenuBarHeaderProps>(
-  ({ icon, title, onHeaderClick, className, ...props }, ref) => (
+  ({ icon: _icon, title, onHeaderClick, className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('flex flex-col items-center justify-center py-6', className)}
+      className={cn('flex flex-col items-stretch pb-6 pt-2 lg:pt-4', className)}
       {...props}
     >
       <button
-        className="flex flex-col items-center justify-center rounded-xl p-2 hover:bg-muted-background"
+        className="flex h-10 w-full items-center justify-center px-3 text-center"
         type="button"
         onClick={onHeaderClick}
       >
-        {icon}
-        <h2 className="mb-2 mt-2 text-center font-bold">{title}</h2>
+        <h2 className="truncate text-base font-semibold leading-none md:text-lg">{title}</h2>
       </button>
     </div>
   ),

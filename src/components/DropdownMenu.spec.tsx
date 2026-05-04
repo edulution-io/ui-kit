@@ -83,6 +83,31 @@ describe('DropdownMenu', () => {
     expect(screen.getByText('Item 2')).toBeInTheDocument();
   });
 
+  it('uses the contrast-safe glass panel surface for menu content', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button type="button">Open Menu</button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>Item 1</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    );
+
+    await user.click(screen.getByText('Open Menu'));
+
+    let node = screen.getByText('Item 1').parentElement;
+    while (node && !node.className.includes('liquid-glass-panel')) {
+      node = node.parentElement;
+    }
+
+    expect(node).toBeInTheDocument();
+    expect(node?.className).toContain('text-foreground');
+  });
+
   it('calls onClick handler when item is clicked', async () => {
     const user = userEvent.setup();
     const handleClick = vi.fn();

@@ -112,8 +112,24 @@ describe('HourButton', () => {
       />,
     );
     const { className } = screen.getByTestId('hour-button');
-    expect(className).not.toContain('bg-foreground');
+    expect(className).not.toContain('text-background');
+    expect(className).toContain('bg-foreground/10');
+    expect(className).toContain('dark:border-[color-mix(in_srgb,var(--foreground)_15%,transparent)]');
     expect(className).toContain('text-foreground');
+  });
+
+  it('uses primary styling for the selected dialog hour', () => {
+    render(
+      <HourButton
+        hour={3}
+        currentHour={3}
+        onChangeHour={vi.fn()}
+        variant="dialog"
+      />,
+    );
+    const { className } = screen.getByTestId('hour-button');
+    expect(className).toContain('bg-primary');
+    expect(className).toContain('text-primary-foreground');
   });
 
   it('renders hour 0', () => {

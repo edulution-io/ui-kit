@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.118] - 2026-05-04
+
+## [2.0.117] - 2026-05-04
+
+## [2.0.116] - 2026-05-04
+
+## [2.0.115] - 2026-05-04
+
+## [2.0.114] - 2026-05-04
+
+## [2.0.113] - 2026-05-04
+
+## [2.0.112] - 2026-05-04
+
+## [2.0.111] - 2026-05-04
+
+### Added
+
+- New `CardList<T>` component — a generic, scrollable card list with built-in search (debounced), infinite scroll via `IntersectionObserver`, and multi-select bulk-action support. Renders items via a `renderItem` prop receiving `{ item, isActive, isChecked, onClick, onCheckboxChange }`. Header (`title`, `subtitle`, `actions`) and bulk action bar (`bulkActions`, `onSelectAll`, `onClearSelection`) are optional. Empty / loading states are surfaced via `emptyMessage` and `loadingMessage`. The scroll container uses native `overflow-auto scrollbar-thin` (consistent with the project's tables) so the `IntersectionObserver` sentinel can use the default viewport root. Exports the public types `CardListProps`, `CardListItemProps`, and `CardListHeader`.
+- `Input`: new optional prop `leftIcon` accepting a FontAwesome `IconDefinition`. When set, the icon is rendered inside the input on the left and the input automatically receives `pl-9` so the text never overlaps the icon.
+- `Input`: new optional prop `onClear`. When set, an `X` button is rendered on the right side of the input as long as the controlled `value` is a non-empty string; clicking it invokes the callback. The input automatically receives `pr-8` to make room for the button.
+
+### Fixed
+
+- `DropdownSelect`: trigger padding (`pl-2.5` / `pr-8`) is now marked `!important` so the new `Input` `leftIcon` / `onClear` padding utilities cannot accidentally override the dropdown trigger geometry when the same base classes are reused.
+
+## [2.0.110] - 2026-05-04
+
+## [2.0.109] - 2026-05-02
+
+## [2.0.108] - 2026-04-30
+
+## [2.0.107] - 2026-04-30
+
+## [2.0.106] - 2026-04-30
+
+## [2.0.105] - 2026-04-29
+
+## [2.0.104] - 2026-04-29
+
+## [2.0.103] - 2026-04-29
+
 ## [2.0.102] - 2026-04-29
 
 ### Added

@@ -72,7 +72,7 @@ beforeEach(() => {
 });
 
 describe('MenuBar', () => {
-  it('renders header with title and icon', () => {
+  it('renders header with title (icon slot was removed)', () => {
     const config = createConfig();
     render(
       <MenuBar
@@ -81,7 +81,7 @@ describe('MenuBar', () => {
       />,
     );
     expect(screen.getByText('Test App')).toBeInTheDocument();
-    expect(screen.getByTestId('header-icon')).toBeInTheDocument();
+    expect(screen.queryByTestId('header-icon')).not.toBeInTheDocument();
   });
 
   it('renders all menu items', () => {

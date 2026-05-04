@@ -39,7 +39,7 @@ const HorizontalLoader = ({
   barColor = 'bg-primary',
   backgroundColor = 'bg-accent',
 }: HorizontalLoaderProps) => (
-  <div className={cn('relative overflow-hidden rounded-xl', height, width, backgroundColor, className)}>
+  <div className={cn('relative overflow-hidden rounded-lg', height, width, backgroundColor, className)}>
     <motion.span
       className={cn('absolute bottom-0 left-0 top-0', barWidth, barColor)}
       animate={{ x: ['0%', '100%', '0%'] }}

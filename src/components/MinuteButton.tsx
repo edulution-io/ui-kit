@@ -33,13 +33,17 @@ const MinuteButton: React.FC<MinuteButtonProps> = ({ minute, currentMinute, onCh
   const handleClick = useCallback(() => {
     onChangeMinute(minute);
   }, [minute, onChangeMinute]);
+  const isSelected = currentMinute === minute;
 
   return (
     <Button
-      variant={currentMinute === minute ? 'btn-outline' : 'btn-small'}
+      variant={isSelected ? 'btn-outline' : 'btn-small'}
       className={cn('aspect-square max-h-[25px] max-w-[64px] shrink-0 sm:w-full', {
         'bg-foreground text-background': variant === 'default',
-        'bg-white text-foreground dark:bg-accent dark:text-secondary': variant === 'dialog',
+        'bg-primary text-primary-foreground shadow-none hover:bg-primary hover:text-primary-foreground':
+          variant === 'dialog' && isSelected,
+        'border-foreground/15 bg-foreground/10 hover:bg-foreground/15 border text-foreground shadow-none backdrop-blur-sm dark:border-[color-mix(in_srgb,var(--foreground)_15%,transparent)]':
+          variant === 'dialog' && !isSelected,
       })}
       onClick={handleClick}
     >

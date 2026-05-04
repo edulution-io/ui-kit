@@ -39,9 +39,9 @@ describe('MenuBarHeader', () => {
     expect(screen.getByText('Test Title')).toBeInTheDocument();
   });
 
-  it('renders icon correctly', () => {
+  it('does not render the icon (icon slot was removed)', () => {
     render(<MenuBarHeader {...defaultProps} />);
-    expect(screen.getByAltText('test icon')).toBeInTheDocument();
+    expect(screen.queryByAltText('test icon')).not.toBeInTheDocument();
   });
 
   it('forwards ref to the div element', () => {

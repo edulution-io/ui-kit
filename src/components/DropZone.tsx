@@ -53,7 +53,7 @@ const DropZone: React.FC<DropZoneProps> = ({
   });
 
   const dropzoneStyle = cn(
-    'border-2 border-dashed border-muted dark:border-muted-foreground rounded-xl cursor-pointer',
+    'border-2 border-dashed border-muted dark:border-muted-foreground rounded-lg cursor-pointer',
     isDragActive ? activeClassName : inactiveClassName,
     className,
   );

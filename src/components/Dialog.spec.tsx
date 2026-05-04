@@ -218,8 +218,9 @@ describe('DialogContent', () => {
       </Dialog>,
     );
     const content = screen.getByTestId('dialog-content');
-    expect(content.className).toContain('bg-glass');
-    expect(content.className).toContain('backdrop-blur-lg');
+    expect(content.className).toContain('liquid-glass');
+    expect(content.className).toContain('liquid-glass-panel');
+    expect(content.className).toContain('outline-none');
   });
 
   it('applies primary variant overlay classes', () => {
@@ -261,8 +262,8 @@ describe('DialogContent', () => {
       </Dialog>,
     );
     const content = screen.getByTestId('dialog-content');
-    expect(content.className).toContain('rounded-xl');
-    expect(content.className).toContain('max-h-[90vh]');
+    expect(content.className).toContain('rounded-lg');
+    expect(content.className).toContain('max-h-[round(down,90vh,2px)]');
     expect(content.className).toContain('shadow-lg');
   });
 
@@ -382,7 +383,7 @@ describe('DialogTitle', () => {
         <DialogTitle>Title</DialogTitle>
       </Dialog>,
     );
-    expect(screen.getByTestId('dialog-title').className).toContain('rounded-xl');
+    expect(screen.getByTestId('dialog-title').className).toContain('rounded-lg');
     expect(screen.getByTestId('dialog-title').className).toContain('text-lg');
     expect(screen.getByTestId('dialog-title').className).toContain('font-semibold');
   });

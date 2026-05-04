@@ -30,17 +30,17 @@ const MenuBarLayout = React.forwardRef<HTMLDivElement, MenuBarLayoutProps>(
     if (isDesktop) {
       return (
         <aside
-          className="relative flex h-dvh"
+          className="relative flex h-full min-h-0"
           {...props}
         >
           <div
             ref={ref}
             className={cn(
-              'bg-glass h-full w-64 overflow-hidden rounded-r-xl shadow-lg shadow-slate-400 backdrop-blur-lg transition-all duration-300',
+              'liquid-glass h-full w-64 overflow-hidden !rounded-lg border-0 transition-all duration-300',
               className,
             )}
           >
-            <div className="flex h-full max-w-[var(--menubar-max-width,300px)] flex-col">{children}</div>
+            <div className="flex h-full min-h-0 max-w-[var(--menubar-max-width,300px)] flex-col">{children}</div>
           </div>
         </aside>
       );
@@ -57,11 +57,12 @@ const MenuBarLayout = React.forwardRef<HTMLDivElement, MenuBarLayoutProps>(
         <div
           ref={ref}
           className={cn(
-            'bg-glass fixed left-0 h-full w-64 overflow-x-hidden border-r-[1px] border-muted backdrop-blur-md',
+            'liquid-glass fixed left-0 h-full w-64 overflow-x-hidden !rounded-lg border-0',
+            'pt-[var(--mobile-top-bar-height,0px)]',
             className,
           )}
         >
-          <div className="flex h-full max-w-[var(--menubar-max-width,300px)] flex-col">{children}</div>
+          <div className="flex h-full min-h-0 max-w-[var(--menubar-max-width,300px)] flex-col">{children}</div>
         </div>
       </div>
     );

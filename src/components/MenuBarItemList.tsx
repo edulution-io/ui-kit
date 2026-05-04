@@ -26,7 +26,7 @@ const MenuBarItemList = React.forwardRef<HTMLDivElement, MenuBarItemListProps>(
   ({ className, children, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('flex-1 overflow-y-auto pb-10', className)}
+      className={cn('min-h-0 flex-1 overflow-y-auto overscroll-contain pb-10', className)}
       {...props}
     >
       {children}
