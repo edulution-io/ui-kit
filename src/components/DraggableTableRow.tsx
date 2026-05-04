@@ -17,7 +17,8 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import React, { ReactNode, useCallback } from 'react';
+import { Children, cloneElement, isValidElement, useCallback } from 'react';
+import type { HTMLAttributes, MutableRefObject, ReactElement, ReactNode, Ref } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { Row } from '@tanstack/react-table';
 import cn from '../utils/cn';
@@ -33,7 +34,24 @@ export interface DraggableTableRowProps<TData> {
   variant?: TableRowVariant;
   isKeyboardFocused?: boolean;
   onRowClick?: (item: TData) => void;
+  dragHandleCellIndex?: number;
 }
+
+type DragHandleCellProps = HTMLAttributes<HTMLTableCellElement> & {
+  ref?: Ref<HTMLTableCellElement>;
+};
+
+const assignRef = <TElement,>(ref: Ref<TElement> | undefined, value: TElement | null) => {
+  if (!ref) return;
+
+  if (typeof ref === 'function') {
+    ref(value);
+    return;
+  }
+
+  const mutableRef = ref as MutableRefObject<TElement | null>;
+  mutableRef.current = value;
+};
 
 const DraggableTableRow = <TData,>({
   row,
@@ -44,11 +62,13 @@ const DraggableTableRow = <TData,>({
   variant = 'default',
   isKeyboardFocused = false,
   onRowClick,
+  dragHandleCellIndex,
 }: DraggableTableRowProps<TData>) => {
   const {
     attributes,
     listeners,
     setNodeRef: setDragRef,
+    setActivatorNodeRef,
     isDragging,
   } = useDraggable({
     id: row.id,
@@ -64,7 +84,13 @@ const DraggableTableRow = <TData,>({
     data: row.original as Record<string, unknown>,
   });
 
-  const combinedRef = useCallback(
+  const childrenArray = Children.toArray(children);
+  const hasDragHandle =
+    typeof dragHandleCellIndex === 'number' &&
+    dragHandleCellIndex >= 0 &&
+    isValidElement(childrenArray[dragHandleCellIndex]);
+
+  const rowRef = useCallback(
     (element: HTMLTableRowElement | null) => {
       setDragRef(element);
       setDropRef(element);
@@ -78,25 +104,46 @@ const DraggableTableRow = <TData,>({
     onRowClick?.(row.original);
   }, [onRowClick, row.original]);
 
+  const dragHandleChildren = hasDragHandle
+    ? childrenArray.map((child, index) => {
+        if (index !== dragHandleCellIndex || !isValidElement<DragHandleCellProps>(child)) {
+          return child;
+        }
+
+        const childElement = child as ReactElement<DragHandleCellProps> & { ref?: Ref<HTMLTableCellElement> };
+        const childRef = childElement.ref;
+
+        return cloneElement(childElement, {
+          ...listeners,
+          ...attributes,
+          ref: (element: HTMLTableCellElement | null) => {
+            assignRef(childRef, element);
+            setActivatorNodeRef(element);
+          },
+          className: cn(childElement.props.className, enableDragAndDrop && !isRowDisabled && 'cursor-move'),
+        });
+      })
+    : children;
+
   return (
     <TableRow
-      ref={combinedRef}
+      ref={rowRef}
       variant={variant}
       data-row-id={row.id}
       data-state={isSelected ? 'selected' : undefined}
       data-disabled={isRowDisabled ? 'true' : undefined}
       className={cn(
-        enableDragAndDrop && !isRowDisabled && 'cursor-move',
+        !hasDragHandle && enableDragAndDrop && !isRowDisabled && 'cursor-move',
         isDragging && 'opacity-30',
         isDragging && isSelected && 'outline outline-2 outline-offset-2 outline-primary',
         isOver && canDrop && 'bg-primary/10 outline outline-2 -outline-offset-2 outline-primary',
         isKeyboardFocused && 'relative z-10 outline outline-2 -outline-offset-2 outline-primary',
       )}
       onClick={handleClick}
-      {...listeners}
-      {...attributes}
+      {...(!hasDragHandle ? listeners : {})}
+      {...(!hasDragHandle ? attributes : {})}
     >
-      {children}
+      {dragHandleChildren}
     </TableRow>
   );
 };

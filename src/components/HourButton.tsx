@@ -33,14 +33,18 @@ const HourButton: React.FC<HourButtonProps> = ({ hour, currentHour, onChangeHour
   const handleClick = useCallback(() => {
     onChangeHour(hour);
   }, [hour, onChangeHour]);
+  const isSelected = currentHour === hour;
 
   return (
     <Button
-      variant={currentHour === hour ? 'btn-outline' : 'btn-small'}
+      variant={isSelected ? 'btn-outline' : 'btn-small'}
       className={cn(
         'aspect-square max-h-[25px] max-w-[64px] shrink-0 sm:w-full',
         variant === 'default' && 'bg-foreground text-background',
-        variant === 'dialog' && 'bg-white text-foreground dark:bg-accent dark:text-secondary',
+        variant === 'dialog' &&
+          (isSelected
+            ? 'bg-primary text-primary-foreground shadow-none hover:bg-primary hover:text-primary-foreground'
+            : 'border-foreground/15 bg-foreground/10 hover:bg-foreground/15 border text-foreground shadow-none backdrop-blur-sm dark:border-[color-mix(in_srgb,var(--foreground)_15%,transparent)]'),
       )}
       onClick={handleClick}
     >

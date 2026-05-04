@@ -73,6 +73,17 @@ describe('DropdownSelect', () => {
     expect(options[1]).toHaveTextContent('Option B');
   });
 
+  it('uses the contrast-safe glass panel for the option list', async () => {
+    const user = userEvent.setup();
+    render(<DropdownSelect {...defaultProps()} />);
+    const input = screen.getByRole('combobox').querySelector('input');
+    await user.click(input);
+    const listbox = screen.getByRole('listbox');
+    expect(listbox.className).toContain('liquid-glass-panel');
+    expect(listbox.className).toContain('text-foreground');
+    expect(listbox.className).not.toContain('liquid-glass-soft');
+  });
+
   it('calls handleChange when an option is selected', async () => {
     const user = userEvent.setup();
     const props = defaultProps();

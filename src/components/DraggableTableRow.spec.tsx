@@ -19,11 +19,17 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-use-before-define, react/display-name */
 
+const dndKitMocks = vi.hoisted(() => ({
+  setActivatorNodeRef: vi.fn(),
+  setDraggableNodeRef: vi.fn(),
+}));
+
 vi.mock('@dnd-kit/core', () => ({
   useDraggable: () => ({
     attributes: { 'data-draggable': 'true' },
     listeners: {},
-    setNodeRef: vi.fn(),
+    setNodeRef: dndKitMocks.setDraggableNodeRef,
+    setActivatorNodeRef: dndKitMocks.setActivatorNodeRef,
     isDragging: false,
   }),
   useDroppable: () => ({
@@ -60,6 +66,10 @@ const createMockRow = (overrides: Record<string, any> = {}) => ({
 });
 
 describe('DraggableTableRow', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('renders children inside a table row', () => {
     const row = createMockRow();
     render(
@@ -132,5 +142,52 @@ describe('DraggableTableRow', () => {
     );
     await user.click(screen.getByTestId('table-row'));
     expect(handleClick).toHaveBeenCalledWith({ id: '1', name: 'Item A' });
+  });
+
+  it('keeps drag behavior on the row when no drag handle cell is configured', () => {
+    const row = createMockRow();
+
+    render(
+      <table>
+        <tbody>
+          <DraggableTableRow
+            row={row as any}
+            enableDragAndDrop
+          >
+            <td>Cell</td>
+          </DraggableTableRow>
+        </tbody>
+      </table>,
+    );
+
+    expect(screen.getByTestId('table-row')).toHaveAttribute('data-draggable', 'true');
+    expect(screen.getByTestId('table-row')).toHaveClass('cursor-move');
+  });
+
+  it('moves drag activation to the configured drag handle cell while keeping the row as the draggable node', () => {
+    const row = createMockRow();
+
+    render(
+      <table>
+        <tbody>
+          <DraggableTableRow
+            row={row as any}
+            enableDragAndDrop
+            dragHandleCellIndex={0}
+          >
+            <td data-testid="name-cell">Name</td>
+            <td data-testid="modified-cell">Modified</td>
+          </DraggableTableRow>
+        </tbody>
+      </table>,
+    );
+
+    expect(screen.getByTestId('table-row')).not.toHaveAttribute('data-draggable');
+    expect(screen.getByTestId('table-row')).not.toHaveClass('cursor-move');
+    expect(screen.getByTestId('name-cell')).toHaveAttribute('data-draggable', 'true');
+    expect(screen.getByTestId('name-cell')).toHaveClass('cursor-move');
+    expect(screen.getByTestId('modified-cell')).not.toHaveAttribute('data-draggable');
+    expect(dndKitMocks.setDraggableNodeRef).toHaveBeenCalledWith(screen.getByTestId('table-row'));
+    expect(dndKitMocks.setActivatorNodeRef).toHaveBeenCalledWith(screen.getByTestId('name-cell'));
   });
 });

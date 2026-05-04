@@ -62,7 +62,7 @@ describe('Card', () => {
   it('applies base classes', () => {
     render(<Card data-testid="card">Base</Card>);
     const card = screen.getByTestId('card');
-    expect(card.className).toContain('rounded-xl');
+    expect(card.className).toContain('rounded-lg');
     expect(card.className).toContain('bg-card');
     expect(card.className).toContain('border-solid');
   });

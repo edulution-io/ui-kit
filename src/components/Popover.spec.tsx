@@ -76,6 +76,18 @@ describe('PopoverContent', () => {
     expect(screen.getByTestId('popover-content').className).toContain('w-80');
   });
 
+  it('uses the contrast-safe glass panel surface', () => {
+    render(
+      <Popover>
+        <PopoverContent>Content</PopoverContent>
+      </Popover>,
+    );
+
+    const content = screen.getByTestId('popover-content');
+    expect(content.className).toContain('liquid-glass-panel');
+    expect(content.className).toContain('text-foreground');
+  });
+
   it('uses align center by default', () => {
     render(
       <Popover>

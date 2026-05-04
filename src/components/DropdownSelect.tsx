@@ -22,7 +22,7 @@ import { createPortal } from 'react-dom';
 import cn from '../utils/cn';
 import { INPUT_BASE_CLASSES, VARIANT_COLORS } from '../constants/inputClassNames';
 
-const DROPDOWN_SELECT_CLASSES = `${INPUT_BASE_CLASSES} box-border truncate pl-2.5 pr-8 text-start placeholder:text-foreground`;
+const DROPDOWN_SELECT_CLASSES = `${INPUT_BASE_CLASSES} box-border truncate !pl-2.5 !pr-8 text-start placeholder:text-foreground`;
 
 export type DropdownVariant = 'dialog' | 'default';
 
@@ -193,6 +193,11 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
     dialog: VARIANT_COLORS.dialog,
   };
 
+  const panelVariantClasses = {
+    default: 'liquid-glass-panel text-foreground',
+    dialog: 'liquid-glass-panel text-foreground',
+  };
+
   const optionVariantClasses = {
     default: {
       base: 'hover:bg-muted',
@@ -215,7 +220,7 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
         className={cn(
           'pointer-events-auto z-[1000] box-border overflow-y-auto rounded-lg text-p scrollbar-thin',
           enablePortalUsage ? 'fixed' : cn('absolute left-0', openToTop ? 'bottom-full mb-0.5' : 'top-full mt-0.5'),
-          variantClasses[variant],
+          panelVariantClasses[variant],
           menuClassName,
         )}
         style={panelStyle}

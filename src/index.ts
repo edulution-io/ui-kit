@@ -132,6 +132,12 @@ export { Card, cardVariants, CardContent } from './components/Card';
 export type { CardProps, CardVariant } from './components/Card';
 
 /**
+ * CardList – A generic, scrollable card list with built-in search, infinite scroll, and multi-select support.
+ */
+export { default as CardList } from './components/CardList';
+export type { CardListProps, CardListItemProps, CardListHeader } from './components/CardList';
+
+/**
  * cn – Utility function for merging Tailwind CSS class names (clsx + twMerge).
  */
 export { default as cn } from './utils/cn';
@@ -147,7 +153,7 @@ export { default as cn } from './utils/cn';
  * Composable parts:
  * - `MenuBar` – High-level component that accepts a config object to render the full menu bar.
  * - `MenuBarLayout` – The outer layout shell (desktop sidebar / mobile bottom bar).
- * - `MenuBarHeader` – The header area with logo and collapse toggle.
+ * - `MenuBarHeader` – The header area with the menu bar title. The `icon` prop is accepted for API compatibility but no longer rendered.
  * - `MenuBarItem` – A single top-level navigation item with a recursive child tree.
  * - `MenuBarItemList` – A scrollable list of `MenuBarItem` entries.
  */
@@ -456,6 +462,11 @@ export type {
   SheetDescriptionProps,
   SheetFooterProps,
 } from './components/Sheet';
+
+/**
+ * GradientText – Inline text with the app gradient treatment for prominent dashboard and hero copy.
+ */
+export { default as GradientText } from './components/GradientText';
 
 /**
  * Dialog – A modal dialog built on Radix UI Dialog primitive with variant support and close button.

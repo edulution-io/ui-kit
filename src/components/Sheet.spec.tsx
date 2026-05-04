@@ -219,8 +219,8 @@ describe('SheetContent', () => {
     );
     const content = screen.getByTestId('sheet-content');
     expect(content.className).toContain('text-foreground');
-    expect(content.className).toContain('bg-glass');
-    expect(content.className).toContain('backdrop-blur-lg');
+    expect(content.className).toContain('liquid-glass');
+    expect(content.className).toContain('liquid-glass-panel');
   });
 
   it('applies secondary variant classes', () => {

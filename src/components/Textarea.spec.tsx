@@ -39,6 +39,15 @@ describe('Textarea', () => {
     expect(screen.getByRole('textbox').className).toContain('my-textarea');
   });
 
+  it('uses the same soft glass surface as dialog inputs', () => {
+    render(<Textarea />);
+
+    const textarea = screen.getByRole('textbox');
+    expect(textarea.className).toContain('liquid-glass-soft');
+    expect(textarea.className).not.toContain('bg-white');
+    expect(textarea.className).not.toContain('dark:bg-accent');
+  });
+
   it('accepts user input', async () => {
     const user = userEvent.setup();
     render(<Textarea />);

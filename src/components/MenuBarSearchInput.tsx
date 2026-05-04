@@ -68,7 +68,7 @@ const MenuBarSearchInput: React.FC<MenuBarSearchInputProps> = ({
   const showClear = query.length > 0;
 
   return (
-    <div className={cn('px-4 pb-2', className)}>
+    <div className={cn('px-2 pb-2', className)}>
       <div className="relative w-full">
         <FontAwesomeIcon
           icon={faMagnifyingGlass}

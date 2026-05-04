@@ -58,7 +58,7 @@ const DialogOverlay = React.forwardRef<
     <DialogPrimitive.Overlay
       ref={innerRef}
       className={cn(
-        'data-[state=open]:animate-overlayShow fixed inset-0 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+        'data-[state=open]:animate-overlayShow fixed inset-0 z-50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         className,
       )}
       {...props}
@@ -71,17 +71,19 @@ interface DialogContentProps extends React.ComponentPropsWithoutRef<typeof Dialo
   showCloseButton?: boolean;
   variant?: 'primary' | 'secondary' | 'loadingSpinner';
   closeLabel?: string;
+  overlayClassName?: string;
 }
 
 const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Content>, DialogContentProps>(
-  ({ className, children, showCloseButton = true, variant, closeLabel = 'Close', ...props }, ref) => (
+  ({ className, children, showCloseButton = true, variant, closeLabel = 'Close', overlayClassName, ...props }, ref) => (
     <DialogPortal>
-      <DialogOverlay className={cn({ 'bg-overlay-transparent backdrop-blur-sm': variant === 'primary' })} />
+      <DialogOverlay className={overlayClassName} />
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          'fixed left-[50%] top-[50%] z-50 grid max-h-[90vh] w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overflow-auto rounded-xl p-6 shadow-lg duration-200 scrollbar-thin',
-          { 'bg-glass backdrop-blur-lg': variant === 'primary' },
+          'fixed left-[50%] top-[50%] z-50 grid max-h-[round(down,90vh,2px)] w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overflow-auto rounded-lg p-6 outline-none duration-200 scrollbar-thin',
+          { 'shadow-lg': variant !== 'primary' },
+          { 'liquid-glass liquid-glass-panel': variant === 'primary' },
           { 'color-white': variant === 'secondary' },
           { 'bg-ciGray': variant === 'secondary' },
           { 'w-40 bg-background': variant === 'loadingSpinner' },
@@ -128,7 +130,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn('rounded-xl text-lg font-semibold leading-none tracking-tight', className)}
+    className={cn('rounded-lg text-lg font-semibold leading-none tracking-tight', className)}
     {...props}
   />
 ));
