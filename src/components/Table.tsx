@@ -90,9 +90,10 @@ const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
 TableRow.displayName = 'TableRow';
 
 const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<HTMLTableCellElement>>(
-  ({ className, ...props }, ref) => (
+  ({ className, scope = 'col', ...props }, ref) => (
     <th
       ref={ref}
+      scope={scope}
       className={cn(
         'sticky top-0 z-10 w-full backdrop-blur-md',
         'mr-4 h-8 px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',

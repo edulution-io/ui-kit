@@ -206,21 +206,22 @@ const CardList = <T,>({
         </div>
       )}
 
+      {(bulkActions || onSelectAll) && (
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-muted pl-3 pr-4">
+          {onSelectAll && (
+            <Checkbox
+              checked={allChecked}
+              onCheckedChange={() => (allChecked ? onClearSelection?.() : onSelectAll())}
+            />
+          )}
+          <span className="text-xs text-muted-foreground">
+            {selectionLabel ? selectionLabel(checkedItemKeys.length) : `${checkedItemKeys.length} selected`}
+          </span>
+          {bulkActions && <div className="ml-auto">{bulkActions}</div>}
+        </div>
+      )}
+
       <div className={cn('relative flex-1 overflow-auto scrollbar-thin [scrollbar-gutter:stable]', scrollClassName)}>
-        {(bulkActions || onSelectAll) && (
-          <div className="bg-muted/95 sticky top-0 z-10 flex h-12 items-center gap-2 border-l-2 border-l-transparent pl-3 pr-4 backdrop-blur-sm">
-            {onSelectAll && (
-              <Checkbox
-                checked={allChecked}
-                onCheckedChange={() => (allChecked ? onClearSelection?.() : onSelectAll())}
-              />
-            )}
-            <span className="text-xs text-muted-foreground">
-              {selectionLabel ? selectionLabel(checkedItemKeys.length) : `${checkedItemKeys.length} selected`}
-            </span>
-            {bulkActions && <div className="ml-auto">{bulkActions}</div>}
-          </div>
-        )}
         <div className="flex flex-col">
           {items.map((item) => {
             const key = keyExtractor(item);

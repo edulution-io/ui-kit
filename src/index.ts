@@ -192,6 +192,39 @@ export { default as filterMenuTreeByQuery } from './utils/filterMenuTreeByQuery'
 export type { FilterMenuTreeResult } from './utils/filterMenuTreeByQuery';
 
 /**
+ * ResizablePanelGroup / ResizablePanel / ResizableHandle – Two-pane resizable layout primitives
+ * built on `react-resizable-panels`. Provides keyboard navigation (Arrow / Home / End),
+ * WAI-ARIA `role="separator"`, touch-friendly hit targets, and optional `localStorage`
+ * persistence via `autoSaveId`. Use `withHandle` on `ResizableHandle` to render a visible
+ * grip indicator. Pass a stable `id` to each `ResizablePanel` when panels are
+ * conditionally rendered so persisted layouts survive panel-set changes.
+ */
+export {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+  useResizablePanelLayout,
+} from './components/ResizablePanelGroup';
+
+/**
+ * SplitPane – Two-pane resizable layout primitive composed on top of `ResizablePanelGroup`. Handles
+ * mobile single-pane fallback (configurable via `mobileBreakpointQuery` and `mobilePane`), optional
+ * `localStorage` persistence (`autoSaveId`), and percentage sizing including preset shorthands
+ * (`'1/4'`, `'1/3'`, `'1/2'`, `'2/3'`, `'3/4'`). Use `orientation="vertical"` for top/bottom splits.
+ * Min/max/default sizes are interpreted as percentages of the parent group.
+ *
+ * `autoSaveId` must be unique per SplitPane instance — two SplitPanes sharing the same value
+ * will alias each other's persisted layouts in `localStorage`.
+ */
+export { default as SplitPane } from './components/SplitPane/SplitPane';
+export type {
+  SplitPaneProps,
+  SplitPaneOrientation,
+  SplitPanePreset,
+  SplitPaneSide,
+} from './components/SplitPane/splitPaneInternals';
+
+/**
  * useMediaQuery – Hook that tracks whether a CSS media query matches (e.g. responsive breakpoints).
  */
 export { default as useMediaQuery } from './hooks/useMediaQuery';
