@@ -138,6 +138,16 @@ export { default as CardList } from './components/CardList';
 export type { CardListProps, CardListItemProps, CardListHeader } from './components/CardList';
 
 /**
+ * useElementWidth – ResizeObserver-backed hook returning a DOM element's clientWidth.
+ */
+export { default as useElementWidth } from './hooks/useElementWidth';
+
+/**
+ * useCenterScroll – Scrolls a container so a given target pixel position is centered. Re-centers whenever the container width, target, or track width changes (e.g. on resize).
+ */
+export { default as useCenterScroll } from './hooks/useCenterScroll';
+
+/**
  * cn – Utility function for merging Tailwind CSS class names (clsx + twMerge).
  */
 export { default as cn } from './utils/cn';

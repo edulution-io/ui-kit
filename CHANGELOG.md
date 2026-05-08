@@ -7,23 +7,148 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.139] - 2026-05-08
+
+## [2.0.138] - 2026-05-08
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.137] - 2026-05-08
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.136] - 2026-05-08
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.135] - 2026-05-08
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.134] - 2026-05-08
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.133] - 2026-05-07
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.132] - 2026-05-07
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.131] - 2026-05-06
+
+### Changed
+
+- `MenuBarLayout`: sidebar surface class changed from `liquid-glass` to `liquid-glass liquid-glass-panel` in both desktop and mobile drawer modes, so the menu inherits the same panel surface as Dialog / Popover / DropdownMenu. The wrapper still keeps `!rounded-lg border-0`.
+- `liquid-glass-panel` (and the combined `.liquid-glass.liquid-glass-panel` form): CSS rules raised in specificity (`html :is(...)` for the dark default, `.light :is(...)` for the light theme) so the translucent panel background and border-color are no longer overridden by Tailwind background utilities applied on the same element. A new `theme.spec.ts` snapshot guards the selectors.
+- `ResizablePanelGroup`: now adds `flex-row` for horizontal groups and `flex-col` for vertical groups (in addition to the existing `flex h-full w-full`). Vertical orientations previously laid out children horizontally because `flex-direction` was inherited, producing incorrect handle placement.
+
+### Removed
+
+- `liquid-glass`, `liquid-glass-panel`, `liquid-glass-card`, `liquid-glass-tile`: removed redundant `-webkit-backdrop-filter` declarations. Modern Chromium/Safari implement the standard `backdrop-filter` directly, and the duplicated property added bundle weight without any rendering benefit.
+
+## [2.0.130] - 2026-05-06
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.129] - 2026-05-06
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.128] - 2026-05-06
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.127] - 2026-05-06
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.126] - 2026-05-06
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.125] - 2026-05-05
+
+### Added
+
+- `useElementWidth(ref)` hook — returns the element's `clientWidth` and keeps it in sync via a `ResizeObserver`. Returns `0` when the ref is unattached or `ResizeObserver` is unavailable. Intended for layout hooks that need to react to width changes without re-rendering on every animation frame.
+- `useCenterScroll(ref, targetPx, containerWidth, trackWidthPx)` hook — sets `scrollLeft` on the referenced element so `targetPx` is centered horizontally. Re-runs whenever the target, container width, or track width change, and clamps to `[0, trackWidthPx - containerWidth]` so the scroll position never overshoots either end. No-op when the ref has no element or `containerWidth` is `0`.
+
+## [2.0.124] - 2026-05-05
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.123] - 2026-05-05
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.122] - 2026-05-05
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.121] - 2026-05-05
+
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.120] - 2026-05-05
+
+### Added
+
+- `ResizablePanelGroup` / `ResizablePanel` / `ResizableHandle` — two-pane resizable layout primitives built on `react-resizable-panels`. Provide keyboard navigation (Arrow / Home / End), WAI-ARIA `role="separator"`, touch-friendly hit targets, and optional `localStorage` persistence via `autoSaveId`. Use `withHandle` on `ResizableHandle` to render a visible grip indicator. Pass a stable `id` to each `ResizablePanel` when panels are conditionally rendered so persisted layouts survive panel-set changes. New `useResizablePanelLayout` hook exposes layout state for consumers. `react-resizable-panels` added as a runtime dependency.
+- `SplitPane` — two-pane resizable layout primitive composed on top of `ResizablePanelGroup`. Handles mobile single-pane fallback (configurable via `mobileBreakpointQuery` and `mobilePane`), optional `localStorage` persistence (`autoSaveId`), and percentage sizing including preset shorthands (`'1/4'`, `'1/3'`, `'1/2'`, `'2/3'`, `'3/4'`). Supports `orientation="vertical"` for top/bottom splits. Min/max/default sizes are interpreted as percentages of the parent group. Public types: `SplitPaneProps`, `SplitPaneOrientation`, `SplitPanePreset`, `SplitPaneSide`. `autoSaveId` must be unique per instance — two SplitPanes sharing the same value alias each other's persisted layouts in `localStorage`.
+
+### Changed
+
+- `CardList`: bulk-action toolbar moved out of the scroll container and rendered as a fixed header above it. Previously the toolbar was a `sticky top-0` row inside the scroll viewport with a translucent `bg-muted/95 backdrop-blur-sm` background; it now sits in a dedicated `h-12 shrink-0` row with a single `border-b border-muted` separator. The toolbar therefore stays anchored without overlapping list items, and the scroll container regains its full height.
+- `Table` (`TableHead`): now defaults `scope="col"` on the rendered `<th>` element (still overridable via the `scope` prop). Improves screen-reader cell association when consumers do not pass an explicit scope.
 
 ## [2.0.119] - 2026-05-05
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.118] - 2026-05-04
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.117] - 2026-05-04
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.116] - 2026-05-04
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.115] - 2026-05-04
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.114] - 2026-05-04
+
+### Added
+
+- New "liquid-glass" CSS utilities in `styles/theme.css`: `liquid-glass-panel`, `liquid-glass-card`, `liquid-glass-tile`, `liquid-glass-tile-active`. Each ships theme-aware `.light` overrides; tile variants use `color-mix` against the `--foreground` / `--background` tokens. Intended as the shared surface recipe for floating panels (dialogs, popovers, menus), inset cards, and grid tiles.
+- `DraggableTableRow`: new optional prop `dragHandleCellIndex`. When set to a valid index into the row's `children`, the dnd-kit drag listeners and ARIA attributes are forwarded onto that single cell instead of the entire row, and `cursor-move` is moved off the row onto the cell. The cell at the index is wrapped via `cloneElement` with its existing `ref` preserved alongside `setActivatorNodeRef`. When the prop is omitted, behavior is unchanged.
+
+### Changed
+
+- `Dialog`, `Popover`, `DropdownMenu`, `DropdownMenuSubContent`: surface class changed from `liquid-glass` to `liquid-glass liquid-glass-panel` so the panel inherits the new shared liquid-glass-panel styling. Text color switched from `text-popover-foreground` to `text-foreground` so the panels read against the new translucent background in both themes.
+- `DialogOverlay`: `backdrop-blur-sm` is now always applied (previously only on the `primary` variant via the per-content overlay class). The previous `bg-overlay-transparent` background was dropped — the overlay now relies on `backdrop-blur-sm` alone.
+- `DialogContent`: `shadow-lg` is now conditional and only applied on non-`primary` variants — the `liquid-glass-panel` recipe brings its own shadow. `outline-none` added.
+- `Sheet`: `primary` variant uses `liquid-glass liquid-glass-panel`. `secondary` keeps `bg-ciGray` but now adds `shadow-lg` explicitly (the base variant no longer hard-codes `shadow-lg`). `SheetOverlay` drops `bg-overlay-transparent` to match `DialogOverlay`.
+- `DropdownSelect`: option panel now styled via a dedicated `panelVariantClasses` map (`liquid-glass-panel text-foreground` for both `default` and `dialog` variants) so the panel matches the new Dialog/Popover/Menu surfaces independently of the trigger's `variantClasses`.
+- `HourButton`, `MinuteButton`: `dialog` variant restyled. Selected state uses the `primary` token (`bg-primary text-primary-foreground`); unselected state uses a translucent foreground border with `backdrop-blur-sm` (`border-foreground/15 bg-foreground/10 hover:bg-foreground/15`) instead of the previous `bg-white text-foreground dark:bg-accent dark:text-secondary` recipe.
+- `Textarea`: solid `border border-accent-light bg-white ... dark:bg-accent` replaced with the shared `liquid-glass-soft` recipe — borderless surface that adapts to theme via the shared utility. `shadow-sm` removed.
+- `liquid-glass-soft`: re-tuned with denser opacity and a gradient overlay so it visually anchors `Textarea` against the new panel surfaces.
 
 ## [2.0.113] - 2026-05-04
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.112] - 2026-05-04
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.111] - 2026-05-04
 
@@ -38,20 +163,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `DropdownSelect`: trigger padding (`pl-2.5` / `pr-8`) is now marked `!important` so the new `Input` `leftIcon` / `onClear` padding utilities cannot accidentally override the dropdown trigger geometry when the same base classes are reused.
 
 ## [2.0.110] - 2026-05-04
-
-## [2.0.109] - 2026-05-02
-
-## [2.0.108] - 2026-04-30
-
-## [2.0.107] - 2026-04-30
-
-## [2.0.106] - 2026-04-30
-
-## [2.0.105] - 2026-04-29
-
-## [2.0.104] - 2026-04-29
-
-## [2.0.103] - 2026-04-29
 
 ## [2.0.102] - 2026-04-29
 
