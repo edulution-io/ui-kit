@@ -17,16 +17,25 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import * as React from 'react';
-import { Group, type GroupProps } from 'react-resizable-panels';
-import cn from '../../utils/cn';
+import { useEffect, useState, type RefObject } from 'react';
 
-const ResizablePanelGroup: React.FC<GroupProps> = ({ className, orientation, ...props }) => (
-  <Group
-    orientation={orientation ?? 'horizontal'}
-    className={cn('flex h-full w-full', orientation === 'vertical' ? 'flex-col' : 'flex-row', className)}
-    {...props}
-  />
-);
+const useElementWidth = (ref: RefObject<HTMLElement>): number => {
+  const [width, setWidth] = useState(0);
 
-export default ResizablePanelGroup;
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return undefined;
+    setWidth(node.getBoundingClientRect().width);
+    if (typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) setWidth(entry.contentRect.width);
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [ref]);
+
+  return width;
+};
+
+export default useElementWidth;

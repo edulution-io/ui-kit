@@ -36,7 +36,7 @@ const MenuBarLayout = React.forwardRef<HTMLDivElement, MenuBarLayoutProps>(
           <div
             ref={ref}
             className={cn(
-              'liquid-glass h-full w-64 overflow-hidden !rounded-lg border-0 transition-all duration-300',
+              'liquid-glass liquid-glass-panel h-full w-64 overflow-hidden !rounded-lg border-0 transition-all duration-300',
               className,
             )}
           >
@@ -57,7 +57,7 @@ const MenuBarLayout = React.forwardRef<HTMLDivElement, MenuBarLayoutProps>(
         <div
           ref={ref}
           className={cn(
-            'liquid-glass fixed left-0 h-full w-64 overflow-x-hidden !rounded-lg border-0',
+            'liquid-glass liquid-glass-panel fixed left-0 h-full w-64 overflow-x-hidden !rounded-lg border-0',
             'pt-[var(--mobile-top-bar-height,0px)]',
             className,
           )}

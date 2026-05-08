@@ -17,16 +17,19 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import * as React from 'react';
-import { Group, type GroupProps } from 'react-resizable-panels';
-import cn from '../../utils/cn';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { describe, expect, it } from 'vitest';
 
-const ResizablePanelGroup: React.FC<GroupProps> = ({ className, orientation, ...props }) => (
-  <Group
-    orientation={orientation ?? 'horizontal'}
-    className={cn('flex h-full w-full', orientation === 'vertical' ? 'flex-col' : 'flex-row', className)}
-    {...props}
-  />
-);
+const themeCssPath = [
+  resolve(process.cwd(), '../../libs/ui-kit/src/styles/theme.css'),
+  resolve(process.cwd(), 'libs/ui-kit/src/styles/theme.css'),
+].find((path) => existsSync(path));
+const themeCss = readFileSync(themeCssPath ?? '', 'utf-8');
 
-export default ResizablePanelGroup;
+describe('liquid glass panel theme styles', () => {
+  it('keeps panel backgrounds more specific than Tailwind background utilities', () => {
+    expect(themeCss).toContain('html :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel)');
+    expect(themeCss).toContain('.light :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel)');
+  });
+});
