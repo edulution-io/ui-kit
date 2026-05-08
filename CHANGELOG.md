@@ -7,41 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.139] - 2026-05-08
+
 ## [2.0.138] - 2026-05-08
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.137] - 2026-05-08
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.136] - 2026-05-08
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.135] - 2026-05-08
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.134] - 2026-05-08
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.133] - 2026-05-07
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.132] - 2026-05-07
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.131] - 2026-05-06
 
+### Changed
+
+- `MenuBarLayout`: sidebar surface class changed from `liquid-glass` to `liquid-glass liquid-glass-panel` in both desktop and mobile drawer modes, so the menu inherits the same panel surface as Dialog / Popover / DropdownMenu. The wrapper still keeps `!rounded-lg border-0`.
+- `liquid-glass-panel` (and the combined `.liquid-glass.liquid-glass-panel` form): CSS rules raised in specificity (`html :is(...)` for the dark default, `.light :is(...)` for the light theme) so the translucent panel background and border-color are no longer overridden by Tailwind background utilities applied on the same element. A new `theme.spec.ts` snapshot guards the selectors.
+- `ResizablePanelGroup`: now adds `flex-row` for horizontal groups and `flex-col` for vertical groups (in addition to the existing `flex h-full w-full`). Vertical orientations previously laid out children horizontally because `flex-direction` was inherited, producing incorrect handle placement.
+
+### Removed
+
+- `liquid-glass`, `liquid-glass-panel`, `liquid-glass-card`, `liquid-glass-tile`: removed redundant `-webkit-backdrop-filter` declarations. Modern Chromium/Safari implement the standard `backdrop-filter` directly, and the duplicated property added bundle weight without any rendering benefit.
+
 ## [2.0.130] - 2026-05-06
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.129] - 2026-05-06
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.128] - 2026-05-06
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.127] - 2026-05-06
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.126] - 2026-05-06
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.125] - 2026-05-05
 
+### Added
+
+- `useElementWidth(ref)` hook — returns the element's `clientWidth` and keeps it in sync via a `ResizeObserver`. Returns `0` when the ref is unattached or `ResizeObserver` is unavailable. Intended for layout hooks that need to react to width changes without re-rendering on every animation frame.
+- `useCenterScroll(ref, targetPx, containerWidth, trackWidthPx)` hook — sets `scrollLeft` on the referenced element so `targetPx` is centered horizontally. Re-runs whenever the target, container width, or track width change, and clamps to `[0, trackWidthPx - containerWidth]` so the scroll position never overshoots either end. No-op when the ref has no element or `containerWidth` is `0`.
+
 ## [2.0.124] - 2026-05-05
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.123] - 2026-05-05
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.122] - 2026-05-05
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.121] - 2026-05-05
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.120] - 2026-05-05
 
