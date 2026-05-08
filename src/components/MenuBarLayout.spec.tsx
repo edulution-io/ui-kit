@@ -53,6 +53,20 @@ describe('MenuBarLayout', () => {
     expect(aside).toBeInTheDocument();
   });
 
+  it('uses the liquid glass panel surface in desktop mode', () => {
+    const ref = createRef<HTMLDivElement>();
+    render(
+      <MenuBarLayout
+        ref={ref}
+        isDesktop
+      >
+        Desktop
+      </MenuBarLayout>,
+    );
+    expect(ref.current?.className).toContain('liquid-glass');
+    expect(ref.current?.className).toContain('liquid-glass-panel');
+  });
+
   it('renders as fixed drawer in mobile mode', () => {
     render(
       <MenuBarLayout
@@ -78,6 +92,20 @@ describe('MenuBarLayout', () => {
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper.className).toContain('translate-x-0');
     expect(wrapper.className).not.toContain('-translate-x-full');
+  });
+
+  it('uses the liquid glass panel surface in mobile mode', () => {
+    const ref = createRef<HTMLDivElement>();
+    render(
+      <MenuBarLayout
+        ref={ref}
+        isDesktop={false}
+      >
+        Mobile
+      </MenuBarLayout>,
+    );
+    expect(ref.current?.className).toContain('liquid-glass');
+    expect(ref.current?.className).toContain('liquid-glass-panel');
   });
 
   it('applies -translate-x-full when mobile drawer is closed', () => {
