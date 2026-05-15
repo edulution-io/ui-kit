@@ -109,7 +109,7 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
           {displayedBadge > 0 && (
             <span
               aria-label={`${displayedBadge} unread`}
-              className="ml-2 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-ciRed px-1.5 text-xs font-semibold text-white"
+              className="ml-2 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-ciRed px-1.5 text-xs font-semibold text-primary-foreground"
             >
               {displayedBadge > 99 ? '99+' : displayedBadge}
             </span>

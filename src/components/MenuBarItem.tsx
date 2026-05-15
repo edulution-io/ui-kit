@@ -138,7 +138,7 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
         aria-label={label}
         className={cn(
           'relative flex w-full cursor-pointer items-center gap-3 rounded-lg py-2 pl-3 pr-3 text-foreground outline-none transition-colors',
-          'before:absolute before:bottom-1 before:left-0 before:top-1 before:w-[3px] before:rounded-r before:bg-ciGreen before:opacity-0 before:transition-opacity before:content-[""]',
+          'before:absolute before:bottom-1 before:left-0 before:top-1 before:w-[3px] before:rounded-r before:bg-primary before:opacity-0 before:transition-opacity before:content-[""]',
           'hover:bg-accent/50 hover:before:opacity-100',
           'focus-visible:bg-accent/50 focus-visible:before:opacity-100',
           isActive && cn(activeColorClass, 'text-primary-foreground before:opacity-100'),
