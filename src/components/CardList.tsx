@@ -207,7 +207,7 @@ const CardList = <T,>({
       )}
 
       {(bulkActions || onSelectAll) && (
-        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-muted pl-3 pr-4">
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-l-2 border-muted border-l-transparent pl-3 pr-4">
           {onSelectAll && (
             <Checkbox
               checked={allChecked}

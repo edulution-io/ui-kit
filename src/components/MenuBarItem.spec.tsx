@@ -30,7 +30,7 @@ describe('MenuBarItem', () => {
     label: 'Menu Item',
     isActive: false,
     isExpanded: false,
-    activeColorClass: 'bg-primary',
+    activeColorClass: 'bg-secondary',
     collapseLabel: 'Collapse',
     expandLabel: 'Expand',
     onItemClick: vi.fn(),
@@ -79,13 +79,21 @@ describe('MenuBarItem', () => {
       />,
     );
     const button = screen.getByRole('button', { name: 'Menu Item' });
-    expect(button.className).toContain('bg-primary');
+    expect(button.className).toContain('bg-secondary');
   });
 
   it('does not apply activeColorClass when inactive', () => {
     render(<MenuBarItem {...defaultProps} />);
     const button = screen.getByRole('button', { name: 'Menu Item' });
-    expect(button.className).not.toContain('bg-primary');
+    expect(button.className).not.toContain('bg-secondary');
+  });
+
+  it('uses the primary theme color for the leading hover indicator', () => {
+    render(<MenuBarItem {...defaultProps} />);
+    const button = screen.getByRole('button', { name: 'Menu Item' });
+
+    expect(button.className).toContain('before:bg-primary');
+    expect(button.className).not.toContain('before:bg-ciGreen');
   });
 
   it('shows expand button when has children', () => {

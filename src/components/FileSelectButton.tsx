@@ -18,6 +18,7 @@
  */
 
 import React, { forwardRef, useId } from 'react';
+import cn from '../utils/cn';
 
 type FileSelectButtonProps = {
   onChange: React.ChangeEventHandler<HTMLInputElement>;
@@ -63,8 +64,11 @@ const FileSelectButton = forwardRef<HTMLInputElement, FileSelectButtonProps>(
         />
         <label
           htmlFor={id}
-          className={`flex w-full cursor-pointer items-center justify-center rounded-lg border bg-primary px-4 py-2 text-sm font-medium text-white
-            ${disabled ? 'cursor-not-allowed opacity-50' : ''} ${labelClassName}`}
+          className={cn(
+            'flex w-full cursor-pointer items-center justify-center rounded-lg border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground',
+            disabled && 'cursor-not-allowed opacity-50',
+            labelClassName,
+          )}
         >
           {hasSelection ? changeText : chooseText}
         </label>
