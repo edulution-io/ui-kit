@@ -40,7 +40,7 @@ const NumberPad: React.FC<NumberPadProps> = ({ onPress, onClear, variant = 'defa
         type="button"
         className={cn(
           'aspect-square hover:bg-ciGrey/10',
-          variant === 'login' && 'border-ciDarkGrey text-ciDarkGrey hover:bg-ciDarkGrey/10',
+          variant === 'login' && 'border-darkGrey text-darkGrey hover:bg-darkGrey/10',
         )}
         onClick={() => onPress(digit)}
       >
@@ -52,7 +52,7 @@ const NumberPad: React.FC<NumberPadProps> = ({ onPress, onClear, variant = 'defa
       type="button"
       className={cn(
         'w-[136px] hover:bg-ciGrey/10',
-        variant === 'login' && 'border-ciDarkGrey text-ciDarkGrey hover:bg-ciDarkGrey/10',
+        variant === 'login' && 'border-darkGrey text-darkGrey hover:bg-darkGrey/10',
       )}
       onClick={onClear}
     >

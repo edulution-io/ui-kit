@@ -41,6 +41,12 @@ export { Badge, badgeVariants } from './components/Badge';
 export type { BadgeProps, BadgeVariant } from './components/Badge';
 
 /**
+ * Chip – A compact, clickable inline chip/tag button (e.g. for copyable values like email addresses).
+ */
+export { Chip, chipVariants } from './components/Chip';
+export type { ChipProps, ChipVariant } from './components/Chip';
+
+/**
  * DropdownMenu – A dropdown menu built on Radix UI DropdownMenu primitive.
  */
 export {
@@ -191,6 +197,15 @@ export type { MenuBarItemListProps } from './components/MenuBarItemList';
 export { default as MenuBar } from './components/MenuBar';
 export type { MenuBarProps, MenuBarConfig } from './components/MenuBar';
 export type { default as MenuBarConfigItem } from './components/MenuBarConfigItem';
+
+/**
+ * MenuBarDropData – Optional drag-and-drop target descriptor for a `MenuBarConfigItem`. When set,
+ * the item's row registers as a `@dnd-kit` droppable (highlighted while hovered by a matching drag).
+ * `accepts` is matched against the active draggable's `data.type`; non-matching drags are ignored.
+ * `onDrop` receives the active draggable's `data` payload. Requires the `MenuBar` to be rendered
+ * inside a `DndContext`; items without `dropData` stay inert, so existing menus are unaffected.
+ */
+export type { default as MenuBarDropData } from './components/MenuBarDropData';
 
 /**
  * MenuBarSearchInput – Opt-in search input rendered inside `MenuBar` when `MenuBarConfig.search`
@@ -346,7 +361,7 @@ export type { InputWithActionIconsProps, ActionIcon } from './components/InputWi
  * comma-separated inline file list that wraps within the box.
  */
 export { default as WarningBox } from './components/WarningBox';
-export type { WarningBoxProps } from './components/WarningBox';
+export type { WarningBoxProps, WarningBoxVariant } from './components/WarningBox';
 
 /**
  * CircleLoader – A spinning circle loading indicator with configurable size and speed.

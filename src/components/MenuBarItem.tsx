@@ -18,6 +18,7 @@
  */
 
 import * as React from 'react';
+import { useDndContext, useDroppable } from '@dnd-kit/core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import findInTree from '../utils/findInTree';
@@ -25,7 +26,10 @@ import cn from '../utils/cn';
 import sumChildBadges from '../utils/sumChildBadges';
 import { Button } from './Button';
 import type MenuBarConfigItem from './MenuBarConfigItem';
+import type MenuBarDropData from './MenuBarDropData';
 import MenuBarSubItem from './MenuBarSubItem';
+
+const SPRING_LOAD_EXPAND_DELAY_MS = 600;
 
 export type MenuBarItemProps = React.HTMLAttributes<HTMLDivElement> & {
   itemId: string;
@@ -46,6 +50,7 @@ export type MenuBarItemProps = React.HTMLAttributes<HTMLDivElement> & {
   maxDepth?: number;
   backLabel?: string;
   aggregateChildBadges?: boolean;
+  dropData?: MenuBarDropData;
 };
 
 const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
@@ -69,6 +74,7 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
       maxDepth = 5,
       backLabel = 'Back',
       aggregateChildBadges = false,
+      dropData,
       className,
       ...props
     },
@@ -81,6 +87,26 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
     );
     const showAggregatedBadge = aggregateChildBadges && aggregatedBadge > 0;
     const [drillDownStack, setDrillDownStack] = React.useState<string[]>([]);
+
+    const droppableDisabled = !dropData && !hasChildren;
+    const { setNodeRef: setDropRef, isOver } = useDroppable({
+      id: `${itemId}-drop`,
+      data: dropData,
+      disabled: droppableDisabled,
+    });
+    const isActiveDropTarget = !!dropData && isOver;
+
+    const { active } = useDndContext();
+    const isDragActive = active != null;
+
+    const canSpringLoadOpen = hasChildren && !isExpanded;
+    const onToggleExpandRef = React.useRef(onToggleExpand);
+    onToggleExpandRef.current = onToggleExpand;
+    React.useEffect(() => {
+      if (!isOver || !canSpringLoadOpen) return undefined;
+      const timer = setTimeout(() => onToggleExpandRef.current(), SPRING_LOAD_EXPAND_DELAY_MS);
+      return () => clearTimeout(timer);
+    }, [isOver, canSpringLoadOpen]);
 
     const handleDrillDown = React.useCallback((drillId: string) => {
       setDrillDownStack((prev) => [...prev, drillId]);
@@ -129,6 +155,7 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
 
     const mainButton = (
       <div
+        ref={setDropRef}
         role="button"
         tabIndex={0}
         onClick={handleItemClick}
@@ -142,6 +169,7 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
           'hover:bg-accent/50 hover:before:opacity-100',
           'focus-visible:bg-accent/50 focus-visible:before:opacity-100',
           isActive && cn(activeColorClass, 'text-primary-foreground before:opacity-100'),
+          isActiveDropTarget && 'bg-primary/20 outline outline-2 -outline-offset-2 outline-primary',
         )}
       >
         {icon}
@@ -185,7 +213,8 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
         role="region"
         aria-label={`${label} sections`}
         className={cn(
-          'grid transition-all duration-200 ease-in-out',
+          'grid',
+          !isDragActive && 'transition-all duration-200 ease-in-out',
           isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
         )}
       >
@@ -222,6 +251,7 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
                 maxDepth={maxDepth}
                 onDrillDown={handleDrillDown}
                 aggregateChildBadges={aggregateChildBadges}
+                isVisible={isExpanded}
               />
             ))}
           </div>

@@ -20,31 +20,36 @@
 :root,
 .dark {
   --radius: 0.25rem;
-  --ci-light-green: #8fc046;
-  --ci-dark-blue: #0081c6;
-  --background: #000000;
-  --foreground: #ffffff;
-  --muted-foreground: #bbbbbb;
-  --muted-background: #1a1a1a;
-  --primary: #0081c6;
-  --primary-foreground: #ffffff;
-  --secondary: #d1d5db;
-  --secondary-foreground: #2d2d30;
-  --muted: #2d3748;
-  --muted-transparent: #2d374850;
-  --muted-light: #3a4557;
-  --accent: #2d2d30;
-  --accent-light: #3c3f45;
-  --input: #e2e8f0;
-  --card: #00000000;
-  --card-foreground: #ffffff;
-  --popover: #0f172a;
-  --popover-foreground: #ffffff;
-  --border: #cbd4e4;
-  --destructive: #ff0000;
-  --destructive-foreground: #ecf7ff;
-  --ring: #8ca4b6;
-  --ring-transparent: #8ca4b650;
+  --ci-light-green: 143 192 70;
+  --ci-dark-blue: 0 129 198;
+  --ci-light-blue: 103 178 224;
+  --ci-dark-gray: 132 132 147;
+  --color-danger: 220 38 38;
+  --color-danger-light: 248 113 113;
+  --color-warning: 255 215 0;
+  --color-warning-light: 255 208 12;
+  --color-success: 55 238 5;
+  --background: 0 0 0;
+  --foreground: 255 255 255;
+  --muted-foreground: 187 187 187;
+  --muted-background: 26 26 26;
+  --primary: 0 129 198;
+  --primary-foreground: 255 255 255;
+  --secondary: 209 213 219;
+  --secondary-foreground: 45 45 48;
+  --muted: 45 55 72;
+  --muted-light: 58 69 87;
+  --accent: 45 45 48;
+  --accent-light: 60 63 69;
+  --accent-foreground: 255 255 255;
+  --input: 226 232 240;
+  --card-foreground: 255 255 255;
+  --popover: 15 23 42;
+  --popover-foreground: 255 255 255;
+  --border: 203 212 228;
+  --destructive: 255 0 0;
+  --destructive-foreground: 236 247 255;
+  --ring: 140 164 182;
 }
 
 :root {
@@ -52,54 +57,52 @@
 }
 
 .light {
-  --background: #ffffff;
-  --foreground: #000000;
-  --muted-foreground: #505050;
-  --muted-background: #bbbbbb;
-  --muted-light: #dcdcdc;
-  --primary: #0081c6;
-  --primary-foreground: #ffffff;
-  --secondary: #2e2a24;
-  --secondary-foreground: #c8c8c3;
-  --muted: #b1b1ac;
-  --muted-transparent: #b1b1ac50;
-  --accent: #c9ccd2;
-  --accent-light: #d1d5db;
-  --input: #1d170f;
-  --card: #00000000;
-  --card-foreground: #000000;
-  --popover: #f0e8d5;
-  --popover-foreground: #000000;
-  --border: #333333;
-  --destructive: #ff0000;
-  --destructive-foreground: #130800;
-  --ring: #735b49;
-  --ring-transparent: #735b4950;
+  --background: 255 255 255;
+  --foreground: 0 0 0;
+  --muted-foreground: 80 80 80;
+  --muted-background: 187 187 187;
+  --muted-light: 220 220 220;
+  --primary: 0 129 198;
+  --primary-foreground: 255 255 255;
+  --secondary: 46 42 36;
+  --secondary-foreground: 200 200 195;
+  --muted: 177 177 172;
+  --accent: 201 204 210;
+  --accent-light: 209 213 219;
+  --accent-foreground: 0 0 0;
+  --input: 29 23 15;
+  --card-foreground: 0 0 0;
+  --popover: 240 232 213;
+  --popover-foreground: 0 0 0;
+  --border: 51 51 51;
+  --destructive: 255 0 0;
+  --destructive-foreground: 19 8 0;
+  --ring: 115 91 73;
 }
 
 .bg-glass {
-  background-color: color-mix(in srgb, var(--background) 25%, transparent);
+  background-color: color-mix(in srgb, rgb(var(--background)) 25%, transparent);
   box-shadow: 0 0 12px 0px rgba(0, 0, 0, 0.15);
 }
 
 .dark .bg-glass {
-  background-color: color-mix(in srgb, var(--background) 25%, transparent);
+  background-color: color-mix(in srgb, rgb(var(--background)) 25%, transparent);
   box-shadow: 0 0 8px 0px rgba(255, 255, 255, 0.15);
 }
 
 .liquid-glass {
-  background-color: color-mix(in srgb, var(--foreground) 6%, transparent);
+  background-color: color-mix(in srgb, rgb(var(--foreground)) 6%, transparent);
   backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
+  border: 1px solid color-mix(in srgb, rgb(var(--foreground)) 18%, transparent);
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--foreground) 20%, transparent),
+    inset 0 1px 0 color-mix(in srgb, rgb(var(--foreground)) 20%, transparent),
     0 6px 28px rgba(0, 0, 0, 0.45);
   border-radius: 0.5rem;
 }
 
 .light .liquid-glass {
-  background-color: color-mix(in srgb, var(--foreground) 4%, transparent);
-  border-color: color-mix(in srgb, var(--foreground) 10%, transparent);
+  background-color: color-mix(in srgb, rgb(var(--foreground)) 4%, transparent);
+  border-color: color-mix(in srgb, rgb(var(--foreground)) 10%, transparent);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.6),
     0 8px 32px rgba(15, 23, 42, 0.12),
@@ -157,25 +160,29 @@ html :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel) {
 }
 
 .liquid-glass-tile {
-  background-color: color-mix(in srgb, var(--foreground) 7%, transparent);
-  background-image: linear-gradient(145deg, color-mix(in srgb, var(--foreground) 16%, transparent), transparent 48%);
+  background-color: color-mix(in srgb, rgb(var(--foreground)) 7%, transparent);
+  background-image: linear-gradient(
+    145deg,
+    color-mix(in srgb, rgb(var(--foreground)) 16%, transparent),
+    transparent 48%
+  );
   backdrop-filter: blur(16px) saturate(160%) contrast(108%);
-  border: 1px solid color-mix(in srgb, var(--foreground) 16%, transparent);
+  border: 1px solid color-mix(in srgb, rgb(var(--foreground)) 16%, transparent);
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--foreground) 22%, transparent),
+    inset 0 1px 0 color-mix(in srgb, rgb(var(--foreground)) 22%, transparent),
     0 8px 22px rgba(0, 0, 0, 0.22);
 }
 
 .liquid-glass-tile-active {
-  background-color: color-mix(in srgb, var(--foreground) 10%, transparent);
-  border-color: color-mix(in srgb, var(--foreground) 28%, transparent);
+  background-color: color-mix(in srgb, rgb(var(--foreground)) 10%, transparent);
+  border-color: color-mix(in srgb, rgb(var(--foreground)) 28%, transparent);
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--foreground) 30%, transparent),
+    inset 0 1px 0 color-mix(in srgb, rgb(var(--foreground)) 30%, transparent),
     0 14px 28px rgba(0, 0, 0, 0.28);
 }
 
 .light .liquid-glass-tile {
-  background-color: color-mix(in srgb, var(--background) 24%, transparent);
+  background-color: color-mix(in srgb, rgb(var(--background)) 24%, transparent);
   background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.56), transparent 48%);
   border-color: rgba(0, 0, 0, 0.08);
   box-shadow:
@@ -184,7 +191,7 @@ html :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel) {
 }
 
 .light .liquid-glass-tile-active {
-  background-color: color-mix(in srgb, var(--background) 32%, transparent);
+  background-color: color-mix(in srgb, rgb(var(--background)) 32%, transparent);
   border-color: rgba(0, 0, 0, 0.14);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -206,7 +213,7 @@ html :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel) {
 }
 
 .gradient-text {
-  background: linear-gradient(to right, var(--ci-light-green), var(--ci-dark-blue));
+  background: linear-gradient(to right, rgb(var(--ci-light-green)), rgb(var(--ci-dark-blue)));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -216,8 +223,8 @@ html :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel) {
 .dark .gradient-text {
   background: linear-gradient(
     to right,
-    color-mix(in oklab, var(--ci-light-green) 50%, white),
-    color-mix(in oklab, var(--ci-dark-blue) 50%, white)
+    color-mix(in oklab, rgb(var(--ci-light-green)) 50%, white),
+    color-mix(in oklab, rgb(var(--ci-dark-blue)) 50%, white)
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

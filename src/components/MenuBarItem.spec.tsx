@@ -18,12 +18,30 @@
  */
 
 import { createRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import type { Mock } from 'vitest';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { DndContext, useDroppable } from '@dnd-kit/core';
 import MenuBarItem from './MenuBarItem';
 import type { MenuBarItemProps } from './MenuBarItem';
 
+vi.mock('@dnd-kit/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@dnd-kit/core')>();
+  return { ...actual, useDroppable: vi.fn(actual.useDroppable), useDndContext: vi.fn(actual.useDndContext) };
+});
+
+const droppableDisabledFor = (id: string): boolean | undefined => {
+  const { calls } = (useDroppable as unknown as Mock).mock;
+  const lastCall = [...calls].reverse().find((c) => (c[0] as { id?: string })?.id === id);
+  const [args] = lastCall ?? [];
+  return (args as { disabled?: boolean } | undefined)?.disabled;
+};
+
 describe('MenuBarItem', () => {
+  beforeEach(() => {
+    (useDroppable as unknown as Mock).mockClear();
+  });
+
   const defaultProps: MenuBarItemProps = {
     itemId: 'menu-item',
     icon: <span data-testid="icon">Icon</span>,
@@ -93,7 +111,7 @@ describe('MenuBarItem', () => {
     const button = screen.getByRole('button', { name: 'Menu Item' });
 
     expect(button.className).toContain('before:bg-primary');
-    expect(button.className).not.toContain('before:bg-ciGreen');
+    expect(button.className).not.toContain('before:bg-colorSuccess');
   });
 
   it('renders aggregate badges with compact subtle styling', () => {
@@ -323,6 +341,114 @@ describe('MenuBarItem', () => {
       expect(screen.getByText('Grandchild 1')).toBeInTheDocument();
       const grandchildRegion = screen.getByText('Grandchild 1').closest('[role="region"]');
       expect(grandchildRegion?.className).toContain('grid-rows-[0fr]');
+    });
+  });
+
+  describe('drag-and-drop spring-load', () => {
+    const dropData = { accepts: 'mail-message', onDrop: vi.fn() };
+
+    it('keeps the droppable enabled for a parent with children but no dropData so it can spring-load', () => {
+      render(
+        <DndContext>
+          <MenuBarItem
+            {...defaultProps}
+            childItems={[{ id: 'child-1', label: 'Child 1' }]}
+          />
+        </DndContext>,
+      );
+      expect(droppableDisabledFor('menu-item-drop')).toBe(false);
+    });
+
+    it('disables the droppable for a leaf with no children and no dropData', () => {
+      render(
+        <DndContext>
+          <MenuBarItem {...defaultProps} />
+        </DndContext>,
+      );
+      expect(droppableDisabledFor('menu-item-drop')).toBe(true);
+    });
+
+    it('highlights as an active drop target only when it has its own dropData', () => {
+      const mock = useDroppable as unknown as Mock;
+      const originalImpl = mock.getMockImplementation();
+      mock.mockReturnValue({ setNodeRef: vi.fn(), isOver: true });
+      try {
+        const { rerender } = render(
+          <DndContext>
+            <MenuBarItem
+              {...defaultProps}
+              childItems={[{ id: 'child-1', label: 'Child 1' }]}
+            />
+          </DndContext>,
+        );
+        expect(screen.getByRole('button', { name: 'Menu Item' }).className).not.toContain('outline-primary');
+        rerender(
+          <DndContext>
+            <MenuBarItem
+              {...defaultProps}
+              childItems={[{ id: 'child-1', label: 'Child 1' }]}
+              dropData={dropData}
+            />
+          </DndContext>,
+        );
+        expect(screen.getByRole('button', { name: 'Menu Item' }).className).toContain('outline-primary');
+      } finally {
+        if (originalImpl) mock.mockImplementation(originalImpl);
+      }
+    });
+
+    it('spring-loads a collapsed parent open after a drag hovers it', () => {
+      vi.useFakeTimers();
+      const mock = useDroppable as unknown as Mock;
+      const originalImpl = mock.getMockImplementation();
+      mock.mockReturnValue({ setNodeRef: vi.fn(), isOver: true });
+      try {
+        const onToggleExpand = vi.fn();
+        render(
+          <DndContext>
+            <MenuBarItem
+              {...defaultProps}
+              onToggleExpand={onToggleExpand}
+              childItems={[{ id: 'child-1', label: 'Child 1' }]}
+            />
+          </DndContext>,
+        );
+        expect(onToggleExpand).not.toHaveBeenCalled();
+        act(() => {
+          vi.advanceTimersByTime(600);
+        });
+        expect(onToggleExpand).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.useRealTimers();
+        if (originalImpl) mock.mockImplementation(originalImpl);
+      }
+    });
+
+    it('does not spring-load an already expanded parent', () => {
+      vi.useFakeTimers();
+      const mock = useDroppable as unknown as Mock;
+      const originalImpl = mock.getMockImplementation();
+      mock.mockReturnValue({ setNodeRef: vi.fn(), isOver: true });
+      try {
+        const onToggleExpand = vi.fn();
+        render(
+          <DndContext>
+            <MenuBarItem
+              {...defaultProps}
+              isExpanded
+              onToggleExpand={onToggleExpand}
+              childItems={[{ id: 'child-1', label: 'Child 1' }]}
+            />
+          </DndContext>,
+        );
+        act(() => {
+          vi.advanceTimersByTime(600);
+        });
+        expect(onToggleExpand).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+        if (originalImpl) mock.mockImplementation(originalImpl);
+      }
     });
   });
 });

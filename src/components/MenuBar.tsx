@@ -293,6 +293,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
                 maxDepth={maxDepth}
                 backLabel={backLabel}
                 aggregateChildBadges={aggregateChildBadges}
+                dropData={item.dropData}
               />
             );
           })

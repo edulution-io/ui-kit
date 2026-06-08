@@ -17,17 +17,9 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import type React from 'react';
-import type MenuBarDropData from './MenuBarDropData';
-
-interface MenuBarConfigItem {
-  id: string;
-  label: string;
-  icon?: React.ReactNode;
-  action: () => void;
-  children?: MenuBarConfigItem[];
-  badge?: number;
-  dropData?: MenuBarDropData;
+interface MenuBarDropData {
+  accepts: string;
+  onDrop: (activeData: unknown) => void;
 }
 
-export default MenuBarConfigItem;
+export default MenuBarDropData;

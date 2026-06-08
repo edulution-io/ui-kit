@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.212] - 2026-06-08
+
+### Changed
+
+- `WarningBox`: added typed `variant` prop (`warning` | `error` | `success` | `info`) with corrected per-mode color tokens; warning and error text are now readable in light mode. `WarningBoxVariant` is exported as a public type for consumers
+- `Button`, `Table`, `NumberPad`, `CircleLoader`, `ImageComponent`, `HexagonIcon`: migrated to channelized semantic color tokens
+- `inputClassNames`: updated to semantic color tokens
+- `theme.css`: channelized CI color variables to support Tailwind opacity modifiers
+
+## [2.0.211] - 2026-06-05
+
+## [2.0.210] - 2026-06-04
+
+## [2.0.209] - 2026-06-03
+
+### Added
+
+- `MenuBar` items can opt into drag-and-drop: `MenuBarConfigItem.dropData` (typed `MenuBarDropData`) registers the item's row as a `@dnd-kit` droppable, highlighted while hovered by a matching drag. Items without `dropData` stay inert. This applies to both nested rows and top-level (`MenuBarItem`) rows.
+- `MenuBarSubItem` gains an `isVisible` prop so rows hidden inside a collapsed ancestor disable their droppable instead of capturing drops while off-screen.
+- `MenuBar` rows with collapsed children spring open during a drag: hovering a collapsed parent for ~600ms while dragging auto-expands it, so nested drop targets become reachable without dropping the drag. This works for both top-level (`MenuBarItem`) and nested rows, including container parents that have no `dropData` of their own — their row stays a hover target purely to spring open, while a drop on it still does nothing. The expand/collapse animation is skipped while a drag is active so `@dnd-kit` measures stable row positions and the drop lands on the row under the pointer.
+
+## [2.0.208] - 2026-06-03
+
+## [2.0.207] - 2026-06-03
+
+## [2.0.206] - 2026-06-02
+
+## [2.0.205] - 2026-06-02
+
+## [2.0.204] - 2026-06-02
+
+## [2.0.203] - 2026-06-02
+
+## [2.0.202] - 2026-06-02
+
+## [2.0.201] - 2026-06-02
+
+### Added
+
+- `Chip` component – a compact, clickable inline chip/tag button (e.g. for copyable values like email addresses).
+
 ## [2.0.200] - 2026-05-29
 
 ## [2.0.199] - 2026-05-29

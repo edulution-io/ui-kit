@@ -92,6 +92,54 @@ describe('WarningBox', () => {
     expect(wrapper.className).toContain('text-red-800');
   });
 
+  it('applies variant error classes when variant is error', () => {
+    const { container } = render(
+      <WarningBox
+        title="Error"
+        description="Something went wrong"
+        variant="error"
+      />,
+    );
+
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper.className).toContain('border-colorDanger');
+    expect(wrapper.className).toContain('bg-colorDanger/10');
+    expect(wrapper.className).toContain('text-colorDanger dark:text-colorDangerLight');
+  });
+
+  it('applies variant warning classes when variant is warning', () => {
+    const { container } = render(
+      <WarningBox
+        title="Warning"
+        description="Watch out"
+        variant="warning"
+      />,
+    );
+
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper.className).toContain('border-colorWarningLight');
+    expect(wrapper.className).toContain('bg-colorWarningLight/10');
+  });
+
+  it('explicit color props override variant defaults', () => {
+    const { container } = render(
+      <WarningBox
+        title="Custom"
+        description="Custom styled"
+        variant="error"
+        borderColor="border-border"
+        backgroundColor="bg-glass"
+        textColor="text-foreground"
+      />,
+    );
+
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper.className).toContain('border-border');
+    expect(wrapper.className).toContain('bg-glass');
+    expect(wrapper.className).toContain('text-foreground');
+    expect(wrapper.className).not.toContain('border-colorDanger');
+  });
+
   it('renders all filenames joined by commas without line breaks per name', () => {
     const filenames = ['a.txt', 'b.txt', 'c.txt'];
     render(

@@ -39,7 +39,7 @@ const CircleLoader = ({
     <motion.span
       className={cn(
         'absolute left-0 top-0 z-30 box-border block rounded-full border-4 border-t-4',
-        forceLightMode ? 'border-ciLightGrey border-t-ciLightBlue' : 'border-accent border-t-primary',
+        forceLightMode ? 'border-lightGrey border-t-ciLightBlue' : 'border-accent border-t-primary',
         height,
         width,
       )}

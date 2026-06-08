@@ -48,11 +48,11 @@ const HexagonIcon = forwardRef<SVGSVGElement, HexagonIconProps>((props, ref) => 
       >
         <stop
           offset="0"
-          stopColor="var(--ci-light-green)"
+          stopColor="rgb(var(--ci-light-green))"
         />
         <stop
           offset="1"
-          stopColor="var(--ci-dark-blue)"
+          stopColor="rgb(var(--ci-dark-blue))"
         />
       </linearGradient>
     </defs>
