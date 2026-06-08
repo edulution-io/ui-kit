@@ -7,41 +7,225 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.200] - 2026-05-29
+
+## [2.0.199] - 2026-05-29
+
+## [2.0.198] - 2026-05-29
+
+## [2.0.197] - 2026-05-29
+
+## [2.0.196] - 2026-05-28
+
+## [2.0.195] - 2026-05-28
+
+## [2.0.194] - 2026-05-27
+
+## [2.0.193] - 2026-05-27
+
+## [2.0.192] - 2026-05-27
+
+## [2.0.191] - 2026-05-27
+
+## [2.0.190] - 2026-05-27
+
+## [2.0.189] - 2026-05-26
+
+## [2.0.188] - 2026-05-26
+
+## [2.0.187] - 2026-05-22
+
+## [2.0.186] - 2026-05-22
+
+## [2.0.185] - 2026-05-22
+
+## [2.0.184] - 2026-05-22
+
+## [2.0.183] - 2026-05-22
+
+## [2.0.182] - 2026-05-21
+
+## [2.0.181] - 2026-05-21
+
+## [2.0.180] - 2026-05-21
+
+## [2.0.179] - 2026-05-21
+
+## [2.0.178] - 2026-05-21
+
+## [2.0.177] - 2026-05-21
+
+## [2.0.176] - 2026-05-21
+
+## [2.0.175] - 2026-05-21
+
+## [2.0.174] - 2026-05-20
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.173] - 2026-05-20
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.172] - 2026-05-20
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.171] - 2026-05-20
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.170] - 2026-05-20
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.169] - 2026-05-20
+
+### Fixed
+
+- `Badge`: `outline` variant text color changed from `text-background` to `text-foreground`. The variant previously used the page-background token as its text color, making the label invisible against the badge surface; it now uses the readable foreground token.
+
+## [2.0.168] - 2026-05-20
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.167] - 2026-05-20
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.166] - 2026-05-19
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.165] - 2026-05-19
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.164] - 2026-05-19
+
+### Added
+
+- `ItemList` — new public component for rendering a compact, recipe-aligned list of named items used in confirmation and warning dialogs. Exposes a `layout` prop with `'list'` (default — vertical scrollable list via `ScrollArea`, single items render as a centered paragraph) and `'inline'` (comma-separated paragraph that wraps within `max-w-[24rem]`, `font-medium` for contrast against colored backgrounds). Renders nothing when `items` is empty. Public types: `ItemListProps`, `ItemListLayout`, `ListItem`. `ListItem` is now co-located with the component; the previous orphan `libs/src/ui/types/listItem.ts` is deleted and consumers import the type from `@edulution-io/ui-kit`.
+
+### Changed
+
+- `WarningBox`: file/folder name list now delegates rendering to `ItemList` with `layout='inline'` instead of re-implementing a vertical list. The upload-duplicate warning therefore renders names as a comma-separated wrapping paragraph capped to `max-w-[24rem]`, keeping the dialog compact and readable against the warning background.
+
+## [2.0.163] - 2026-05-19
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.162] - 2026-05-18
+
+### Changed
+
+- `MenuBarItem`, `MenuBarSubItem`: unread badge restyled for a compact, subtle appearance. Dimensions tightened (`h-4 min-w-4` instead of `h-5 min-w-[1.25rem]`), padding reduced (`px-1` instead of `px-1.5`), typography updated (`text-[10px] font-medium tabular-nums leading-none` instead of `text-xs font-semibold`), and background changed from `bg-ciRed` to `bg-accent` with `text-foreground dark:text-primary-foreground` so the badge reads against both themes.
+- `MenuBarItem`: icon slot is now wrapped in a `<span>` that applies `[&_*]:!text-primary-foreground` when the item is active, so nested icons recolor consistently with the active label.
+
+## [2.0.161] - 2026-05-18
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.160] - 2026-05-18
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.159] - 2026-05-18
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.158] - 2026-05-18
+
+_Release-train alignment with the consuming app — no library changes._
+
+## [2.0.157] - 2026-05-15
+
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.156] - 2026-05-15
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.155] - 2026-05-15
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.154] - 2026-05-15
+
+### Changed
+
+- `MenuBarItem`: hover/focus indicator color changed from `bg-ciGreen` to `bg-primary` so the left-edge accent matches the brand primary token in both themes.
 
 ## [2.0.153] - 2026-05-15
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.152] - 2026-05-15
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.151] - 2026-05-15
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.150] - 2026-05-13
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.149] - 2026-05-13
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.148] - 2026-05-13
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.147] - 2026-05-13
 
+### Fixed
+
+- `CardList`: bulk-action toolbar gained an invisible `border-l-2 border-l-transparent` so its content aligns horizontally with the rows below, which carry an active/selected left border of the same width. The toolbar checkbox no longer jumps when a row becomes active.
+
+### Changed
+
+- `FileSelectButton`: label className composition refactored to use the shared `cn()` utility (instead of template-literal concatenation). No visual change.
+
 ## [2.0.146] - 2026-05-13
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.145] - 2026-05-13
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.144] - 2026-05-12
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.143] - 2026-05-12
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.142] - 2026-05-12
+
+### Changed
+
+- `Button`, `Card`, `FileSelectButton`, `IconWithCount`, `MenuBarSubItem`: replaced `text-white` over brand backgrounds with `text-primary-foreground` (which resolves to `#ffffff` in both themes — no visual change).
+- `DropZone`: replaced `text-gray-400` with the semantic `text-muted-foreground` token so disabled / placeholder text adapts to the active theme.
 
 ## [2.0.141] - 2026-05-11
 
+### Fixed
+
+- `package.json`: added `**/styles/fonts.ts` and `**/styles/fonts.js` to the `sideEffects` array so the bundler does not tree-shake the Lato font registration. Previously fonts were missing in consumer production builds because the side-effectful font imports were dropped by the optimizer.
+
 ## [2.0.140] - 2026-05-11
 
+_Release-train alignment with the consuming app — no library changes._
+
 ## [2.0.139] - 2026-05-08
+
+_Release-train alignment with the consuming app — no library changes._
 
 ## [2.0.138] - 2026-05-08
 

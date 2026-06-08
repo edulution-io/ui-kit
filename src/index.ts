@@ -138,6 +138,15 @@ export { default as CardList } from './components/CardList';
 export type { CardListProps, CardListItemProps, CardListHeader } from './components/CardList';
 
 /**
+ * ItemList – A compact list of named items used in confirmation and warning dialogs. Supports a
+ * default vertical (`'list'`) layout that auto-collapses to a centered paragraph for a single item
+ * and switches to a scroll area for many, plus an `'inline'` layout that renders the items as a
+ * comma-separated wrapping paragraph.
+ */
+export { default as ItemList } from './components/ItemList';
+export type { ItemListProps, ItemListLayout, ListItem } from './components/ItemList';
+
+/**
  * useElementWidth – ResizeObserver-backed hook returning a DOM element's clientWidth.
  */
 export { default as useElementWidth } from './hooks/useElementWidth';
@@ -333,7 +342,8 @@ export { default as InputWithActionIcons } from './components/InputWithActionIco
 export type { InputWithActionIconsProps, ActionIcon } from './components/InputWithActionIcons';
 
 /**
- * WarningBox – A color-customizable warning box displaying a title, description, and file list.
+ * WarningBox – A color-customizable warning box displaying a title, description, and an optional
+ * comma-separated inline file list that wraps within the box.
  */
 export { default as WarningBox } from './components/WarningBox';
 export type { WarningBoxProps } from './components/WarningBox';

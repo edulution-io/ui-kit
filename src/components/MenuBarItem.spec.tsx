@@ -96,6 +96,24 @@ describe('MenuBarItem', () => {
     expect(button.className).not.toContain('before:bg-ciGreen');
   });
 
+  it('renders aggregate badges with compact subtle styling', () => {
+    render(
+      <MenuBarItem
+        {...defaultProps}
+        aggregateChildBadges
+        childItems={[{ id: 'child-1', label: 'Child 1', badge: 12 }]}
+      />,
+    );
+    const badge = screen.getAllByLabelText('12 unread')[0];
+    expect(badge.className).toContain('h-4');
+    expect(badge.className).toContain('min-w-4');
+    expect(badge.className).toContain('bg-accent');
+    expect(badge.className).toContain('text-foreground');
+    expect(badge.className).toContain('dark:text-primary-foreground');
+    expect(badge.className).toContain('text-[10px]');
+    expect(badge.className).toContain('font-medium');
+  });
+
   it('shows expand button when has children', () => {
     render(
       <MenuBarItem

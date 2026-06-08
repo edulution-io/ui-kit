@@ -18,6 +18,7 @@
  */
 
 import React from 'react';
+import ItemList from './ItemList';
 
 interface WarningBoxProps {
   title: string;
@@ -48,11 +49,10 @@ const WarningBox: React.FC<WarningBoxProps> = ({
     <p className="font-bold">{title}</p>
     <p className="text-sm">{description}</p>
     {filenames && filenames.length > 0 && (
-      <ul className="ml-4 w-full max-w-[24rem] list-disc overflow-hidden truncate ">
-        {filenames.map((filename) => (
-          <li key={filename}>{filename}</li>
-        ))}
-      </ul>
+      <ItemList
+        layout="inline"
+        items={filenames.map((name) => ({ id: name, name }))}
+      />
     )}
   </div>
 );

@@ -37,13 +37,12 @@ describe('WarningBox', () => {
     vi.clearAllMocks();
   });
 
-  it('renders title, description, and filenames', () => {
+  it('renders title, description, and filenames inline', () => {
     render(<WarningBox {...defaultProps} />);
 
     expect(screen.getByText('Warning Title')).toBeInTheDocument();
     expect(screen.getByText('Warning description text')).toBeInTheDocument();
-    expect(screen.getByText('file1.txt')).toBeInTheDocument();
-    expect(screen.getByText('file2.txt')).toBeInTheDocument();
+    expect(screen.getByText('file1.txt, file2.txt')).toBeInTheDocument();
   });
 
   it('renders without file list when filenames is empty', () => {
@@ -56,7 +55,7 @@ describe('WarningBox', () => {
 
     expect(screen.getByText('Warning Title')).toBeInTheDocument();
     expect(screen.getByText('Warning description text')).toBeInTheDocument();
-    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    expect(screen.queryByText(/file1\.txt/)).not.toBeInTheDocument();
   });
 
   it('renders without file list when filenames is omitted', () => {
@@ -64,7 +63,7 @@ describe('WarningBox', () => {
     render(<WarningBox {...propsWithoutFilenames} />);
 
     expect(screen.getByText('Warning Title')).toBeInTheDocument();
-    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    expect(screen.queryByText(/file1\.txt/)).not.toBeInTheDocument();
   });
 
   it('renders icon when provided', () => {
@@ -93,7 +92,7 @@ describe('WarningBox', () => {
     expect(wrapper.className).toContain('text-red-800');
   });
 
-  it('renders all filenames as list items', () => {
+  it('renders all filenames joined by commas without line breaks per name', () => {
     const filenames = ['a.txt', 'b.txt', 'c.txt'];
     render(
       <WarningBox
@@ -102,10 +101,7 @@ describe('WarningBox', () => {
       />,
     );
 
-    const listItems = screen.getAllByRole('listitem');
-    expect(listItems).toHaveLength(3);
-    expect(listItems[0]).toHaveTextContent('a.txt');
-    expect(listItems[1]).toHaveTextContent('b.txt');
-    expect(listItems[2]).toHaveTextContent('c.txt');
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
+    expect(screen.getByText('a.txt, b.txt, c.txt')).toBeInTheDocument();
   });
 });
