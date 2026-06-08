@@ -151,7 +151,7 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
         {showAggregatedBadge && (
           <span
             aria-label={`${aggregatedBadge} unread`}
-            className="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-ciRed px-1.5 text-xs font-semibold text-primary-foreground"
+            className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-medium tabular-nums leading-none text-foreground dark:text-primary-foreground"
           >
             {aggregatedBadge > 99 ? '99+' : aggregatedBadge}
           </span>

@@ -138,4 +138,16 @@ describe('MenuBarSubItem', () => {
     const button = screen.getByText('Item One').closest('button');
     expect(button).not.toHaveAttribute('aria-expanded');
   });
+
+  it('renders badges with compact subtle styling', () => {
+    render(<MenuBarSubItem {...makeProps({ item: makeItem({ badge: 12 }) })} />);
+    const badge = screen.getByText('12');
+    expect(badge.className).toContain('h-4');
+    expect(badge.className).toContain('min-w-4');
+    expect(badge.className).toContain('bg-accent');
+    expect(badge.className).toContain('text-foreground');
+    expect(badge.className).toContain('dark:text-primary-foreground');
+    expect(badge.className).toContain('text-[10px]');
+    expect(badge.className).toContain('font-medium');
+  });
 });
