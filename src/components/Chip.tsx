@@ -21,15 +21,13 @@ import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import cn from '../utils/cn';
 
-const badgeVariants = cva(
-  'cursor-default inline-flex items-center rounded-lg border px-2.5 py-0.5 text-base transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+const chipVariants = cva(
+  'inline-flex items-center rounded-lg px-1.5 py-0.5 text-xs transition-colors disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        default: 'border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80',
-        secondary: 'border-transparent bg-accent hover:bg-secondary/80',
-        destructive: 'border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80',
-        outline: 'text-foreground',
+        default: 'bg-accent text-foreground',
+        interactive: 'cursor-pointer bg-accent text-foreground hover:bg-primary hover:text-primary-foreground',
       },
     },
     defaultVariants: {
@@ -38,15 +36,19 @@ const badgeVariants = cva(
   },
 );
 
-export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
+export type ChipVariant = NonNullable<VariantProps<typeof chipVariants>['variant']>;
 
-export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
+export type ChipProps = React.ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof chipVariants>;
 
-const Badge = ({ className, variant, ...props }: BadgeProps) => (
-  <div
-    className={cn(badgeVariants({ variant }), className, 'h-[36px]')}
+const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(({ className, variant, ...props }, ref) => (
+  <button
+    ref={ref}
+    type="button"
+    className={cn(chipVariants({ variant }), className)}
     {...props}
   />
-);
+));
 
-export { Badge, badgeVariants };
+Chip.displayName = 'Chip';
+
+export { Chip, chipVariants };

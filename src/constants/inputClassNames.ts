@@ -25,5 +25,5 @@ export const VARIANT_COLORS = {
   dialog: 'liquid-glass-soft text-foreground',
   login:
     'border-0 bg-background text-foreground shadow-sm ring-1 ring-inset ring-muted focus:bg-background focus:text-foreground focus:ring-2 focus:ring-primary',
-  lightGrayDisabled: 'bg-ciDarkGreyDisabled text-secondary',
+  lightGrayDisabled: 'bg-darkGreyDisabled text-secondary',
 } as const;

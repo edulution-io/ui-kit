@@ -43,9 +43,9 @@ const ImageComponent: React.FC<ImageComponentProps> = ({ downloadLink, altText, 
         src={src}
         alt={altText}
         onError={handleError}
-        className={`h-auto w-full ${error ? 'border-text-ciRed border' : 'border'}`}
+        className={`h-auto w-full ${error ? 'border-text-colorDanger border' : 'border'}`}
       />
-      {error && <p className="text-text-ciRed">{errorText}</p>}
+      {error && <p className="text-text-colorDanger">{errorText}</p>}
     </div>
   );
 };

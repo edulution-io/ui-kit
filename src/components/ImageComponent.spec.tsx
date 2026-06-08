@@ -51,7 +51,7 @@ describe('ImageComponent', () => {
     render(<ImageComponent {...defaultProps} />);
     const img = screen.getByAltText('Test image');
     fireEvent.error(img);
-    expect(img.className).toContain('border-text-ciRed');
+    expect(img.className).toContain('border-text-colorDanger');
   });
 
   it('switches to placeholder image on error when placeholder is provided', () => {

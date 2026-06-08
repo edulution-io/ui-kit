@@ -63,7 +63,7 @@ describe('Badge', () => {
 
   it('applies outline variant', () => {
     const { container } = render(<Badge variant="outline">Outline</Badge>);
-    expect(container.firstElementChild.className).toContain('text-background');
+    expect(container.firstElementChild.className).toContain('text-foreground');
   });
 
   it('always applies fixed height', () => {

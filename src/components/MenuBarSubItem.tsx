@@ -18,12 +18,15 @@
  */
 
 import * as React from 'react';
+import { useDndContext, useDroppable } from '@dnd-kit/core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import cn from '../utils/cn';
 import sumChildBadges from '../utils/sumChildBadges';
 import { Button } from './Button';
 import type MenuBarConfigItem from './MenuBarConfigItem';
+
+const SPRING_LOAD_EXPAND_DELAY_MS = 600;
 
 interface MenuBarSubItemProps {
   item: MenuBarConfigItem;
@@ -37,6 +40,7 @@ interface MenuBarSubItemProps {
   maxDepth: number;
   onDrillDown?: (itemId: string) => void;
   aggregateChildBadges?: boolean;
+  isVisible?: boolean;
 }
 
 const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
@@ -51,6 +55,7 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
   maxDepth,
   onDrillDown,
   aggregateChildBadges = false,
+  isVisible = true,
 }) => {
   const hasChildren = (item.children?.length ?? 0) > 0;
   const isExpanded = expandedItems?.has(item.id) ?? false;
@@ -64,6 +69,23 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
   const isDrillDown = hasChildren && depth >= maxDepth;
   const paddingLeft = `${(depth + 1) * 0.5}rem`;
   const childrenId = `${item.id}-children`;
+
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: `${item.id}-drop`,
+    data: item.dropData,
+    disabled: (!item.dropData && !hasChildren) || !isVisible,
+  });
+  const isActiveDropTarget = !!item.dropData && isVisible && isOver;
+
+  const { active } = useDndContext();
+  const isDragActive = active != null;
+
+  const canSpringLoadOpen = isVisible && hasChildren && !isDrillDown && !isExpanded;
+  React.useEffect(() => {
+    if (!isOver || !canSpringLoadOpen) return undefined;
+    const timer = setTimeout(() => onToggleChildExpand?.(item.id), SPRING_LOAD_EXPAND_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [isOver, canSpringLoadOpen, onToggleChildExpand, item.id]);
 
   const handleClick = () => {
     if (isDrillDown) {
@@ -90,7 +112,14 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
 
   return (
     <>
-      <div className={cn('flex w-full items-center', activeChildId === item.id && 'bg-accent')}>
+      <div
+        ref={setDropRef}
+        className={cn(
+          'flex w-full items-center',
+          activeChildId === item.id && 'bg-accent',
+          isActiveDropTarget && 'bg-primary/20 outline outline-2 -outline-offset-2 outline-primary',
+        )}
+      >
         <Button
           type="button"
           variant="btn-ghost"
@@ -140,7 +169,8 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
           role="region"
           aria-label={`${item.label} sections`}
           className={cn(
-            'grid transition-all duration-200 ease-in-out',
+            'grid',
+            !isDragActive && 'transition-all duration-200 ease-in-out',
             isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
           )}
         >
@@ -159,6 +189,7 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
                 maxDepth={maxDepth}
                 onDrillDown={onDrillDown}
                 aggregateChildBadges={aggregateChildBadges}
+                isVisible={isVisible && isExpanded}
               />
             ))}
           </div>

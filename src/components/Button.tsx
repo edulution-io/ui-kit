@@ -34,15 +34,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         'btn-transparent':
-          'backdrop-bg-white absolute bottom-0 left-1/2 -translate-x-1/2 transform bg-opacity-70 backdrop-blur hover:bg-ciDarkGrey hover:opacity-85',
+          'backdrop-bg-white absolute bottom-0 left-1/2 -translate-x-1/2 transform bg-opacity-70 backdrop-blur hover:bg-darkGrey hover:opacity-85',
         'btn-collaboration': 'bg-primary text-primary-foreground',
         'btn-organisation': 'bg-primary text-primary-foreground',
         'btn-infrastructure': 'bg-ciLightGreen text-primary-foreground',
         'btn-security': 'bg-ciGreenToBlue text-primary-foreground',
-        'btn-outline': 'border-[1px] dark:border-accent-light border-ciLightGrey  shadow-sm hover:bg-muted-light',
+        'btn-outline': 'border-[1px] border-accent-light shadow-sm hover:bg-muted-light',
         'btn-white': 'border-none text-black shadow-xl hover:bg-ciGrey/10 hover:text-black',
         'btn-hexagon': 'bg-cover bg-center flex items-center justify-center hover:scale-105',
-        'btn-attention': 'bg-ciRed text-primary-foreground',
+        'btn-attention': 'bg-colorDanger text-primary-foreground',
         'btn-small': 'hover:bg-grey-700 mr-1 rounded-lg bg-white px-4 h-9 shadow-md font-normal',
         'btn-table':
           'h-10 items-center rounded-lg bg-white dark:border-none dark:bg-accent border-[1px] border-gray-300',

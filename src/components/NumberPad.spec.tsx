@@ -86,14 +86,14 @@ describe('NumberPad', () => {
     );
     const buttons = container.querySelectorAll('button');
     const digitButton = buttons[0];
-    expect(digitButton.className).toContain('border-ciDarkGrey');
-    expect(digitButton.className).toContain('text-ciDarkGrey');
+    expect(digitButton.className).toContain('border-darkGrey');
+    expect(digitButton.className).toContain('text-darkGrey');
   });
 
   it('does not apply login variant styling with default variant', () => {
     const { container } = render(<NumberPad {...defaultProps} />);
     const buttons = container.querySelectorAll('button');
     const digitButton = buttons[0];
-    expect(digitButton.className).not.toContain('border-ciDarkGrey');
+    expect(digitButton.className).not.toContain('border-darkGrey');
   });
 });
