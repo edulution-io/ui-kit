@@ -415,6 +415,98 @@ describe('MenuBar', () => {
     });
   });
 
+  describe('context actions (kebab) integration', () => {
+    it('renders the kebab trigger on a top-level item that supplies contextActions', () => {
+      const config = createConfig({
+        items: [
+          {
+            id: 'item-1',
+            label: 'Item 1',
+            icon: <span>I1</span>,
+            action: vi.fn(),
+            contextActions: [{ id: 'rename', label: 'Rename', onClick: vi.fn() }],
+          },
+        ],
+      });
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+          itemActionsLabel="Manage entry"
+        />,
+      );
+      expect(screen.getByRole('button', { name: 'Manage entry' })).toBeInTheDocument();
+    });
+
+    it('does not render a kebab when an item has no contextActions', () => {
+      const config = createConfig();
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+          itemActionsLabel="Manage entry"
+        />,
+      );
+      expect(screen.queryByRole('button', { name: 'Manage entry' })).not.toBeInTheDocument();
+    });
+
+    it('opens the kebab menu and invokes the action onClick through MenuBarItem', async () => {
+      const user = userEvent.setup();
+      const onClick = vi.fn();
+      const config = createConfig({
+        items: [
+          {
+            id: 'item-1',
+            label: 'Item 1',
+            icon: <span>I1</span>,
+            action: vi.fn(),
+            contextActions: [{ id: 'rename', label: 'Rename', onClick }],
+          },
+        ],
+      });
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+          itemActionsLabel="Manage entry"
+        />,
+      );
+      await user.click(screen.getByRole('button', { name: 'Manage entry' }));
+      await user.click(screen.getByText('Rename'));
+      expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('propagates itemActionsLabel down to a child kebab via MenuBarSubItem', () => {
+      const config = createConfig({
+        items: [
+          {
+            id: 'item-1',
+            label: 'Item 1',
+            icon: <span>I1</span>,
+            action: vi.fn(),
+            children: [
+              {
+                id: 'child-1',
+                label: 'Child 1',
+                action: vi.fn(),
+                contextActions: [{ id: 'delete', label: 'Delete', onClick: vi.fn() }],
+              },
+            ],
+          },
+        ],
+      });
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+          activeItemId="item-1"
+          itemActionsLabel="Manage entry"
+        />,
+      );
+      expect(screen.getByRole('button', { name: 'Manage entry' })).toBeInTheDocument();
+    });
+  });
+
   describe('search integration (opt-in)', () => {
     const createDeepConfig = (searchOverride?: MenuBarConfig['search']): MenuBarConfig =>
       createConfig({

@@ -59,7 +59,6 @@ const tailwindConfig: Partial<Config> = {
         colorSuccess: 'rgb(var(--color-success) / <alpha-value>)',
         ciLightGreen: 'rgb(var(--ci-light-green) / <alpha-value>)',
         ciDarkBlue: 'rgb(var(--ci-dark-blue) / <alpha-value>)',
-        ciLightBlue: 'rgb(var(--ci-light-blue) / <alpha-value>)',
         ciGrey: 'rgb(var(--ci-dark-gray) / <alpha-value>)',
         darkGrey: 'rgb(45 45 48 / <alpha-value>)',
         darkGreyDisabled: 'rgb(26 26 27 / <alpha-value>)',

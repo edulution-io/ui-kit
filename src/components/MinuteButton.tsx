@@ -17,9 +17,8 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import React, { useCallback } from 'react';
-import cn from '../utils/cn';
-import { Button } from './Button';
+import React from 'react';
+import TimeUnitButton from './TimeUnitButton';
 import { DropdownVariant } from './DropdownSelect';
 
 export interface MinuteButtonProps {
@@ -29,27 +28,16 @@ export interface MinuteButtonProps {
   variant: DropdownVariant;
 }
 
-const MinuteButton: React.FC<MinuteButtonProps> = ({ minute, currentMinute, onChangeMinute, variant }) => {
-  const handleClick = useCallback(() => {
-    onChangeMinute(minute);
-  }, [minute, onChangeMinute]);
-  const isSelected = currentMinute === minute;
+const padMinute = (v: number): string => v.toString().padStart(2, '0');
 
-  return (
-    <Button
-      variant={isSelected ? 'btn-outline' : 'btn-small'}
-      className={cn('aspect-square max-h-[25px] max-w-[64px] shrink-0 sm:w-full', {
-        'bg-foreground text-background': variant === 'default',
-        'bg-primary text-primary-foreground shadow-none hover:bg-primary hover:text-primary-foreground':
-          variant === 'dialog' && isSelected,
-        'border-foreground/15 bg-foreground/10 hover:bg-foreground/15 border text-foreground shadow-none backdrop-blur-sm dark:border-[color-mix(in_srgb,var(--foreground)_15%,transparent)]':
-          variant === 'dialog' && !isSelected,
-      })}
-      onClick={handleClick}
-    >
-      {minute.toString().padStart(2, '0')}
-    </Button>
-  );
-};
+const MinuteButton: React.FC<MinuteButtonProps> = ({ minute, currentMinute, onChangeMinute, variant }) => (
+  <TimeUnitButton
+    value={minute}
+    currentValue={currentMinute}
+    onChange={onChangeMinute}
+    variant={variant}
+    format={padMinute}
+  />
+);
 
 export default MinuteButton;

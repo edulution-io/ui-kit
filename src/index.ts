@@ -125,6 +125,12 @@ export { INPUT_BASE_CLASSES, VARIANT_COLORS } from './constants/inputClassNames'
 export type { InputProps, InputVariant } from './components/Input';
 
 /**
+ * DIALOG_CARD_WITHOUT_HOVER – className string for `Card variant="dialog"` cards
+ * that should render without the default hover scale/transition effect.
+ */
+export { DIALOG_CARD_WITHOUT_HOVER } from './constants/inputClassNames';
+
+/**
  * InputOTP – One-time-password input components and variant styles.
  */
 export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from './components/InputOtp';
@@ -142,6 +148,54 @@ export type { CardProps, CardVariant } from './components/Card';
  */
 export { default as CardList } from './components/CardList';
 export type { CardListProps, CardListItemProps, CardListHeader } from './components/CardList';
+
+/**
+ * SectionCard – The standard liquid-glass content surface for page sections.
+ *
+ * Renders a `<section>` with the `liquid-glass` surface (variant `default`) or no
+ * background (variant `transparent`), an optional header (a string `label` renders
+ * as an `h3`, or pass a custom `header` node), a body and an optional `footer`
+ * action area. Padding density is controlled via the `padding` prop (`default`,
+ * `compact`, `none`). Set `divided` to separate header, body and footer with a
+ * `Separator`. When `id` is set, the content is wrapped in an `AnchorSection` for
+ * anchor-based navigation. Set `selected` to render a primary-colored selection
+ * ring; combine it with a forwarded `onClick` to turn the whole card into a
+ * selection target.
+ *
+ * `SECTION_CARD_STYLES` exposes the underlying class strings (surface, variant
+ * backgrounds, padding axes, header, body and footer bases) for components that
+ * compose the same surface themselves, such as section accordions.
+ */
+export { default as SectionCard } from './components/SectionCard';
+export type { SectionCardProps } from './components/SectionCard';
+export { SECTION_CARD_STYLES } from './constants/sectionCardStyles';
+export type { SectionCardVariant, SectionCardPadding } from './constants/sectionCardStyles';
+
+/**
+ * AddCard – A fully clickable "create new" placeholder card.
+ *
+ * Renders a ui-kit `Button` on the shared `liquid-glass` surface (reused from
+ * `SECTION_CARD_STYLES`) with a centered icon tile, `title` and optional
+ * `description`. Use it as the trailing "add new" tile in card grids (new
+ * conference, new document, …). The icon is consumer-supplied, so the card
+ * stays icon-library agnostic; it is keyboard accessible and honors `disabled`.
+ */
+export { default as AddCard } from './components/AddCard';
+export type { AddCardProps } from './components/AddCard';
+
+/**
+ * StatValue – A numeric stat display with an emphasized value and an optional muted denominator.
+ *
+ * Renders a large, bold `value` (foreground) next to an optional muted `total`
+ * (shown as `/ {total}`), an optional `unit` appended to the total (e.g. `GB`)
+ * and an optional trailing `label` caption. The `size` prop (`md`, `lg`) switches
+ * between a card-sized and a hero-sized scale. All content is supplied via props,
+ * so the component stays i18n- and data-source-agnostic. Used by the conference
+ * cards and the dashboard quota card. The matching `StatValueProps` and
+ * `StatValueSize` types are exported.
+ */
+export { default as StatValue } from './components/StatValue';
+export type { StatValueProps, StatValueSize } from './components/StatValue';
 
 /**
  * ItemList – A compact list of named items used in confirmation and warning dialogs. Supports a
@@ -166,6 +220,17 @@ export { default as useCenterScroll } from './hooks/useCenterScroll';
  * cn – Utility function for merging Tailwind CSS class names (clsx + twMerge).
  */
 export { default as cn } from './utils/cn';
+
+/**
+ * formatCountBadge – Formats a numeric badge count for display, clamping values above `max` (default `99`) to a `"<max>+"` string. Use it wherever an unread/notification count is rendered so every surface clamps identically.
+ */
+export { default as formatCountBadge } from './utils/formatCountBadge';
+
+/**
+ * CountBadge – Compact pill showing a clamped numeric count (unread/notification counters).
+ */
+export { default as CountBadge } from './components/CountBadge';
+export type { CountBadgeProps } from './components/CountBadge';
 
 /**
  * MenuBar – A responsive navigation bar with recursively nested sub-items and mobile support.
@@ -197,6 +262,14 @@ export type { MenuBarItemListProps } from './components/MenuBarItemList';
 export { default as MenuBar } from './components/MenuBar';
 export type { MenuBarProps, MenuBarConfig } from './components/MenuBar';
 export type { default as MenuBarConfigItem } from './components/MenuBarConfigItem';
+
+/**
+ * MenuBarItemActions – The per-item context-action (three-dot) menu rendered inside a `MenuBar`
+ * row when a `MenuBarConfigItem` provides `contextActions`. Shows a kebab trigger (revealed on
+ * hover/focus, always visible on touch) that opens a `DropdownMenu` of the item's actions.
+ */
+export { default as MenuBarItemActions } from './components/MenuBarItemActions';
+export type { default as MenuBarItemAction } from './components/MenuBarItemAction';
 
 /**
  * MenuBarDropData – Optional drag-and-drop target descriptor for a `MenuBarConfigItem`. When set,
@@ -267,6 +340,13 @@ export { default as useMediaQuery } from './hooks/useMediaQuery';
  * useOnClickOutside – Hook that fires a callback when a click occurs outside the referenced element.
  */
 export { default as useOnClickOutside } from './hooks/useOnClickOutside';
+
+/**
+ * synthesizePenClick – PointerDown handler that synthesizes a click for Apple Pencil (`pointerType === 'pen'`) input,
+ * working around Safari/WebView dropping pen taps on non-`button` interactive elements (links, `role="button"` divs).
+ * No-op for mouse and touch, which keep their native click behaviour.
+ */
+export { default as synthesizePenClick } from './utils/synthesizePenClick';
 
 /**
  * Label – A styled label component built on Radix UI Label primitive.
@@ -480,6 +560,13 @@ export type { FullScreenImageProps } from './components/FullScreenImage';
  */
 export { default as ImageComponent } from './components/ImageComponent';
 export type { ImageComponentProps } from './components/ImageComponent';
+
+/**
+ * TimeUnitButton – Generic button for selecting a numeric time unit (hour or minute) in a time picker.
+ * Supports an optional `format` function to control the displayed label.
+ */
+export { default as TimeUnitButton } from './components/TimeUnitButton';
+export type { TimeUnitButtonProps } from './components/TimeUnitButton';
 
 /**
  * HourButton – A button for selecting an hour value in a time picker.

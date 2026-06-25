@@ -132,6 +132,30 @@ describe('MenuBarItem', () => {
     expect(badge.className).toContain('font-medium');
   });
 
+  it('renders an own badge for a childless item using the same subtle styling', () => {
+    render(
+      <MenuBarItem
+        {...defaultProps}
+        badge={5}
+      />,
+    );
+    const badge = screen.getByLabelText('5 unread');
+    expect(badge.className).toContain('bg-accent');
+    expect(badge.className).toContain('h-4');
+    expect(badge.className).toContain('text-[10px]');
+  });
+
+  it('does not render an own badge once the item has children', () => {
+    render(
+      <MenuBarItem
+        {...defaultProps}
+        badge={5}
+        childItems={[{ id: 'child-1', label: 'Child 1' }]}
+      />,
+    );
+    expect(screen.queryByLabelText('5 unread')).toBeNull();
+  });
+
   it('shows expand button when has children', () => {
     render(
       <MenuBarItem

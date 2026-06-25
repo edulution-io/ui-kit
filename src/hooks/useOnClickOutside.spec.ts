@@ -21,6 +21,12 @@ import { renderHook } from '@testing-library/react';
 import { createRef } from 'react';
 import useOnClickOutside from './useOnClickOutside';
 
+const createPointerEvent = (pointerType: 'mouse' | 'touch' | 'pen' = 'mouse') => {
+  const event = new MouseEvent('pointerdown', { bubbles: true });
+  Object.defineProperty(event, 'pointerType', { value: pointerType });
+  return event;
+};
+
 describe('useOnClickOutside', () => {
   it('calls handler when clicking outside the ref element', () => {
     const handler = vi.fn();
@@ -31,7 +37,7 @@ describe('useOnClickOutside', () => {
 
     renderHook(() => useOnClickOutside(ref, handler));
 
-    const event = new MouseEvent('mousedown', { bubbles: true });
+    const event = createPointerEvent('mouse');
     document.dispatchEvent(event);
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler).toHaveBeenCalledWith(event);
@@ -48,7 +54,7 @@ describe('useOnClickOutside', () => {
 
     renderHook(() => useOnClickOutside(ref, handler));
 
-    div.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    div.dispatchEvent(createPointerEvent('mouse'));
     expect(handler).not.toHaveBeenCalled();
 
     document.body.removeChild(div);
@@ -60,7 +66,7 @@ describe('useOnClickOutside', () => {
 
     renderHook(() => useOnClickOutside(ref, handler));
 
-    document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    document.dispatchEvent(createPointerEvent('mouse'));
     expect(handler).not.toHaveBeenCalled();
   });
 
@@ -74,13 +80,13 @@ describe('useOnClickOutside', () => {
     const { unmount } = renderHook(() => useOnClickOutside(ref, handler));
     unmount();
 
-    document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    document.dispatchEvent(createPointerEvent('mouse'));
     expect(handler).not.toHaveBeenCalled();
 
     document.body.removeChild(div);
   });
 
-  it('calls handler on touchstart outside', () => {
+  it('calls handler on touch pointer outside', () => {
     const handler = vi.fn();
     const ref = createRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;
     const div = document.createElement('div');
@@ -89,7 +95,7 @@ describe('useOnClickOutside', () => {
 
     renderHook(() => useOnClickOutside(ref, handler));
 
-    const event = new TouchEvent('touchstart', { bubbles: true });
+    const event = createPointerEvent('touch');
     document.dispatchEvent(event);
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler).toHaveBeenCalledWith(event);
@@ -97,7 +103,7 @@ describe('useOnClickOutside', () => {
     document.body.removeChild(div);
   });
 
-  it('does not call handler on touchstart inside', () => {
+  it('does not call handler on touch pointer inside', () => {
     const handler = vi.fn();
     const ref = createRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;
     const div = document.createElement('div');
@@ -106,8 +112,23 @@ describe('useOnClickOutside', () => {
 
     renderHook(() => useOnClickOutside(ref, handler));
 
-    div.dispatchEvent(new TouchEvent('touchstart', { bubbles: true }));
+    div.dispatchEvent(createPointerEvent('touch'));
     expect(handler).not.toHaveBeenCalled();
+
+    document.body.removeChild(div);
+  });
+
+  it('calls handler on pen pointer outside', () => {
+    const handler = vi.fn();
+    const ref = createRef<HTMLDivElement>() as React.MutableRefObject<HTMLDivElement>;
+    const div = document.createElement('div');
+    document.body.appendChild(div);
+    (ref as { current: HTMLDivElement }).current = div;
+
+    renderHook(() => useOnClickOutside(ref, handler));
+
+    document.dispatchEvent(createPointerEvent('pen'));
+    expect(handler).toHaveBeenCalledTimes(1);
 
     document.body.removeChild(div);
   });
@@ -125,7 +146,7 @@ describe('useOnClickOutside', () => {
 
     renderHook(() => useOnClickOutside([ref1, ref2], handler));
 
-    document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    document.dispatchEvent(createPointerEvent('mouse'));
     expect(handler).toHaveBeenCalledTimes(1);
 
     document.body.removeChild(div1);
@@ -145,10 +166,10 @@ describe('useOnClickOutside', () => {
 
     renderHook(() => useOnClickOutside([ref1, ref2], handler));
 
-    div1.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    div1.dispatchEvent(createPointerEvent('mouse'));
     expect(handler).not.toHaveBeenCalled();
 
-    div2.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    div2.dispatchEvent(createPointerEvent('mouse'));
     expect(handler).not.toHaveBeenCalled();
 
     document.body.removeChild(div1);

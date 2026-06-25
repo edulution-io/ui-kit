@@ -24,9 +24,13 @@ import { faChevronDown, faChevronLeft } from '@fortawesome/free-solid-svg-icons'
 import findInTree from '../utils/findInTree';
 import cn from '../utils/cn';
 import sumChildBadges from '../utils/sumChildBadges';
+import synthesizePenClick from '../utils/synthesizePenClick';
 import { Button } from './Button';
+import CountBadge from './CountBadge';
 import type MenuBarConfigItem from './MenuBarConfigItem';
 import type MenuBarDropData from './MenuBarDropData';
+import type MenuBarItemAction from './MenuBarItemAction';
+import MenuBarItemActions from './MenuBarItemActions';
 import MenuBarSubItem from './MenuBarSubItem';
 
 const SPRING_LOAD_EXPAND_DELAY_MS = 600;
@@ -40,6 +44,7 @@ export type MenuBarItemProps = React.HTMLAttributes<HTMLDivElement> & {
   activeColorClass: string;
   collapseLabel: string;
   expandLabel: string;
+  badge?: number;
   childItems?: MenuBarConfigItem[];
   activeChildId?: string | null;
   onItemClick: () => void;
@@ -51,6 +56,8 @@ export type MenuBarItemProps = React.HTMLAttributes<HTMLDivElement> & {
   backLabel?: string;
   aggregateChildBadges?: boolean;
   dropData?: MenuBarDropData;
+  contextActions?: MenuBarItemAction[];
+  itemActionsLabel?: string;
 };
 
 const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
@@ -64,6 +71,7 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
       activeColorClass,
       collapseLabel,
       expandLabel,
+      badge,
       childItems = [],
       activeChildId,
       onItemClick,
@@ -75,6 +83,8 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
       backLabel = 'Back',
       aggregateChildBadges = false,
       dropData,
+      contextActions = [],
+      itemActionsLabel = 'Actions',
       className,
       ...props
     },
@@ -86,6 +96,7 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
       [aggregateChildBadges, childItems],
     );
     const showAggregatedBadge = aggregateChildBadges && aggregatedBadge > 0;
+    const showOwnBadge = !hasChildren && (badge ?? 0) > 0;
     const [drillDownStack, setDrillDownStack] = React.useState<string[]>([]);
 
     const droppableDisabled = !dropData && !hasChildren;
@@ -159,12 +170,13 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
         role="button"
         tabIndex={0}
         onClick={handleItemClick}
+        onPointerDown={synthesizePenClick}
         onKeyDown={handleKeyDown}
         aria-expanded={hasChildren ? isExpanded : undefined}
         aria-controls={hasChildren ? childrenId : undefined}
         aria-label={label}
         className={cn(
-          'relative flex w-full cursor-pointer items-center gap-3 rounded-lg py-2 pl-3 pr-3 text-foreground outline-none transition-colors',
+          'group/menubar-row relative flex w-full cursor-pointer items-center gap-3 rounded-lg py-2 pl-3 pr-3 text-foreground outline-none transition-colors',
           'before:absolute before:bottom-1 before:left-0 before:top-1 before:w-[3px] before:rounded-r before:bg-primary before:opacity-0 before:transition-opacity before:content-[""]',
           'hover:bg-accent/50 hover:before:opacity-100',
           'focus-visible:bg-accent/50 focus-visible:before:opacity-100',
@@ -177,12 +189,18 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
           {label}
         </span>
         {showAggregatedBadge && (
-          <span
+          <CountBadge
+            count={aggregatedBadge}
             aria-label={`${aggregatedBadge} unread`}
-            className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-medium tabular-nums leading-none text-foreground dark:text-primary-foreground"
-          >
-            {aggregatedBadge > 99 ? '99+' : aggregatedBadge}
-          </span>
+            className="shrink-0"
+          />
+        )}
+        {showOwnBadge && (
+          <CountBadge
+            count={badge as number}
+            aria-label={`${badge} unread`}
+            className="shrink-0"
+          />
         )}
         {hasChildren && (
           <Button
@@ -201,6 +219,13 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
               )}
             />
           </Button>
+        )}
+        {contextActions.length > 0 && (
+          <MenuBarItemActions
+            actions={contextActions}
+            label={itemActionsLabel}
+            className={cn(isActive && 'text-primary-foreground')}
+          />
         )}
       </div>
     );
@@ -252,6 +277,7 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
                 onDrillDown={handleDrillDown}
                 aggregateChildBadges={aggregateChildBadges}
                 isVisible={isExpanded}
+                itemActionsLabel={itemActionsLabel}
               />
             ))}
           </div>

@@ -22,6 +22,7 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faChevronCircleRight, faCircle } from '@fortawesome/free-solid-svg-icons';
 import cn from '../utils/cn';
+import synthesizePenClick from '../utils/synthesizePenClick';
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
@@ -102,16 +103,19 @@ const DropdownMenuItem = React.forwardRef<
     inset?: boolean;
     onClick?: () => void;
   }
->(({ className, inset, onClick, ...props }, ref) => (
+>(({ className, inset, onClick, onPointerDown, ...props }, ref) => (
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground',
       inset && 'pl-8',
       className,
     )}
     onClick={onClick}
-    onTouchStart={onClick}
+    onPointerDown={(event) => {
+      onPointerDown?.(event);
+      synthesizePenClick(event);
+    }}
     {...props}
   />
 ));

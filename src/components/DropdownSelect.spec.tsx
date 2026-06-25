@@ -18,7 +18,7 @@
  */
 
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DropdownSelect from './DropdownSelect';
 import type { DropdownOptions } from './DropdownSelect';
@@ -185,6 +185,21 @@ describe('DropdownSelect', () => {
     await user.click(input);
     expect(screen.getByRole('listbox')).toBeInTheDocument();
     await user.click(screen.getByText('Outside'));
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
+  it('closes on a bare pointerdown outside without a compatibility mousedown (pen input)', async () => {
+    const user = userEvent.setup();
+    render(
+      <div>
+        <button type="button">Outside</button>
+        <DropdownSelect {...defaultProps()} />
+      </div>,
+    );
+    const input = screen.getByRole('combobox').querySelector('input');
+    await user.click(input);
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    fireEvent.pointerDown(screen.getByText('Outside'));
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
 

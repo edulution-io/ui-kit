@@ -32,4 +32,23 @@ describe('liquid glass panel theme styles', () => {
     expect(themeCss).toContain('html :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel)');
     expect(themeCss).toContain('.light :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel)');
   });
+
+  it('prefixes every backdrop-filter declaration with -webkit-backdrop-filter for Safari', () => {
+    const lines = themeCss.split('\n');
+    const declarationIndexes = lines.reduce<number[]>((indexes, line, index) => {
+      if (/^\s*backdrop-filter\s*:/.test(line)) {
+        indexes.push(index);
+      }
+      return indexes;
+    }, []);
+
+    expect(declarationIndexes.length).toBeGreaterThan(0);
+
+    declarationIndexes.forEach((index) => {
+      const previousLine = lines[index - 1] ?? '';
+      expect(previousLine, `missing -webkit-backdrop-filter before "${lines[index].trim()}"`).toMatch(
+        /^\s*-webkit-backdrop-filter\s*:/,
+      );
+    });
+  });
 });

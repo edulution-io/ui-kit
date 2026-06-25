@@ -19,6 +19,7 @@
 
 import type React from 'react';
 import type MenuBarDropData from './MenuBarDropData';
+import type MenuBarItemAction from './MenuBarItemAction';
 
 interface MenuBarConfigItem {
   id: string;
@@ -28,6 +29,7 @@ interface MenuBarConfigItem {
   children?: MenuBarConfigItem[];
   badge?: number;
   dropData?: MenuBarDropData;
+  contextActions?: MenuBarItemAction[];
 }
 
 export default MenuBarConfigItem;

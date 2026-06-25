@@ -99,6 +99,11 @@ export type MenuBarProps = {
    * (classic accordion behaviour).
    */
   allowMultipleTopLevelExpanded?: boolean;
+  /**
+   * Accessible label for the per-item context-action (three-dot) trigger rendered when an
+   * item provides `contextActions`. Pass a translated string. Defaults to `"Actions"`.
+   */
+  itemActionsLabel?: string;
 };
 
 const getActiveColorClass = (color: string) => color.split(':')[1] ?? color;
@@ -119,6 +124,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
   backLabel = 'Back',
   aggregateChildBadges = false,
   allowMultipleTopLevelExpanded = false,
+  itemActionsLabel = 'Actions',
 }) => {
   const menuBarRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery(MOBILE_QUERY);
@@ -278,6 +284,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
                 itemId={item.id}
                 icon={item.icon}
                 label={item.label}
+                badge={item.badge}
                 isActive={isActive}
                 isExpanded={effectiveExpandedItems.has(item.id)}
                 activeColorClass={activeColorClass}
@@ -294,6 +301,8 @@ const MenuBar: React.FC<MenuBarProps> = ({
                 backLabel={backLabel}
                 aggregateChildBadges={aggregateChildBadges}
                 dropData={item.dropData}
+                contextActions={item.contextActions}
+                itemActionsLabel={itemActionsLabel}
               />
             );
           })

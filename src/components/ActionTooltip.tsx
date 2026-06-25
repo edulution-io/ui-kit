@@ -17,7 +17,7 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { TooltipContent, TooltipTrigger } from '@radix-ui/react-tooltip';
 import cn from '../utils/cn';
 import { Tooltip } from './Tooltip';
@@ -30,6 +30,8 @@ interface ActionTooltipProps {
   openOnSide?: 'top' | 'left' | 'bottom' | 'right';
 }
 
+const TOUCH_TOOLTIP_AUTO_CLOSE_MS = 1500;
+
 const ActionTooltip: React.FC<ActionTooltipProps> = ({
   trigger,
   onAction,
@@ -37,6 +39,23 @@ const ActionTooltip: React.FC<ActionTooltipProps> = ({
   className,
   openOnSide = 'top',
 }) => {
+  const [open, setOpen] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    },
+    [],
+  );
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'mouse') return;
+    setOpen(true);
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => setOpen(false), TOUCH_TOOLTIP_AUTO_CLOSE_MS);
+  };
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if ((event.key === 'Enter' || event.key === ' ') && onAction) {
       onAction();
@@ -44,12 +63,16 @@ const ActionTooltip: React.FC<ActionTooltipProps> = ({
   };
 
   return (
-    <Tooltip>
+    <Tooltip
+      open={open}
+      onOpenChange={setOpen}
+    >
       <TooltipTrigger asChild>
         <div
           role="button"
           tabIndex={0}
           onClick={onAction}
+          onPointerDown={handlePointerDown}
           onKeyDown={handleKeyDown}
         >
           {trigger}

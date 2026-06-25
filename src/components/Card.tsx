@@ -24,9 +24,7 @@ import cn from '../utils/cn';
 const cardVariants = cva('rounded-lg border bg-card text-card-foreground shadow-lg', {
   variants: {
     variant: {
-      collaboration: 'border-primary border-4',
-      organisation: 'border-ciLightBlue border-4',
-      infrastructure: 'border-ciLightGreen border-4',
+      organisation: 'border-primary border-4',
       security: 'gradient-box',
       modal:
         'border-4 border-white fixed left-[50%] top-[40%] max-h-[85vh] w-[90vw] max-w-[450px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white p-[25px] text-background',
@@ -41,7 +39,7 @@ const cardVariants = cva('rounded-lg border bg-card text-card-foreground shadow-
     },
   },
   defaultVariants: {
-    variant: 'collaboration',
+    variant: 'organisation',
   },
 });
 

@@ -21,6 +21,7 @@ import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import cn from '../utils/cn';
+import synthesizePenClick from '../utils/synthesizePenClick';
 import HexagonIcon from '../assets/HexagonIcon';
 
 const buttonVariants = cva(
@@ -48,6 +49,8 @@ const buttonVariants = cva(
           'h-10 items-center rounded-lg bg-white dark:border-none dark:bg-accent border-[1px] border-gray-300',
         'btn-ghost':
           'bg-transparent rounded-lg border-none shadow-none ring-0 outline-none hover:bg-accent hover:opacity-100 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:outline-none',
+        'btn-window-control':
+          'flex h-10 w-16 rounded-none border-none bg-transparent p-0 shadow-none outline-none ring-0 hover:bg-accent-light hover:opacity-100 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0',
       },
       size: {
         default: 'h-16 px-4 py-2',
@@ -74,14 +77,20 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
   };
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, hexagonIconAltText, asChild = false, children, ...props }, ref) => {
+  ({ className, variant, size, hexagonIconAltText, asChild = false, children, onPointerDown, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button';
-    const hasOwnSize = variant === 'btn-ghost';
+    const hasOwnSize = variant === 'btn-ghost' || variant === 'btn-window-control';
     const effectiveSize = size ?? (hasOwnSize ? 'none' : undefined);
+
+    const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+      onPointerDown?.(event);
+      synthesizePenClick(event);
+    };
 
     return (
       <Comp
         {...props}
+        onPointerDown={handlePointerDown}
         className={cn(buttonVariants({ variant, size: effectiveSize, className }))}
         ref={ref}
       >

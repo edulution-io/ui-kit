@@ -80,9 +80,7 @@ describe('Card', () => {
   });
 
   it.each<CardVariant>([
-    'collaboration',
     'organisation',
-    'infrastructure',
     'security',
     'modal',
     'text',
