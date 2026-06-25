@@ -22,6 +22,7 @@ import { FC } from 'react';
 import { SizeProp } from '@fortawesome/fontawesome-svg-core';
 import { IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import formatCountBadge from '../utils/formatCountBadge';
 
 interface IconWithCountProps extends HTMLAttributes<HTMLSpanElement> {
   icon: IconDefinition;
@@ -67,7 +68,7 @@ const IconWithCount: FC<IconWithCountProps> = ({
             padding: '0 2px',
           }}
         >
-          {count > 99 ? '99+' : count}
+          {formatCountBadge(count)}
         </span>
       )}
     </span>

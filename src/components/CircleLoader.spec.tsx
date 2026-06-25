@@ -72,7 +72,7 @@ describe('CircleLoader', () => {
     render(<CircleLoader forceLightMode />);
     const spinner = screen.getByTestId('motion-span');
     expect(spinner.className).toContain('border-lightGrey');
-    expect(spinner.className).toContain('border-t-ciLightBlue');
+    expect(spinner.className).toContain('border-t-primary');
   });
 
   it('uses default border classes when forceLightMode is false', () => {

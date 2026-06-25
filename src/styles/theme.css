@@ -22,7 +22,6 @@
   --radius: 0.25rem;
   --ci-light-green: 143 192 70;
   --ci-dark-blue: 0 129 198;
-  --ci-light-blue: 103 178 224;
   --ci-dark-gray: 132 132 147;
   --color-danger: 220 38 38;
   --color-danger-light: 248 113 113;
@@ -92,6 +91,7 @@
 
 .liquid-glass {
   background-color: color-mix(in srgb, rgb(var(--foreground)) 6%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
   backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid color-mix(in srgb, rgb(var(--foreground)) 18%, transparent);
   box-shadow:
@@ -109,9 +109,16 @@
     0 2px 8px rgba(15, 23, 42, 0.08);
 }
 
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .liquid-glass {
+    background-color: color-mix(in srgb, rgb(var(--background)) 92%, transparent);
+  }
+}
+
 html :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel) {
   background-color: rgba(10, 12, 16, 0.82);
   background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.015) 46%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%) contrast(105%);
   backdrop-filter: blur(20px) saturate(160%) contrast(105%);
   border: 1px solid rgba(255, 255, 255, 0.13);
   box-shadow:
@@ -129,8 +136,27 @@ html :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel) {
     0 2px 8px rgba(15, 23, 42, 0.1);
 }
 
+.liquid-glass-overlay {
+  background-color: rgba(10, 12, 16, 0.55);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.light .liquid-glass-overlay {
+  background-color: rgba(245, 247, 250, 0.62);
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 10px 30px rgba(15, 23, 42, 0.18);
+}
+
 .liquid-glass-card {
   position: relative;
+  isolation: isolate;
   background-color: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow:
@@ -142,6 +168,7 @@ html :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel) {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: -1;
   border-radius: inherit;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 60%);
   pointer-events: none;
@@ -166,6 +193,7 @@ html :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel) {
     color-mix(in srgb, rgb(var(--foreground)) 16%, transparent),
     transparent 48%
   );
+  -webkit-backdrop-filter: blur(16px) saturate(160%) contrast(108%);
   backdrop-filter: blur(16px) saturate(160%) contrast(108%);
   border: 1px solid color-mix(in srgb, rgb(var(--foreground)) 16%, transparent);
   box-shadow:
@@ -201,6 +229,7 @@ html :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel) {
 .liquid-glass-soft {
   background-color: rgba(22, 22, 24, 0.46);
   background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.07), transparent 46%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
   backdrop-filter: blur(12px) saturate(140%);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 0.5rem;

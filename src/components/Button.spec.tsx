@@ -18,9 +18,15 @@
  */
 
 import { createRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { Button } from './Button';
 import type { ButtonVariant } from './Button';
+
+const firePointerDown = (element: Element, pointerType: string) => {
+  const event = new MouseEvent('pointerdown', { bubbles: true, cancelable: true });
+  Object.defineProperty(event, 'pointerType', { value: pointerType });
+  fireEvent(element, event);
+};
 
 describe('Button', () => {
   it('renders children correctly', () => {
@@ -103,6 +109,15 @@ describe('Button', () => {
     expect(button.className).toContain('px-8');
   });
 
+  it('applies btn-window-control variant with its fixed toolbar size', () => {
+    render(<Button variant="btn-window-control">Control</Button>);
+    const button = screen.getByRole('button');
+    expect(button.className).toContain('w-16');
+    expect(button.className).toContain('rounded-none');
+    expect(button.className).toContain('hover:bg-accent-light');
+    expect(button.className).not.toContain('h-16');
+  });
+
   it('renders as a button element by default', () => {
     render(<Button>Test</Button>);
     expect(screen.getByRole('button').tagName).toBe('BUTTON');
@@ -124,6 +139,7 @@ describe('Button', () => {
     'btn-small',
     'btn-table',
     'btn-ghost',
+    'btn-window-control',
   ])('renders without errors for variant %s', (variant) => {
     render(<Button variant={variant}>Test</Button>);
     expect(screen.getByRole('button')).toBeInTheDocument();
@@ -131,5 +147,39 @@ describe('Button', () => {
 
   it('has displayName set to Button', () => {
     expect(Button.displayName).toBe('Button');
+  });
+
+  it('synthesizes a click on pen pointerdown (Radix overlay workaround)', () => {
+    const rafSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb: FrameRequestCallback) => {
+      cb(0);
+      return 0;
+    });
+    const handleClick = vi.fn();
+    render(<Button onClick={handleClick}>Tap</Button>);
+
+    firePointerDown(screen.getByRole('button'), 'pen');
+
+    expect(handleClick).toHaveBeenCalledTimes(1);
+    rafSpy.mockRestore();
+  });
+
+  it('does not synthesize a click for mouse or touch pointerdown', () => {
+    const handleClick = vi.fn();
+    render(<Button onClick={handleClick}>Tap</Button>);
+    const button = screen.getByRole('button');
+
+    firePointerDown(button, 'mouse');
+    firePointerDown(button, 'touch');
+
+    expect(handleClick).not.toHaveBeenCalled();
+  });
+
+  it('still forwards a consumer-supplied onPointerDown handler', () => {
+    const handlePointerDown = vi.fn();
+    render(<Button onPointerDown={handlePointerDown}>Tap</Button>);
+
+    firePointerDown(screen.getByRole('button'), 'mouse');
+
+    expect(handlePointerDown).toHaveBeenCalledTimes(1);
   });
 });

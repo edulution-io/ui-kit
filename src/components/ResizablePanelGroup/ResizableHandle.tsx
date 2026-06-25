@@ -29,7 +29,7 @@ const ResizableHandle: React.FC<SeparatorProps & { withHandle?: boolean }> = ({
 }) => (
   <Separator
     className={cn(
-      'relative flex w-px shrink-0 items-center justify-center bg-muted transition-colors',
+      'relative flex w-px shrink-0 touch-none items-center justify-center bg-muted transition-colors',
       'hover:bg-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
       'after:absolute after:inset-y-0 after:left-1/2 after:w-3 after:-translate-x-1/2 after:cursor-col-resize',
       'aria-[orientation=horizontal]:h-px aria-[orientation=horizontal]:w-full',

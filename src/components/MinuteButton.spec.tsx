@@ -17,19 +17,19 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any, react/button-has-type, react/display-name */
+/* eslint-disable @typescript-eslint/no-explicit-any, react/display-name */
 
-vi.mock('./Button', () => ({
-  Button: ({ children, variant, className, onClick, ...props }: any) => (
+vi.mock('./TimeUnitButton', () => ({
+  default: ({ value, currentValue, onChange, variant, format }: any) => (
     <button
-      data-testid="minute-button"
+      type="button"
+      data-testid="time-unit-button"
+      data-value={value}
+      data-current={currentValue}
       data-variant={variant}
-      className={className}
-      onClick={onClick}
-      {...props}
-    >
-      {children}
-    </button>
+      data-label={format ? format(value) : String(value)}
+      onClick={() => onChange(value)}
+    />
   ),
 }));
 
@@ -39,31 +39,19 @@ import userEvent from '@testing-library/user-event';
 import MinuteButton from './MinuteButton';
 
 describe('MinuteButton', () => {
-  it('renders the minute zero-padded', () => {
+  it('passes minute as value', () => {
     render(
       <MinuteButton
-        minute={5}
+        minute={15}
         currentMinute={0}
         onChangeMinute={vi.fn()}
         variant="default"
       />,
     );
-    expect(screen.getByText('05')).toBeInTheDocument();
+    expect(screen.getByTestId('time-unit-button')).toHaveAttribute('data-value', '15');
   });
 
-  it('uses btn-outline variant when minute matches currentMinute', () => {
-    render(
-      <MinuteButton
-        minute={30}
-        currentMinute={30}
-        onChangeMinute={vi.fn()}
-        variant="default"
-      />,
-    );
-    expect(screen.getByTestId('minute-button')).toHaveAttribute('data-variant', 'btn-outline');
-  });
-
-  it('uses btn-small variant when minute does not match currentMinute', () => {
+  it('passes currentMinute as currentValue', () => {
     render(
       <MinuteButton
         minute={15}
@@ -72,10 +60,10 @@ describe('MinuteButton', () => {
         variant="default"
       />,
     );
-    expect(screen.getByTestId('minute-button')).toHaveAttribute('data-variant', 'btn-small');
+    expect(screen.getByTestId('time-unit-button')).toHaveAttribute('data-current', '30');
   });
 
-  it('calls onChangeMinute with the minute when clicked', async () => {
+  it('calls onChangeMinute when onChange fires', async () => {
     const user = userEvent.setup();
     const handleChange = vi.fn();
     render(
@@ -86,62 +74,20 @@ describe('MinuteButton', () => {
         variant="default"
       />,
     );
-    await user.click(screen.getByTestId('minute-button'));
+    await user.click(screen.getByTestId('time-unit-button'));
     expect(handleChange).toHaveBeenCalledWith(45);
   });
 
-  it('applies default variant classes when variant is default', () => {
+  it('zero-pads single-digit minutes via format', () => {
     render(
       <MinuteButton
-        minute={10}
+        minute={5}
         currentMinute={0}
         onChangeMinute={vi.fn()}
         variant="default"
       />,
     );
-    expect(screen.getByTestId('minute-button').className).toContain('bg-foreground');
-  });
-
-  it('applies dialog variant classes when variant is dialog', () => {
-    render(
-      <MinuteButton
-        minute={10}
-        currentMinute={0}
-        onChangeMinute={vi.fn()}
-        variant="dialog"
-      />,
-    );
-    const { className } = screen.getByTestId('minute-button');
-    expect(className).not.toContain('text-background');
-    expect(className).toContain('bg-foreground/10');
-    expect(className).toContain('dark:border-[color-mix(in_srgb,var(--foreground)_15%,transparent)]');
-    expect(className).toContain('text-foreground');
-  });
-
-  it('uses primary styling for the selected dialog minute', () => {
-    render(
-      <MinuteButton
-        minute={10}
-        currentMinute={10}
-        onChangeMinute={vi.fn()}
-        variant="dialog"
-      />,
-    );
-    const { className } = screen.getByTestId('minute-button');
-    expect(className).toContain('bg-primary');
-    expect(className).toContain('text-primary-foreground');
-  });
-
-  it('renders minute 0 as 00', () => {
-    render(
-      <MinuteButton
-        minute={0}
-        currentMinute={5}
-        onChangeMinute={vi.fn()}
-        variant="default"
-      />,
-    );
-    expect(screen.getByText('00')).toBeInTheDocument();
+    expect(screen.getByTestId('time-unit-button')).toHaveAttribute('data-label', '05');
   });
 
   it('does not pad two-digit minutes', () => {
@@ -153,6 +99,30 @@ describe('MinuteButton', () => {
         variant="default"
       />,
     );
-    expect(screen.getByText('30')).toBeInTheDocument();
+    expect(screen.getByTestId('time-unit-button')).toHaveAttribute('data-label', '30');
+  });
+
+  it('formats 0 as 00', () => {
+    render(
+      <MinuteButton
+        minute={0}
+        currentMinute={5}
+        onChangeMinute={vi.fn()}
+        variant="default"
+      />,
+    );
+    expect(screen.getByTestId('time-unit-button')).toHaveAttribute('data-label', '00');
+  });
+
+  it('passes variant through', () => {
+    render(
+      <MinuteButton
+        minute={10}
+        currentMinute={0}
+        onChangeMinute={vi.fn()}
+        variant="dialog"
+      />,
+    );
+    expect(screen.getByTestId('time-unit-button')).toHaveAttribute('data-variant', 'dialog');
   });
 });

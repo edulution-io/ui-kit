@@ -17,19 +17,19 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any, react/button-has-type, react/display-name */
+/* eslint-disable @typescript-eslint/no-explicit-any, react/display-name */
 
-vi.mock('./Button', () => ({
-  Button: ({ children, variant, className, onClick, ...props }: any) => (
+vi.mock('./TimeUnitButton', () => ({
+  default: ({ value, currentValue, onChange, variant, format }: any) => (
     <button
-      data-testid="hour-button"
+      type="button"
+      data-testid="time-unit-button"
+      data-value={value}
+      data-current={currentValue}
       data-variant={variant}
-      className={className}
-      onClick={onClick}
-      {...props}
-    >
-      {children}
-    </button>
+      data-format={format ? 'custom' : 'default'}
+      onClick={() => onChange(value)}
+    />
   ),
 }));
 
@@ -39,7 +39,7 @@ import userEvent from '@testing-library/user-event';
 import HourButton from './HourButton';
 
 describe('HourButton', () => {
-  it('renders the hour number', () => {
+  it('passes hour as value', () => {
     render(
       <HourButton
         hour={14}
@@ -48,34 +48,22 @@ describe('HourButton', () => {
         variant="default"
       />,
     );
-    expect(screen.getByText('14')).toBeInTheDocument();
+    expect(screen.getByTestId('time-unit-button')).toHaveAttribute('data-value', '14');
   });
 
-  it('uses btn-outline variant when hour matches currentHour', () => {
+  it('passes currentHour as currentValue', () => {
     render(
       <HourButton
-        hour={5}
-        currentHour={5}
-        onChangeHour={vi.fn()}
-        variant="default"
-      />,
-    );
-    expect(screen.getByTestId('hour-button')).toHaveAttribute('data-variant', 'btn-outline');
-  });
-
-  it('uses btn-small variant when hour does not match currentHour', () => {
-    render(
-      <HourButton
-        hour={5}
+        hour={14}
         currentHour={10}
         onChangeHour={vi.fn()}
         variant="default"
       />,
     );
-    expect(screen.getByTestId('hour-button')).toHaveAttribute('data-variant', 'btn-small');
+    expect(screen.getByTestId('time-unit-button')).toHaveAttribute('data-current', '10');
   });
 
-  it('calls onChangeHour with the hour when clicked', async () => {
+  it('calls onChangeHour when onChange fires', async () => {
     const user = userEvent.setup();
     const handleChange = vi.fn();
     render(
@@ -86,11 +74,11 @@ describe('HourButton', () => {
         variant="default"
       />,
     );
-    await user.click(screen.getByTestId('hour-button'));
+    await user.click(screen.getByTestId('time-unit-button'));
     expect(handleChange).toHaveBeenCalledWith(8);
   });
 
-  it('applies default variant classes when variant is default', () => {
+  it('uses no custom format (hours are displayed as-is)', () => {
     render(
       <HourButton
         hour={3}
@@ -99,10 +87,10 @@ describe('HourButton', () => {
         variant="default"
       />,
     );
-    expect(screen.getByTestId('hour-button').className).toContain('bg-foreground');
+    expect(screen.getByTestId('time-unit-button')).toHaveAttribute('data-format', 'default');
   });
 
-  it('applies dialog variant classes when variant is dialog', () => {
+  it('passes variant through', () => {
     render(
       <HourButton
         hour={3}
@@ -111,36 +99,6 @@ describe('HourButton', () => {
         variant="dialog"
       />,
     );
-    const { className } = screen.getByTestId('hour-button');
-    expect(className).not.toContain('text-background');
-    expect(className).toContain('bg-foreground/10');
-    expect(className).toContain('dark:border-[color-mix(in_srgb,var(--foreground)_15%,transparent)]');
-    expect(className).toContain('text-foreground');
-  });
-
-  it('uses primary styling for the selected dialog hour', () => {
-    render(
-      <HourButton
-        hour={3}
-        currentHour={3}
-        onChangeHour={vi.fn()}
-        variant="dialog"
-      />,
-    );
-    const { className } = screen.getByTestId('hour-button');
-    expect(className).toContain('bg-primary');
-    expect(className).toContain('text-primary-foreground');
-  });
-
-  it('renders hour 0', () => {
-    render(
-      <HourButton
-        hour={0}
-        currentHour={5}
-        onChangeHour={vi.fn()}
-        variant="default"
-      />,
-    );
-    expect(screen.getByText('0')).toBeInTheDocument();
+    expect(screen.getByTestId('time-unit-button')).toHaveAttribute('data-variant', 'dialog');
   });
 });

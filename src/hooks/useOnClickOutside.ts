@@ -21,14 +21,14 @@ import { useEffect, useRef, type RefObject } from 'react';
 
 type RefOrRefs = RefObject<HTMLElement | null> | RefObject<HTMLElement | null>[];
 
-const useOnClickOutside = (ref: RefOrRefs, handler: (event?: MouseEvent | TouchEvent) => void): void => {
+const useOnClickOutside = (ref: RefOrRefs, handler: (event?: PointerEvent) => void): void => {
   const handlerRef = useRef(handler);
   handlerRef.current = handler;
 
   const refsArray = Array.isArray(ref) ? ref : [ref];
 
   useEffect(() => {
-    const listener = (event: MouseEvent | TouchEvent) => {
+    const listener = (event: PointerEvent) => {
       const hasAnyRef = refsArray.some((r) => r.current);
       if (!hasAnyRef) {
         return;
@@ -40,12 +40,10 @@ const useOnClickOutside = (ref: RefOrRefs, handler: (event?: MouseEvent | TouchE
       handlerRef.current(event);
     };
 
-    document.addEventListener('mousedown', listener);
-    document.addEventListener('touchstart', listener);
+    document.addEventListener('pointerdown', listener);
 
     return () => {
-      document.removeEventListener('mousedown', listener);
-      document.removeEventListener('touchstart', listener);
+      document.removeEventListener('pointerdown', listener);
     };
   }, refsArray);
 };

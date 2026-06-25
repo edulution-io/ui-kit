@@ -7,6 +7,271 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.302] - 2026-06-25
+
+## [2.0.301] - 2026-06-24
+
+### Added
+
+- New `CountBadge` component — a compact pill rendering a clamped numeric count (via `formatCountBadge`) with the shared unread/notification styling. Replaces the duplicated badge markup in `MenuBarItem`, `MenuBarSubItem`, and downstream consumers.
+
+### Changed
+
+- `MenuBarItem` now renders a childless item's own `badge` (previously only the aggregated child-badge sum was shown), so leaf menu items can display an unread count.
+
+## [2.0.300] - 2026-06-24
+
+## [2.0.299] - 2026-06-24
+
+### Added
+
+- `AddCard` — a fully clickable "create new" placeholder card built on the same section-card surface, with a centered icon tile plus `title` and optional `description`. The matching `AddCardProps` type is exported.
+- `StatValue` — a numeric stat display with an emphasized `value` and an optional muted `/ total` denominator, optional `unit` and trailing `label`, plus an `md`/`lg` `size` scale. The matching `StatValueProps` and `StatValueSize` types are exported.
+
+## [2.0.298] - 2026-06-24
+
+## [2.0.297] - 2026-06-24
+
+## [2.0.296] - 2026-06-24
+
+## [2.0.295] - 2026-06-23
+
+## [2.0.294] - 2026-06-23
+
+## [2.0.293] - 2026-06-23
+
+## [2.0.292] - 2026-06-23
+
+## [2.0.291] - 2026-06-23
+
+## [2.0.290] - 2026-06-22
+
+## [2.0.289] - 2026-06-22
+
+## [2.0.288] - 2026-06-22
+
+## [2.0.287] - 2026-06-22
+
+## [2.0.286] - 2026-06-22
+
+## [2.0.285] - 2026-06-22
+
+### Fixed
+
+- `liquid-glass-card`: the `::before` sheen gradient no longer paints over the card content (it washed out text, especially in light mode). The pseudo-element is now placed behind the content (`z-index: -1`) and the card establishes its own stacking context (`isolation: isolate`), so titles and body text render at full contrast.
+
+## [2.0.284] - 2026-06-22
+
+## [2.0.283] - 2026-06-19
+
+## [2.0.282] - 2026-06-19
+
+## [2.0.281] - 2026-06-19
+
+### Added
+
+- New `liquid-glass-overlay` material — a translucent tinted glass surface (~55% dark / ~62% light tint + `blur(24px) saturate(180%)` + a subtle top-edge rim highlight). Used for the overlay/mobile sidebar so it keeps a see-through frosted-glass look while staying legible and theme-consistent over any backdrop, including in Safari.
+
+### Fixed
+
+- Safari now renders the glass surfaces (`liquid-glass`, `liquid-glass-panel`, `liquid-glass-tile`, `liquid-glass-soft`) with their backdrop blur: added the `-webkit-backdrop-filter` prefix to each declaration plus a `@supports` fallback for engines without `backdrop-filter` support. Previously these surfaces collapsed to a near-transparent base in Safari.
+
+## [2.0.280] - 2026-06-19
+
+## [2.0.279] - 2026-06-19
+
+## [2.0.278] - 2026-06-19
+
+## [2.0.277] - 2026-06-19
+
+## [2.0.276] - 2026-06-19
+
+## [2.0.275] - 2026-06-18
+
+## [2.0.274] - 2026-06-18
+
+## [2.0.273] - 2026-06-18
+
+## [2.0.272] - 2026-06-18
+
+## [2.0.271] - 2026-06-18
+
+- New exporting className in `inputClassNames.ts` for inputs inside of dialogs that are static (less heighlights/effects), called `DIALOG_CARD_WITHOUT_HOVER`, now re-exported from the package root (`@edulution-io/ui-kit`)
+
+## [2.0.270] - 2026-06-18
+
+## [2.0.269] - 2026-06-18
+
+## [2.0.268] - 2026-06-18
+
+## [2.0.267] - 2026-06-18
+
+## [2.0.266] - 2026-06-18
+
+## [2.0.265] - 2026-06-18
+
+## [2.0.264] - 2026-06-18
+
+## [2.0.263] - 2026-06-17
+
+## [2.0.262] - 2026-06-17
+
+## [2.0.261] - 2026-06-17
+
+## [2.0.260] - 2026-06-17
+
+### Changed
+
+- Retired the `ciLightBlue` color token (`--ci-light-blue`). The `Card` `organisation` variant and `CircleLoader` light-mode spinner now use `primary`. Consumers relying on the `ciLightBlue` Tailwind utility should switch to `primary` or `ciDarkBlue`.
+
+### Removed
+
+- Removed the unused `Card` variants `collaboration` and `infrastructure`. The default `Card` variant is now `organisation` (unchanged `border-primary border-4` styling).
+
+## [2.0.259] - 2026-06-17
+
+## [2.0.258] - 2026-06-17
+
+## [2.0.257] - 2026-06-17
+
+## [2.0.256] - 2026-06-17
+
+## [2.0.255] - 2026-06-17
+
+## [2.0.254] - 2026-06-17
+
+## [2.0.253] - 2026-06-17
+
+## [2.0.252] - 2026-06-17
+
+## [2.0.251] - 2026-06-17
+
+### Added
+
+- `MenuBarItemActions` — a per-item context-action (three-dot/kebab) menu for `MenuBar` rows. It renders a kebab trigger (revealed on hover/focus, always visible on touch) that opens a `DropdownMenu` of the item's actions, with optional per-action separators and a destructive style. The matching `MenuBarItemAction` type is exported.
+- `MenuBarConfigItem` gains an optional `contextActions` field; when set, the item's row renders a `MenuBarItemActions` menu. Items without it are unaffected.
+- `MenuBar` gains an optional `itemActionsLabel` prop (defaults to `"Actions"`) for the accessible label of the context-action triggers.
+
+### Fixed
+
+- `DropdownMenuItem` now shows a hover/highlight background (`focus:bg-accent` / `data-[highlighted]:bg-accent`), matching `DropdownMenuCheckboxItem` and `DropdownMenuRadioItem`. Previously plain menu items had no visual highlight on hover or keyboard navigation.
+
+## [2.0.250] - 2026-06-16
+
+## [2.0.249] - 2026-06-16
+
+## [2.0.248] - 2026-06-16
+
+## [2.0.247] - 2026-06-16
+
+## [2.0.246] - 2026-06-16
+
+## [2.0.245] - 2026-06-16
+
+## [2.0.244] - 2026-06-16
+
+## [2.0.243] - 2026-06-16
+
+## [2.0.242] - 2026-06-16
+
+## [2.0.241] - 2026-06-16
+
+## [2.0.240] - 2026-06-16
+
+## [2.0.239] - 2026-06-16
+
+## [2.0.238] - 2026-06-15
+
+## [2.0.237] - 2026-06-15
+
+## [2.0.236] - 2026-06-15
+
+## [2.0.235] - 2026-06-15
+
+## [2.0.234] - 2026-06-15
+
+## [2.0.233] - 2026-06-15
+
+## [2.0.232] - 2026-06-15
+
+## [2.0.231] - 2026-06-12
+
+### Added
+
+- `TimeUnitButton` — generic button for selecting a numeric time unit (hour or minute) in a time picker; accepts an optional `format` function to control the displayed label
+
+### Changed
+
+- `HourButton`, `MinuteButton`: refactored as thin wrappers around the new shared `TimeUnitButton`
+
+## [2.0.230] - 2026-06-12
+
+### Added
+
+- `Button`: added the `btn-window-control` variant for fixed-size window toolbar controls (self-sizing `h-10 w-16`, square corners, transparent ghost surface with `hover:bg-accent-light`). Like `btn-ghost`, it ignores the default `size` so callers do not need to pass `size="none"`.
+
+## [2.0.229] - 2026-06-12
+
+## [2.0.228] - 2026-06-12
+
+### Added
+
+- `SectionCard`: the standard liquid-glass content surface for page sections, moved from the edulution-ui frontend into the package. `SectionCardProps`, `SectionCardVariant`, `SectionCardPadding`, and the `SECTION_CARD_STYLES` class constants are exported for consumers that compose the same surface themselves
+
+## [2.0.227] - 2026-06-12
+
+### Changed
+
+- `useOnClickOutside` now listens on `pointerdown` instead of `mousedown` + `touchstart`, so Apple Pencil and other pen input devices reliably trigger outside-click detection.
+- `DropdownSelect` closes its own menu on `pointerdown` instead of `mousedown`, so a pen tap outside the menu dismisses it even when the compatibility `mousedown` event is suppressed.
+- `ActionTooltip` is now controlled and opens on pen/touch `pointerdown`, with an auto-close timer, so tooltips are reachable without a hover state (e.g. Apple Pencil on iPad).
+- `ResizableHandle` (`ResizablePanelGroup`) sets `touch-action: none` on the separator to keep Safari from hijacking pen/touch drags as page scrolls.
+- `DropdownSelect` scroll container sets `touch-action: pan-y`, so vertical pen/touch scroll inside the menu is not blocked by ancestor gesture handling.
+- `Button` synthesizes a click on `pointerdown` when `pointerType === 'pen'`, working around the known Radix UI bug where Pencil pointer events are swallowed inside Dialog/Popover/Dropdown (radix-ui/primitives#3052). The logic now lives in the shared `synthesizePenClick` helper.
+- `DropdownMenuItem` synthesizes a click on pen `pointerdown` (via `synthesizePenClick`) and no longer binds `onTouchStart`, fixing both unreachable Apple Pencil taps inside menus and a double `onClick` on finger taps.
+
+### Fixed
+
+- `synthesizePenClick` no longer double-fires on Apple Pencil: it suppresses the native echo click that follows its synthesized click, so toggles (e.g. the mobile sidebar/menu-bar buttons) open and stay open instead of immediately toggling closed.
+- `synthesizePenClick` no longer drops a second Apple Pencil tap that lands within the echo-suppression window: a stale echo suppressor from a prior tap is now torn down before a new one is installed, so rapid repeated pen taps on Buttons/MenuBarItems/NavLinks each fire reliably.
+- `synthesizePenClick` no longer loses one of two pen taps that land in the same animation frame: the synthesized-click marker is now tracked per target instead of per invocation, so a tap's synthesized click is no longer swallowed by a later tap's echo suppressor under main-thread jank.
+
+## [2.0.226] - 2026-06-11
+
+### Added
+
+- `formatCountBadge`: shared helper to format a numeric badge count, clamping values above `max` (default `99`) to a `"<max>+"` string, so every surface clamps notification/unread counts identically.
+
+### Changed
+
+- `IconWithCount`, `MenuBarItem`, `MenuBarSubItem`: badge counts now use `formatCountBadge` instead of an inline `> 99 ? '99+'` clamp.
+
+## [2.0.225] - 2026-06-11
+
+## [2.0.224] - 2026-06-11
+
+## [2.0.223] - 2026-06-11
+
+## [2.0.222] - 2026-06-11
+
+## [2.0.221] - 2026-06-11
+
+## [2.0.220] - 2026-06-11
+
+## [2.0.219] - 2026-06-11
+
+## [2.0.218] - 2026-06-09
+
+## [2.0.217] - 2026-06-09
+
+## [2.0.216] - 2026-06-09
+
+## [2.0.215] - 2026-06-09
+
+## [2.0.214] - 2026-06-08
+
+## [2.0.213] - 2026-06-08
+
 ## [2.0.212] - 2026-06-08
 
 ### Changed

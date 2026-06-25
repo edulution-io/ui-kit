@@ -24,7 +24,9 @@ import { faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons
 import cn from '../utils/cn';
 import sumChildBadges from '../utils/sumChildBadges';
 import { Button } from './Button';
+import CountBadge from './CountBadge';
 import type MenuBarConfigItem from './MenuBarConfigItem';
+import MenuBarItemActions from './MenuBarItemActions';
 
 const SPRING_LOAD_EXPAND_DELAY_MS = 600;
 
@@ -41,6 +43,7 @@ interface MenuBarSubItemProps {
   onDrillDown?: (itemId: string) => void;
   aggregateChildBadges?: boolean;
   isVisible?: boolean;
+  itemActionsLabel?: string;
 }
 
 const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
@@ -56,8 +59,10 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
   onDrillDown,
   aggregateChildBadges = false,
   isVisible = true,
+  itemActionsLabel = 'Actions',
 }) => {
   const hasChildren = (item.children?.length ?? 0) > 0;
+  const contextActions = item.contextActions ?? [];
   const isExpanded = expandedItems?.has(item.id) ?? false;
   const aggregatedBadge = React.useMemo(
     () => (aggregateChildBadges && hasChildren ? sumChildBadges(item.children) : 0),
@@ -115,7 +120,7 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
       <div
         ref={setDropRef}
         className={cn(
-          'flex w-full items-center',
+          'group/menubar-row flex w-full items-center',
           activeChildId === item.id && 'bg-accent',
           isActiveDropTarget && 'bg-primary/20 outline outline-2 -outline-offset-2 outline-primary',
         )}
@@ -136,12 +141,11 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
           <span className="mr-2 w-4 shrink-0">{item.icon}</span>
           <span className="flex-1 truncate text-left">{item.label}</span>
           {displayedBadge > 0 && (
-            <span
+            <CountBadge
+              count={displayedBadge}
               aria-label={`${displayedBadge} unread`}
-              className="ml-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-medium tabular-nums leading-none text-foreground dark:text-primary-foreground"
-            >
-              {displayedBadge > 99 ? '99+' : displayedBadge}
-            </span>
+              className="ml-2"
+            />
           )}
         </Button>
         {hasChildren && (
@@ -160,6 +164,12 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
               )}
             />
           </Button>
+        )}
+        {contextActions.length > 0 && (
+          <MenuBarItemActions
+            actions={contextActions}
+            label={itemActionsLabel}
+          />
         )}
       </div>
 
@@ -190,6 +200,7 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
                 onDrillDown={onDrillDown}
                 aggregateChildBadges={aggregateChildBadges}
                 isVisible={isVisible && isExpanded}
+                itemActionsLabel={itemActionsLabel}
               />
             ))}
           </div>

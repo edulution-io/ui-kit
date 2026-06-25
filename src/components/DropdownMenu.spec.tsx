@@ -28,8 +28,7 @@ vi.mock('@fortawesome/react-fontawesome', () => ({
   ),
 }));
 
-import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   DropdownMenu,
@@ -41,6 +40,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
 } from './DropdownMenu';
+
+const firePenPointerDown = (element: Element) => {
+  const event = new MouseEvent('pointerdown', { bubbles: true, cancelable: true });
+  Object.defineProperty(event, 'pointerType', { value: 'pen' });
+  fireEvent(element, event);
+};
 
 describe('DropdownMenu', () => {
   beforeEach(() => {
@@ -108,6 +113,27 @@ describe('DropdownMenu', () => {
     expect(node?.className).toContain('text-foreground');
   });
 
+  it('applies a hover/highlight background to menu items', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button type="button">Open Menu</button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>Item 1</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    );
+
+    await user.click(screen.getByText('Open Menu'));
+
+    const item = screen.getByText('Item 1').closest('[role="menuitem"]');
+    expect(item?.className).toContain('focus:bg-accent');
+    expect(item?.className).toContain('data-[highlighted]:bg-accent');
+  });
+
   it('calls onClick handler when item is clicked', async () => {
     const user = userEvent.setup();
     const handleClick = vi.fn();
@@ -126,7 +152,7 @@ describe('DropdownMenu', () => {
     await user.click(screen.getByText('Open Menu'));
     await user.click(screen.getByText('Action Item'));
 
-    expect(handleClick).toHaveBeenCalledOnce();
+    expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
   it('renders label element', async () => {
@@ -246,5 +272,54 @@ describe('DropdownMenu', () => {
     );
 
     expect(screen.queryByText('Hidden Item')).not.toBeInTheDocument();
+  });
+
+  it('synthesizes a click on pen pointerdown for a menu item', async () => {
+    const rafSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb: FrameRequestCallback) => {
+      cb(0);
+      return 0;
+    });
+    const user = userEvent.setup();
+    const handleClick = vi.fn();
+
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button type="button">Open Menu</button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={handleClick}>Action Item</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    );
+
+    await user.click(screen.getByText('Open Menu'));
+    firePenPointerDown(screen.getByText('Action Item'));
+
+    expect(handleClick).toHaveBeenCalledTimes(1);
+    rafSpy.mockRestore();
+  });
+
+  it('does not double-invoke onClick on a touch tap', async () => {
+    const user = userEvent.setup();
+    const handleClick = vi.fn();
+
+    render(
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <button type="button">Open Menu</button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={handleClick}>Action Item</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    );
+
+    await user.click(screen.getByText('Open Menu'));
+    const item = screen.getByText('Action Item');
+    fireEvent.touchStart(item, { touches: [{ clientX: 0, clientY: 0 }] });
+    fireEvent.click(item);
+
+    expect(handleClick).toHaveBeenCalledTimes(1);
   });
 });

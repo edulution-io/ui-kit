@@ -129,7 +129,7 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
   useEffect(() => {
     if (!isOpen) return undefined;
 
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: PointerEvent) => {
       const target = event.target as Node;
       const isOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(target);
       const isOutsideMenu = menuRef.current && !menuRef.current.contains(target);
@@ -139,8 +139,8 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('pointerdown', handleClickOutside);
+    return () => document.removeEventListener('pointerdown', handleClickOutside);
   }, [isOpen]);
 
   const selectedOption = options.find((o) => o.id === selectedVal);
@@ -218,7 +218,7 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
       <div
         ref={menuRef}
         className={cn(
-          'pointer-events-auto z-[1000] box-border overflow-y-auto rounded-lg text-p scrollbar-thin',
+          'pointer-events-auto z-[1000] box-border touch-pan-y overflow-y-auto rounded-lg text-p scrollbar-thin',
           enablePortalUsage ? 'fixed' : cn('absolute left-0', openToTop ? 'bottom-full mb-0.5' : 'top-full mt-0.5'),
           panelVariantClasses[variant],
           menuClassName,

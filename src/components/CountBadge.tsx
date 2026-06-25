@@ -17,16 +17,25 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-export const INPUT_BASE_CLASSES =
-  'h-10 w-full rounded-lg px-3 text-p transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus:outline-none disabled:cursor-not-allowed disabled:opacity-50';
+import * as React from 'react';
+import cn from '../utils/cn';
+import formatCountBadge from '../utils/formatCountBadge';
 
-export const DIALOG_CARD_WITHOUT_HOVER =
-  'box-border w-full min-w-0 max-w-full overflow-hidden border-border shadow-none transition-none hover:scale-100';
+export interface CountBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+  count: number;
+  max?: number;
+}
 
-export const VARIANT_COLORS = {
-  default: 'liquid-glass-soft text-foreground',
-  dialog: 'liquid-glass-soft text-foreground',
-  login:
-    'border-0 bg-background text-foreground shadow-sm ring-1 ring-inset ring-muted focus:bg-background focus:text-foreground focus:ring-2 focus:ring-primary',
-  lightGrayDisabled: 'bg-darkGreyDisabled text-secondary',
-} as const;
+const COUNT_BADGE_CLASSES =
+  'inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-medium tabular-nums leading-none text-foreground dark:text-primary-foreground';
+
+const CountBadge: React.FC<CountBadgeProps> = ({ count, max, className, ...props }) => (
+  <span
+    className={cn(COUNT_BADGE_CLASSES, className)}
+    {...props}
+  >
+    {formatCountBadge(count, max)}
+  </span>
+);
+
+export default CountBadge;
