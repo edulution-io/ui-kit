@@ -17,21 +17,12 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import { useEffect, type RefObject } from 'react';
+const DATETIME_PICKER_MODES = {
+  DATE: 'date',
+  TIME: 'time',
+  DATETIME: 'datetime',
+} as const;
 
-const useCenterScroll = (
-  ref: RefObject<HTMLElement | null>,
-  targetPx: number,
-  containerWidth: number,
-  trackWidthPx: number,
-): void => {
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || containerWidth === 0) return;
-    const target = targetPx - containerWidth / 2;
-    const max = Math.max(0, trackWidthPx - containerWidth);
-    node.scrollLeft = Math.max(0, Math.min(target, max));
-  }, [ref, targetPx, containerWidth, trackWidthPx]);
-};
+export type TDateTimePickerMode = (typeof DATETIME_PICKER_MODES)[keyof typeof DATETIME_PICKER_MODES];
 
-export default useCenterScroll;
+export default DATETIME_PICKER_MODES;

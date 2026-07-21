@@ -141,7 +141,7 @@ const CardList = <T,>({
   scrollClassName,
 }: CardListProps<T>) => {
   const [localSearch, setLocalSearch] = useState('');
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const handleSearchChange = useCallback(
@@ -181,10 +181,10 @@ const CardList = <T,>({
   return (
     <div className={cn('flex h-full flex-col', className)}>
       {header && (
-        <div className="flex h-14 items-center justify-between border-b border-muted px-4">
+        <div className="flex h-14 items-center justify-between border-b border-accent-light px-4">
           <div className="min-w-0 flex-1">
             {header.title && <h2 className="truncate text-base font-semibold text-foreground">{header.title}</h2>}
-            {header.subtitle && <span className="text-xs text-muted-foreground">{header.subtitle}</span>}
+            {header.subtitle && <span className="block truncate text-xs text-muted-foreground">{header.subtitle}</span>}
           </div>
           {header.actions && <div className="ml-2 shrink-0">{header.actions}</div>}
         </div>
@@ -207,7 +207,7 @@ const CardList = <T,>({
       )}
 
       {(bulkActions || onSelectAll) && (
-        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-l-2 border-muted border-l-transparent pl-3 pr-4">
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-l-2 border-accent-light border-l-transparent pl-3 pr-4">
           {onSelectAll && (
             <Checkbox
               checked={allChecked}

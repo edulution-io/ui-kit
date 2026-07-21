@@ -29,7 +29,7 @@ const ResizableHandle: React.FC<SeparatorProps & { withHandle?: boolean }> = ({
 }) => (
   <Separator
     className={cn(
-      'relative flex w-px shrink-0 touch-none items-center justify-center bg-muted transition-colors',
+      'relative flex w-px shrink-0 touch-none items-center justify-center bg-accent-light transition-colors',
       'hover:bg-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
       'after:absolute after:inset-y-0 after:left-1/2 after:w-3 after:-translate-x-1/2 after:cursor-col-resize',
       'aria-[orientation=horizontal]:h-px aria-[orientation=horizontal]:w-full',
@@ -46,7 +46,7 @@ const ResizableHandle: React.FC<SeparatorProps & { withHandle?: boolean }> = ({
       <span
         aria-hidden
         className={cn(
-          'z-10 flex h-6 w-3 items-center justify-center rounded-sm border border-muted bg-background',
+          'z-10 flex h-6 w-3 items-center justify-center rounded-sm border border-accent-light bg-background',
           '[[aria-orientation=horizontal]_&]:h-3 [[aria-orientation=horizontal]_&]:w-6',
         )}
       >

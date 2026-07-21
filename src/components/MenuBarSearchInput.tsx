@@ -73,7 +73,7 @@ const MenuBarSearchInput: React.FC<MenuBarSearchInputProps> = ({
         <FontAwesomeIcon
           icon={faMagnifyingGlass}
           aria-hidden="true"
-          className="text-foreground/50 pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2"
+          className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-foreground/50"
         />
         <Input
           variant="default"
@@ -92,7 +92,7 @@ const MenuBarSearchInput: React.FC<MenuBarSearchInputProps> = ({
             onClick={handleClear}
             aria-label={clearLabel}
             title={clearLabel}
-            className="text-foreground/50 absolute right-2 top-1/2 z-10 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-lg hover:bg-muted-background hover:text-foreground"
+            className="absolute right-2 top-1/2 z-10 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-lg text-foreground/50 hover:bg-muted-background hover:text-foreground"
           >
             <FontAwesomeIcon
               icon={faXmark}

@@ -507,6 +507,53 @@ describe('MenuBar', () => {
     });
   });
 
+  describe('section grouping (groupLabel)', () => {
+    const createGroupedConfig = (): MenuBarConfig =>
+      createConfig({
+        items: [
+          { id: 'classes', label: 'Classes', icon: <span>C</span>, action: vi.fn(), groupLabel: 'Conversations' },
+          { id: 'projects', label: 'Projects', icon: <span>P</span>, action: vi.fn(), groupLabel: 'Conversations' },
+          { id: 'ai', label: 'AI Chat', icon: <span>A</span>, action: vi.fn(), groupLabel: 'Assistant' },
+        ],
+      });
+
+    it('renders a section header for each group exactly once', () => {
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={createGroupedConfig()}
+          activeItemId="classes"
+        />,
+      );
+      expect(screen.getAllByText('Conversations')).toHaveLength(1);
+      expect(screen.getAllByText('Assistant')).toHaveLength(1);
+    });
+
+    it('keeps every grouped item visible under its header', () => {
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={createGroupedConfig()}
+          activeItemId="classes"
+        />,
+      );
+      expect(screen.getByText('Classes')).toBeInTheDocument();
+      expect(screen.getByText('Projects')).toBeInTheDocument();
+      expect(screen.getByText('AI Chat')).toBeInTheDocument();
+    });
+
+    it('renders no section header when items have no groupLabel', () => {
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={createConfig()}
+        />,
+      );
+      expect(screen.queryByText('Conversations')).not.toBeInTheDocument();
+      expect(screen.queryByText('Assistant')).not.toBeInTheDocument();
+    });
+  });
+
   describe('search integration (opt-in)', () => {
     const createDeepConfig = (searchOverride?: MenuBarConfig['search']): MenuBarConfig =>
       createConfig({

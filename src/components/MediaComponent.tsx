@@ -74,7 +74,7 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
     return (
       <div style={{ position: 'relative', width, height, ...style }}>
         <video
-          ref={mediaRef as React.RefObject<HTMLVideoElement>}
+          ref={mediaRef as React.RefObject<HTMLVideoElement | null>}
           {...commonProps}
           style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }}
         >
@@ -87,7 +87,7 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width, height, ...style }}>
       <audio
-        ref={mediaRef as React.RefObject<HTMLAudioElement>}
+        ref={mediaRef as React.RefObject<HTMLAudioElement | null>}
         {...commonProps}
         style={{ width: '100%', maxWidth: '500px' }}
       >

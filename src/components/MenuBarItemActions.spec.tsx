@@ -107,16 +107,16 @@ describe('MenuBarItemActions', () => {
     expect(onRowClick).not.toHaveBeenCalled();
   });
 
-  it('styles destructive actions with the destructive token', async () => {
+  it('renders a separator before an action without applying destructive styling', async () => {
     const user = userEvent.setup();
     render(
       <MenuBarItemActions
-        actions={makeActions([{ label: 'Delete', isDestructive: true, separatorBefore: true }])}
+        actions={makeActions([{ label: 'Delete', separatorBefore: true }])}
         label="Actions"
       />,
     );
     await user.click(screen.getByRole('button', { name: 'Actions' }));
-    expect(screen.getByText('Delete').closest('[role="menuitem"]')?.className).toContain('text-destructive');
+    expect(screen.getByText('Delete').closest('[role="menuitem"]')?.className).not.toContain('text-destructive');
     expect(screen.getByRole('separator')).toBeInTheDocument();
   });
 });

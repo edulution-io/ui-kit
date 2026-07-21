@@ -109,6 +109,16 @@ describe('Button', () => {
     expect(button.className).toContain('px-8');
   });
 
+  it('applies btn-icon-tile variant chromeless with its own size by default', () => {
+    render(<Button variant="btn-icon-tile">Tile</Button>);
+    const button = screen.getByRole('button');
+    expect(button.className).toContain('bg-transparent');
+    expect(button.className).toContain('border-2');
+    expect(button.className).toContain('hover:border-secondary');
+    expect(button.className).not.toContain('h-16');
+    expect(button.className).not.toContain('p-4');
+  });
+
   it('applies btn-window-control variant with its fixed toolbar size', () => {
     render(<Button variant="btn-window-control">Control</Button>);
     const button = screen.getByRole('button');
@@ -140,6 +150,7 @@ describe('Button', () => {
     'btn-table',
     'btn-ghost',
     'btn-window-control',
+    'btn-icon-tile',
   ])('renders without errors for variant %s', (variant) => {
     render(<Button variant={variant}>Test</Button>);
     expect(screen.getByRole('button')).toBeInTheDocument();

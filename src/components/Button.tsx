@@ -51,6 +51,8 @@ const buttonVariants = cva(
           'bg-transparent rounded-lg border-none shadow-none ring-0 outline-none hover:bg-accent hover:opacity-100 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:outline-none',
         'btn-window-control':
           'flex h-10 w-16 rounded-none border-none bg-transparent p-0 shadow-none outline-none ring-0 hover:bg-accent-light hover:opacity-100 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0',
+        'btn-icon-tile':
+          'border-2 border-transparent bg-transparent p-0 font-normal shadow-none hover:border-secondary hover:opacity-100',
       },
       size: {
         default: 'h-16 px-4 py-2',
@@ -79,7 +81,7 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, hexagonIconAltText, asChild = false, children, onPointerDown, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button';
-    const hasOwnSize = variant === 'btn-ghost' || variant === 'btn-window-control';
+    const hasOwnSize = variant === 'btn-ghost' || variant === 'btn-window-control' || variant === 'btn-icon-tile';
     const effectiveSize = size ?? (hasOwnSize ? 'none' : undefined);
 
     const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {

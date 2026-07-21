@@ -17,21 +17,17 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import { useEffect, type RefObject } from 'react';
+import { describe, expect, it } from 'vitest';
+import safeGetMinutes from './safeGetMinutes';
 
-const useCenterScroll = (
-  ref: RefObject<HTMLElement | null>,
-  targetPx: number,
-  containerWidth: number,
-  trackWidthPx: number,
-): void => {
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || containerWidth === 0) return;
-    const target = targetPx - containerWidth / 2;
-    const max = Math.max(0, trackWidthPx - containerWidth);
-    node.scrollLeft = Math.max(0, Math.min(target, max));
-  }, [ref, targetPx, containerWidth, trackWidthPx]);
-};
+describe('safeGetMinutes', () => {
+  it('returns the minutes of a Date input', () => {
+    expect(safeGetMinutes(new Date(2026, 2, 15, 14, 30))).toBe(30);
+  });
 
-export default useCenterScroll;
+  it('returns 0 for non-Date input', () => {
+    expect(safeGetMinutes(null)).toBe(0);
+    expect(safeGetMinutes(undefined)).toBe(0);
+    expect(safeGetMinutes('14:30')).toBe(0);
+  });
+});
