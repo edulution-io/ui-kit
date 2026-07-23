@@ -17,21 +17,6 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import { useEffect, type RefObject } from 'react';
+const safeGetHours = (dateValue: unknown): number => (dateValue instanceof Date ? dateValue.getHours() : 0);
 
-const useCenterScroll = (
-  ref: RefObject<HTMLElement | null>,
-  targetPx: number,
-  containerWidth: number,
-  trackWidthPx: number,
-): void => {
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || containerWidth === 0) return;
-    const target = targetPx - containerWidth / 2;
-    const max = Math.max(0, trackWidthPx - containerWidth);
-    node.scrollLeft = Math.max(0, Math.min(target, max));
-  }, [ref, targetPx, containerWidth, trackWidthPx]);
-};
-
-export default useCenterScroll;
+export default safeGetHours;

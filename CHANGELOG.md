@@ -7,6 +7,263 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-07-17
+
+## [2.0.404] - 2026-07-17
+
+## [2.0.403] - 2026-07-17
+
+## [2.0.402] - 2026-07-17
+
+## [2.0.401] - 2026-07-17
+
+## [2.0.400] - 2026-07-17
+
+## [2.0.399] - 2026-07-17
+
+## [2.0.398] - 2026-07-17
+
+## [2.0.397] - 2026-07-17
+
+## [2.0.396] - 2026-07-17
+
+## [2.0.395] - 2026-07-17
+
+## [2.0.394] - 2026-07-17
+
+## [2.0.393] - 2026-07-17
+
+## [2.0.392] - 2026-07-17
+
+## [2.0.391] - 2026-07-17
+
+## [2.0.390] - 2026-07-17
+
+### Added
+
+- New `usePopoverOutsideDismiss` hook — closes a controlled radix `Popover` on a pointer down outside its anchor. Radix defers its own outside dismiss to the click event and skips it when that click opens another modal layer, which leaves the popover open on top of the new layer; this dismisses on pointer down instead. Pointer downs inside any popper content are ignored, so nested poppers (dropdowns, selects) keep working.
+
+### Fixed
+
+- `DateTimePicker` now closes its popover on a pointer down outside the field, via `usePopoverOutsideDismiss`. It previously relied solely on radix's outside dismiss, so the popover stayed open on top of a confirmation dialog opened from the surrounding dialog's footer. An hour or minute segment being edited when the popover is dismissed commits its typed value. The calendar, the time lists and the month and year dropdowns are unaffected.
+- `DateTimePicker` now closes when its trigger is clicked a second time. The single-click open timer read the open state after radix had already dismissed the popover, and reopened it 180 ms later. Activating the trigger with Enter or Space toggles the popover the same way.
+
+## [2.0.389] - 2026-07-17
+
+## [2.0.388] - 2026-07-17
+
+## [2.0.387] - 2026-07-17
+
+## [2.0.386] - 2026-07-17
+
+## [2.0.385] - 2026-07-17
+
+## [2.0.384] - 2026-07-17
+
+## [2.0.383] - 2026-07-17
+
+## [2.0.382] - 2026-07-16
+
+## [2.0.381] - 2026-07-16
+
+## [2.0.380] - 2026-07-16
+
+## [2.0.379] - 2026-07-16
+
+## [2.0.378] - 2026-07-16
+
+## [2.0.377] - 2026-07-16
+
+## [2.0.376] - 2026-07-16
+
+## [2.0.375] - 2026-07-16
+
+## [2.0.374] - 2026-07-16
+
+## [2.0.373] - 2026-07-16
+
+## [2.0.372] - 2026-07-15
+
+## [2.0.371] - 2026-07-15
+
+## [2.0.370] - 2026-07-14
+
+### Added
+
+- New `CircularProgress` component — a determinate circular progress ring (`value` 0..1) for gauges such as context-window usage. Extracted from the AI usage popover's inline SVG so the ring is reusable.
+- New `SelectableListRow` component — the shared selectable list-row shell for `CardList` items. It owns the full-width selection/hover background (so it spans the leading checkbox and trailing action menu, not just the content), the leading/content/trailing slot layout, and optional row-level click + keyboard activation. Two selection looks via `variant`: `surface` and `accentRail`. The mail message list and the chat conversation list now share it instead of each re-styling the row.
+- `MenuBarConfigItem` now supports an optional `groupLabel`. Consecutive top-level items sharing the same `groupLabel` form a visual section: the first item of each group renders an uppercase header (with a separator above every group after the first), so a single menu can be split into labelled sections.
+
+### Changed
+
+- `CardList` header/selection dividers and the `ResizableHandle` divider now use the neutral `accent-light` border instead of the blue-tinted `muted`, so list separators and pane handles read as a consistent neutral grey across surfaces.
+
+## [2.0.369] - 2026-07-14
+
+## [2.0.368] - 2026-07-14
+
+## [2.0.367] - 2026-07-14
+
+### Added
+
+- `CalendarDropdownCaption`: a drop-in `Caption` component for `Calendar`. Pass it via `components={{ Caption: CalendarDropdownCaption }}` together with `fromYear`/`toYear` to replace the plain month/year label with month and year dropdowns plus previous/next month buttons. Reads its accessible names from the DayPicker `labels`.
+
+### Changed
+
+- The month/year dropdown header used by `DateTimePicker` was extracted into a shared `MonthYearSelect` component, now reused by `CalendarDropdownCaption`. No public API changes to `DateTimePicker`.
+- The month and year dropdown option builders shared by `DateTimePicker` and `CalendarDropdownCaption` were extracted into internal `buildMonthOptions`/`buildYearOptions` utilities. No public API or behaviour changes.
+
+### Removed
+
+- **BREAKING:** `MenuBarItemAction.isDestructive`. `MenuBarItemActions` no longer applies `text-destructive` styling to an action. Destructive intent is conveyed by a confirmation dialog rather than by colour. Consumers passing `isDestructive` must drop the property.
+
+## [2.0.366] - 2026-07-14
+
+## [2.0.365] - 2026-07-14
+
+## [2.0.364] - 2026-07-13
+
+## [2.0.363] - 2026-07-10
+
+## [2.0.362] - 2026-07-09
+
+## [2.0.361] - 2026-07-09
+
+## [2.0.360] - 2026-07-09
+
+## [2.0.359] - 2026-07-09
+
+## [2.0.358] - 2026-07-09
+
+## [2.0.357] - 2026-07-09
+
+## [2.0.356] - 2026-07-09
+
+## [2.0.355] - 2026-07-09
+
+## [2.0.354] - 2026-07-09
+
+## [2.0.353] - 2026-07-09
+
+## [2.0.352] - 2026-07-08
+
+## [2.0.351] - 2026-07-08
+
+## [2.0.350] - 2026-07-08
+
+## [2.0.349] - 2026-07-08
+
+## [2.0.348] - 2026-07-07
+
+## [2.0.347] - 2026-07-07
+
+## [2.0.346] - 2026-07-07
+
+## [2.0.345] - 2026-07-07
+
+## [2.0.344] - 2026-07-07
+
+## [2.0.343] - 2026-07-07
+
+## [2.0.342] - 2026-07-06
+
+### Changed
+
+- React 19 support: the `react`/`react-dom` dev/build targets and the `@types/react`/`@types/react-dom` dev dependencies were bumped to 19, and `cmdk`/`qrcode.react` were bumped to their React 19-compatible majors. The `>=18.0.0` `peerDependencies` ranges are unchanged, so React 18 consumers remain supported. Component ref types widened to `RefObject<T | null>` in line with the React 19 type definitions; no public API changes.
+
+## [2.0.341] - 2026-07-03
+
+## [2.0.340] - 2026-07-03
+
+## [2.0.339] - 2026-07-03
+
+## [2.0.338] - 2026-07-02
+
+## [2.0.337] - 2026-07-02
+
+## [2.0.336] - 2026-07-02
+
+## [2.0.335] - 2026-07-02
+
+## [2.0.334] - 2026-07-02
+
+## [2.0.333] - 2026-07-02
+
+## [2.0.332] - 2026-07-02
+
+## [2.0.331] - 2026-07-02
+
+## [2.0.330] - 2026-07-01
+
+### Added
+
+- New `DateTimePicker` component — a controlled date/time picker with a `date` / `time` / `datetime` `mode`, compact month and year dropdown menus (instead of native `<select>` elements) that open scrolled to the currently selected value, wheel/touchpad-scrollable time lists and double-click editing of the hour/minute values. Exposes `DATETIME_PICKER_MODES` / `TDateTimePickerMode`.
+- `DateTimePicker` field now supports direct text entry: a single click opens the calendar/time popover, while a double-click on the field turns it into a text input for typing the date and time directly (locale-aware mask, e.g. `dd.MM.yyyy HH:mm`). `Enter` commits, `Escape` cancels, and an unparseable entry is discarded without changing the value.
+- `DateTimePicker` now accepts `previousMonthLabel` and `nextMonthLabel` props to give the icon-only month-navigation buttons accessible names.
+- `normalizeWheelDelta` is now exported from the package — a helper that normalizes a wheel event's `deltaY` to pixels regardless of its `deltaMode` (pixel, line or page), for consistent wheel/touchpad scrolling.
+
+### Fixed
+
+- `DateTimePicker` double-click time editing now accepts a full two-digit hour/minute. The edit field re-selected its content on every keystroke, so each typed digit replaced the previous one — focus and selection now happen once when editing starts.
+
+## [2.0.329] - 2026-07-01
+
+## [2.0.328] - 2026-07-01
+
+## [2.0.327] - 2026-07-01
+
+## [2.0.326] - 2026-07-01
+
+## [2.0.325] - 2026-07-01
+
+## [2.0.324] - 2026-07-01
+
+## [2.0.323] - 2026-07-01
+
+## [2.0.322] - 2026-06-30
+
+## [2.0.321] - 2026-06-30
+
+## [2.0.320] - 2026-06-30
+
+## [2.0.319] - 2026-06-30
+
+## [2.0.318] - 2026-06-30
+
+## [2.0.317] - 2026-06-30
+
+## [2.0.316] - 2026-06-30
+
+### Added
+
+- New `btn-icon-tile` Button variant — a chromeless, transparent icon tile (no padding, a 2px transparent border that turns `border-secondary` on hover) for dense icon-grid selectors. Like `btn-ghost` and `btn-window-control`, it supplies its own sizing, so the default `h-16` size classes are skipped.
+
+## [2.0.315] - 2026-06-30
+
+## [2.0.314] - 2026-06-30
+
+## [2.0.313] - 2026-06-30
+
+## [2.0.312] - 2026-06-29
+
+## [2.0.311] - 2026-06-29
+
+## [2.0.310] - 2026-06-29
+
+## [2.0.309] - 2026-06-29
+
+## [2.0.308] - 2026-06-29
+
+## [2.0.307] - 2026-06-29
+
+## [2.0.306] - 2026-06-29
+
+## [2.0.305] - 2026-06-26
+
+## [2.0.304] - 2026-06-26
+
+## [2.0.303] - 2026-06-25
+
 ## [2.0.302] - 2026-06-25
 
 ## [2.0.301] - 2026-06-24

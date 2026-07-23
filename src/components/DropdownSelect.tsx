@@ -42,6 +42,7 @@ export interface DropdownSelectProps {
   menuClassName?: string;
   variant?: DropdownVariant;
   placeholder?: string;
+  ariaLabel?: string;
   enableSearch?: boolean;
   enablePortalUsage?: boolean;
   noResultsText?: string;
@@ -62,6 +63,7 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
   menuClassName,
   variant = 'default',
   placeholder = '',
+  ariaLabel,
   enableSearch = true,
   enablePortalUsage = true,
   noResultsText = 'No results',
@@ -286,6 +288,7 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
         onClick={openMenu}
         readOnly={!searchEnabled}
         disabled={options.length === 0}
+        aria-label={ariaLabel}
         className={cn(
           DROPDOWN_SELECT_CLASSES,
           variantClasses[variant],

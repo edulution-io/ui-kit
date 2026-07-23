@@ -29,6 +29,7 @@ import type MenuBarConfigItem from './MenuBarConfigItem';
 import MenuBarLayout from './MenuBarLayout';
 import MenuBarHeader from './MenuBarHeader';
 import MenuBarItem from './MenuBarItem';
+import MenuBarItemGroupLabel from './MenuBarItemGroupLabel';
 import MenuBarItemList from './MenuBarItemList';
 import MenuBarSearchInput from './MenuBarSearchInput';
 
@@ -276,34 +277,43 @@ const MenuBar: React.FC<MenuBarProps> = ({
             {config.search.noMatchesLabel ?? DEFAULT_NO_MATCHES_LABEL}
           </div>
         ) : (
-          visibleItems.map((item) => {
+          visibleItems.map((item, index) => {
             const isActive = activeItemId === item.id;
+            const previousGroupLabel = index > 0 ? visibleItems[index - 1].groupLabel : undefined;
+            const groupLabel = item.groupLabel && item.groupLabel !== previousGroupLabel ? item.groupLabel : undefined;
             return (
-              <MenuBarItem
-                key={item.id}
-                itemId={item.id}
-                icon={item.icon}
-                label={item.label}
-                badge={item.badge}
-                isActive={isActive}
-                isExpanded={effectiveExpandedItems.has(item.id)}
-                activeColorClass={activeColorClass}
-                collapseLabel={collapseLabel}
-                expandLabel={expandLabel}
-                childItems={item.children}
-                activeChildId={activeChildId}
-                expandedItems={effectiveExpandedItems}
-                onItemClick={() => handleItemClick(item.id)}
-                onToggleExpand={() => toggleTopLevelExpanded(item.id)}
-                onChildClick={handleChildClick}
-                onToggleChildExpand={toggleChildExpanded}
-                maxDepth={maxDepth}
-                backLabel={backLabel}
-                aggregateChildBadges={aggregateChildBadges}
-                dropData={item.dropData}
-                contextActions={item.contextActions}
-                itemActionsLabel={itemActionsLabel}
-              />
+              <React.Fragment key={item.id}>
+                {groupLabel !== undefined && (
+                  <MenuBarItemGroupLabel
+                    label={groupLabel}
+                    withSeparator={index > 0}
+                  />
+                )}
+                <MenuBarItem
+                  itemId={item.id}
+                  icon={item.icon}
+                  label={item.label}
+                  badge={item.badge}
+                  isActive={isActive}
+                  isExpanded={effectiveExpandedItems.has(item.id)}
+                  activeColorClass={activeColorClass}
+                  collapseLabel={collapseLabel}
+                  expandLabel={expandLabel}
+                  childItems={item.children}
+                  activeChildId={activeChildId}
+                  expandedItems={effectiveExpandedItems}
+                  onItemClick={() => handleItemClick(item.id)}
+                  onToggleExpand={() => toggleTopLevelExpanded(item.id)}
+                  onChildClick={handleChildClick}
+                  onToggleChildExpand={toggleChildExpanded}
+                  maxDepth={maxDepth}
+                  backLabel={backLabel}
+                  aggregateChildBadges={aggregateChildBadges}
+                  dropData={item.dropData}
+                  contextActions={item.contextActions}
+                  itemActionsLabel={itemActionsLabel}
+                />
+              </React.Fragment>
             );
           })
         )}

@@ -19,7 +19,7 @@
 
 import { useEffect, useState, type RefObject } from 'react';
 
-const useElementWidth = (ref: RefObject<HTMLElement>): number => {
+const useElementWidth = (ref: RefObject<HTMLElement | null>): number => {
   const [width, setWidth] = useState(0);
 
   useEffect(() => {

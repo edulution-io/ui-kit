@@ -17,21 +17,14 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import { useEffect, type RefObject } from 'react';
+const DOM_DELTA_LINE = 1;
+const DOM_DELTA_PAGE = 2;
+const LINE_HEIGHT_PX = 16;
 
-const useCenterScroll = (
-  ref: RefObject<HTMLElement | null>,
-  targetPx: number,
-  containerWidth: number,
-  trackWidthPx: number,
-): void => {
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || containerWidth === 0) return;
-    const target = targetPx - containerWidth / 2;
-    const max = Math.max(0, trackWidthPx - containerWidth);
-    node.scrollLeft = Math.max(0, Math.min(target, max));
-  }, [ref, targetPx, containerWidth, trackWidthPx]);
+const normalizeWheelDelta = (event: Pick<WheelEvent, 'deltaMode' | 'deltaY'>, pageSize: number): number => {
+  const lineFactor = event.deltaMode === DOM_DELTA_LINE ? LINE_HEIGHT_PX : 1;
+  const pageFactor = event.deltaMode === DOM_DELTA_PAGE ? pageSize : 1;
+  return event.deltaY * lineFactor * pageFactor;
 };
 
-export default useCenterScroll;
+export default normalizeWheelDelta;

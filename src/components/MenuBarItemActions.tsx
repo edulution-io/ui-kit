@@ -73,10 +73,7 @@ const MenuBarItemActions: React.FC<MenuBarItemActionsProps> = ({ actions, label,
             {action.separatorBefore && <DropdownMenuSeparator />}
             <DropdownMenuItem
               onClick={action.onClick}
-              className={cn(
-                'gap-2',
-                action.isDestructive && 'text-destructive data-[highlighted]:text-destructive focus:text-destructive',
-              )}
+              className="gap-2"
             >
               {action.icon && <span className="flex h-4 w-4 shrink-0 items-center justify-center">{action.icon}</span>}
               <span className="truncate">{action.label}</span>

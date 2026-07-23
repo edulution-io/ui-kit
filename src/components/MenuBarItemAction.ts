@@ -24,7 +24,6 @@ interface MenuBarItemAction {
   label: string;
   icon?: React.ReactNode;
   onClick: () => void;
-  isDestructive?: boolean;
   separatorBefore?: boolean;
 }
 

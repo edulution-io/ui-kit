@@ -28,6 +28,7 @@ interface MenuBarConfigItem {
   action: () => void;
   children?: MenuBarConfigItem[];
   badge?: number;
+  groupLabel?: string;
   dropData?: MenuBarDropData;
   contextActions?: MenuBarItemAction[];
 }

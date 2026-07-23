@@ -150,6 +150,22 @@ export { default as CardList } from './components/CardList';
 export type { CardListProps, CardListItemProps, CardListHeader } from './components/CardList';
 
 /**
+ * SelectableListRow – The shared selectable list-row shell used inside a `CardList` `renderItem`.
+ *
+ * Owns the full-width selection/hover background (so it spans the leading checkbox and the trailing
+ * action menu, not just the content), the `leading` / content / `trailing` slot layout, an optional
+ * `overlay`, and optional row-level click + keyboard activation (`onActivate` → `role="button"`,
+ * Enter/Space). Two selection looks via `variant`: `surface` (neutral fill) and `accentRail`
+ * (primary left rail + accent fill). Used by the mail message list and the chat conversation list.
+ */
+export { default as SelectableListRow } from './components/SelectableListRow';
+export type {
+  SelectableListRowProps,
+  SelectableListRowVariant,
+  SelectableListRowAlign,
+} from './components/SelectableListRow';
+
+/**
  * SectionCard – The standard liquid-glass content surface for page sections.
  *
  * Renders a `<section>` with the `liquid-glass` surface (variant `default`) or no
@@ -220,6 +236,13 @@ export { default as useCenterScroll } from './hooks/useCenterScroll';
  * cn – Utility function for merging Tailwind CSS class names (clsx + twMerge).
  */
 export { default as cn } from './utils/cn';
+
+/**
+ * normalizeWheelDelta – Normalizes a wheel event's `deltaY` to pixels regardless of its `deltaMode`
+ * (pixel, line or page), so consumers can apply a consistent scroll amount. Line deltas are scaled by
+ * a fixed line height and page deltas by the passed `pageSize` (e.g. the viewport's client height).
+ */
+export { default as normalizeWheelDelta } from './utils/normalizeWheelDelta';
 
 /**
  * formatCountBadge – Formats a numeric badge count for display, clamping values above `max` (default `99`) to a `"<max>+"` string. Use it wherever an unread/notification count is rendered so every surface clamps identically.
@@ -342,6 +365,18 @@ export { default as useMediaQuery } from './hooks/useMediaQuery';
 export { default as useOnClickOutside } from './hooks/useOnClickOutside';
 
 /**
+ * usePopoverOutsideDismiss – Hook that closes a controlled radix Popover on a pointer down outside its anchor.
+ *
+ * Radix defers its own outside dismiss to the click event and skips it when that click opens another modal
+ * layer, which leaves the popover open on top of the new layer. This dismisses on pointer down instead.
+ * Pointer downs inside any popper content are ignored, so nested poppers (dropdowns, selects) keep working.
+ *
+ * @param anchorRef Ref to the popover's anchor/trigger element; pointer downs inside it are left to the trigger.
+ * @param onDismiss Called when a pointer goes down outside the anchor and outside every popper.
+ */
+export { default as usePopoverOutsideDismiss } from './hooks/usePopoverOutsideDismiss';
+
+/**
  * synthesizePenClick – PointerDown handler that synthesizes a click for Apple Pencil (`pointerType === 'pen'`) input,
  * working around Safari/WebView dropping pen taps on non-`button` interactive elements (links, `role="button"` divs).
  * No-op for mouse and touch, which keep their native click behaviour.
@@ -450,6 +485,12 @@ export { default as CircleLoader } from './components/CircleLoader';
 export type { CircleLoaderProps } from './components/CircleLoader';
 
 /**
+ * CircularProgress – A determinate circular progress ring; pass `value` (0..1) to fill the arc (e.g. context-window usage gauges).
+ */
+export { default as CircularProgress } from './components/CircularProgress';
+export type { CircularProgressProps } from './components/CircularProgress';
+
+/**
  * HorizontalLoader – An animated horizontal progress bar for loading states.
  */
 export { default as HorizontalLoader } from './components/HorizontalLoader';
@@ -510,6 +551,26 @@ export type { BreadcrumbLinkProps } from './components/Breadcrumb';
  */
 export { Calendar } from './components/Calendar';
 export type { CalendarProps } from './components/Calendar';
+
+/**
+ * CalendarDropdownCaption – A drop-in `Caption` component for {@link Calendar}. Pass it via
+ * `components={{ Caption: CalendarDropdownCaption }}` together with `fromYear`/`toYear` to replace the plain
+ * month/year label with month and year dropdowns plus previous/next month buttons. Reads its accessible names
+ * from the DayPicker `labels` (`labelMonthDropdown`, `labelYearDropdown`, `labelPrevious`, `labelNext`).
+ */
+export { default as CalendarDropdownCaption } from './components/CalendarDropdownCaption';
+
+/**
+ * DateTimePicker – A controlled date/time/datetime picker with month/year dropdowns, previous/next month
+ * navigation, wheel-scrollable time selection, double-click time editing inside the popover and double-click
+ * direct text entry on the field itself (single click opens the calendar, double click edits the date and
+ * time as text). Pass `mode` to switch between date, time and datetime. Provide `previousMonthLabel` and
+ * `nextMonthLabel` to give the icon-only month-navigation buttons accessible names.
+ */
+export { default as DateTimePicker } from './components/DateTimePicker';
+export type { DateTimePickerProps } from './components/DateTimePicker';
+export { default as DATETIME_PICKER_MODES } from './constants/dateTimePickerModes';
+export type { TDateTimePickerMode } from './constants/dateTimePickerModes';
 
 /**
  * Checkbox – A styled checkbox built on Radix UI Checkbox primitive with label support.

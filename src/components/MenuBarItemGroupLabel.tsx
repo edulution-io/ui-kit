@@ -17,21 +17,24 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import { useEffect, type RefObject } from 'react';
+import * as React from 'react';
+import cn from '../utils/cn';
 
-const useCenterScroll = (
-  ref: RefObject<HTMLElement | null>,
-  targetPx: number,
-  containerWidth: number,
-  trackWidthPx: number,
-): void => {
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || containerWidth === 0) return;
-    const target = targetPx - containerWidth / 2;
-    const max = Math.max(0, trackWidthPx - containerWidth);
-    node.scrollLeft = Math.max(0, Math.min(target, max));
-  }, [ref, targetPx, containerWidth, trackWidthPx]);
-};
+interface MenuBarItemGroupLabelProps {
+  label: string;
+  withSeparator?: boolean;
+}
 
-export default useCenterScroll;
+const SECTION_HEADING_LEVEL = 2;
+
+const MenuBarItemGroupLabel: React.FC<MenuBarItemGroupLabelProps> = ({ label, withSeparator = false }) => (
+  <div
+    role="heading"
+    aria-level={SECTION_HEADING_LEVEL}
+    className={cn('px-4 pb-1 pt-3', withSeparator && 'mt-2 border-t border-muted pt-4')}
+  >
+    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</span>
+  </div>
+);
+
+export default MenuBarItemGroupLabel;

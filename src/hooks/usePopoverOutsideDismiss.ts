@@ -17,21 +17,17 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import { useEffect, type RefObject } from 'react';
+import { type RefObject } from 'react';
+import useOnClickOutside from './useOnClickOutside';
 
-const useCenterScroll = (
-  ref: RefObject<HTMLElement | null>,
-  targetPx: number,
-  containerWidth: number,
-  trackWidthPx: number,
-): void => {
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || containerWidth === 0) return;
-    const target = targetPx - containerWidth / 2;
-    const max = Math.max(0, trackWidthPx - containerWidth);
-    node.scrollLeft = Math.max(0, Math.min(target, max));
-  }, [ref, targetPx, containerWidth, trackWidthPx]);
+const POPPER_CONTENT_SELECTOR = '[data-radix-popper-content-wrapper]';
+
+const usePopoverOutsideDismiss = (anchorRef: RefObject<HTMLElement | null>, onDismiss: () => void): void => {
+  useOnClickOutside(anchorRef, (event) => {
+    const target = event?.target;
+    if (target instanceof Element && target.closest(POPPER_CONTENT_SELECTOR)) return;
+    onDismiss();
+  });
 };
 
-export default useCenterScroll;
+export default usePopoverOutsideDismiss;

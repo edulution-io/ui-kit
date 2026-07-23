@@ -17,21 +17,21 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import { useEffect, type RefObject } from 'react';
+import { describe, expect, it } from 'vitest';
+import safeGetDate from './safeGetDate';
 
-const useCenterScroll = (
-  ref: RefObject<HTMLElement | null>,
-  targetPx: number,
-  containerWidth: number,
-  trackWidthPx: number,
-): void => {
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || containerWidth === 0) return;
-    const target = targetPx - containerWidth / 2;
-    const max = Math.max(0, trackWidthPx - containerWidth);
-    node.scrollLeft = Math.max(0, Math.min(target, max));
-  }, [ref, targetPx, containerWidth, trackWidthPx]);
-};
+describe('safeGetDate', () => {
+  it('returns a fresh copy of a Date input without mutating the original', () => {
+    const original = new Date(2026, 2, 15, 8, 30);
+    const result = safeGetDate(original);
+    expect(result).toBeInstanceOf(Date);
+    expect(result.getTime()).toBe(original.getTime());
+    expect(result).not.toBe(original);
+  });
 
-export default useCenterScroll;
+  it('falls back to the current date for non-Date input', () => {
+    expect(safeGetDate(null)).toBeInstanceOf(Date);
+    expect(safeGetDate(undefined)).toBeInstanceOf(Date);
+    expect(safeGetDate('2026-03-15')).toBeInstanceOf(Date);
+  });
+});

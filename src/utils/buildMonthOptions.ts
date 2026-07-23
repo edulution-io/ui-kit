@@ -17,21 +17,15 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import { useEffect, type RefObject } from 'react';
+import { MonthYearOption } from '../components/MonthYearSelect';
 
-const useCenterScroll = (
-  ref: RefObject<HTMLElement | null>,
-  targetPx: number,
-  containerWidth: number,
-  trackWidthPx: number,
-): void => {
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || containerWidth === 0) return;
-    const target = targetPx - containerWidth / 2;
-    const max = Math.max(0, trackWidthPx - containerWidth);
-    node.scrollLeft = Math.max(0, Math.min(target, max));
-  }, [ref, targetPx, containerWidth, trackWidthPx]);
-};
+const MONTHS_IN_YEAR = 12;
+const MONTH_SAMPLE_YEAR = 2000;
 
-export default useCenterScroll;
+const buildMonthOptions = (monthFormatter: Intl.DateTimeFormat): MonthYearOption[] =>
+  Array.from({ length: MONTHS_IN_YEAR }, (_, month) => ({
+    value: month,
+    label: monthFormatter.format(new Date(MONTH_SAMPLE_YEAR, month, 1)),
+  }));
+
+export default buildMonthOptions;

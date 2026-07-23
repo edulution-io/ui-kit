@@ -17,21 +17,26 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
-import { useEffect, type RefObject } from 'react';
+import { describe, expect, it } from 'vitest';
+import buildYearOptions from './buildYearOptions';
 
-const useCenterScroll = (
-  ref: RefObject<HTMLElement | null>,
-  targetPx: number,
-  containerWidth: number,
-  trackWidthPx: number,
-): void => {
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || containerWidth === 0) return;
-    const target = targetPx - containerWidth / 2;
-    const max = Math.max(0, trackWidthPx - containerWidth);
-    node.scrollLeft = Math.max(0, Math.min(target, max));
-  }, [ref, targetPx, containerWidth, trackWidthPx]);
-};
+describe('buildYearOptions', () => {
+  it('builds an inclusive ascending range', () => {
+    const options = buildYearOptions(2024, 2027);
 
-export default useCenterScroll;
+    expect(options).toEqual([
+      { value: 2024, label: '2024' },
+      { value: 2025, label: '2025' },
+      { value: 2026, label: '2026' },
+      { value: 2027, label: '2027' },
+    ]);
+  });
+
+  it('yields a single option when both bounds are the same year', () => {
+    expect(buildYearOptions(2026, 2026)).toEqual([{ value: 2026, label: '2026' }]);
+  });
+
+  it('yields no options when the range is inverted', () => {
+    expect(buildYearOptions(2027, 2024)).toEqual([]);
+  });
+});
