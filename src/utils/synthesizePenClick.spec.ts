@@ -17,6 +17,10 @@
  * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
  */
 
+/**
+ * @vitest-environment jsdom
+ */
+
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import synthesizePenClick from './synthesizePenClick';
 

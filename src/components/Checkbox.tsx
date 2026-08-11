@@ -18,6 +18,7 @@
  */
 
 import * as React from 'react';
+import { useId } from 'react';
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
@@ -29,43 +30,48 @@ export interface CheckboxProps extends React.ComponentPropsWithoutRef<typeof Che
 }
 
 const Checkbox = React.forwardRef<React.ElementRef<typeof CheckboxPrimitive.Root>, CheckboxProps>(
-  ({ className, onCheckboxClick = () => {}, label, disabled, ...props }, ref) => (
-    <div className="flex items-center space-x-2">
-      <CheckboxPrimitive.Root
-        ref={ref}
-        id={label}
-        className={cn(
-          'peer flex h-4 w-4 shrink-0 flex-col rounded-sm border border-primary shadow data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
-          className,
-        )}
-        onClick={(event) => {
-          event.stopPropagation();
-          onCheckboxClick(event);
-        }}
-        disabled={disabled}
-        {...props}
-      >
-        <CheckboxPrimitive.Indicator className={cn('flex flex-col items-center justify-center text-current')}>
-          <FontAwesomeIcon
-            icon={faCheck}
-            className="h-3"
-          />
-        </CheckboxPrimitive.Indicator>
-      </CheckboxPrimitive.Root>
-      <label htmlFor={label}>
-        {label && (
-          <span
-            className={cn('select-none', {
-              'cursor-pointer text-foreground': !disabled,
-              'cursor-disabled text-muted-foreground': disabled,
-            })}
-          >
-            {label}
-          </span>
-        )}
-      </label>
-    </div>
-  ),
+  ({ className, onCheckboxClick = () => {}, label, disabled, id, ...props }, ref) => {
+    const generatedId = useId();
+    const checkboxId = id ?? generatedId;
+
+    return (
+      <div className="flex items-center space-x-2">
+        <CheckboxPrimitive.Root
+          ref={ref}
+          id={checkboxId}
+          className={cn(
+            'peer flex h-4 w-4 shrink-0 flex-col rounded-sm border border-primary shadow data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+            className,
+          )}
+          onClick={(event) => {
+            event.stopPropagation();
+            onCheckboxClick(event);
+          }}
+          disabled={disabled}
+          {...props}
+        >
+          <CheckboxPrimitive.Indicator className={cn('flex flex-col items-center justify-center text-current')}>
+            <FontAwesomeIcon
+              icon={faCheck}
+              className="h-3"
+            />
+          </CheckboxPrimitive.Indicator>
+        </CheckboxPrimitive.Root>
+        <label htmlFor={checkboxId}>
+          {label && (
+            <span
+              className={cn('select-none', {
+                'cursor-pointer text-foreground': !disabled,
+                'cursor-disabled text-muted-foreground': disabled,
+              })}
+            >
+              {label}
+            </span>
+          )}
+        </label>
+      </div>
+    );
+  },
 );
 Checkbox.displayName = 'Checkbox';
 

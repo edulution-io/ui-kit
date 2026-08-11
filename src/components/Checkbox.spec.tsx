@@ -77,4 +77,38 @@ describe('Checkbox', () => {
     render(<Checkbox className="custom-check" />);
     expect(screen.getByTestId('checkbox-root').className).toContain('custom-check');
   });
+
+  it('gives two checkboxes sharing a label distinct ids, so a label click cannot toggle the other one', () => {
+    render(
+      <>
+        <Checkbox label="Subscribe" />
+        <Checkbox label="Subscribe" />
+      </>,
+    );
+
+    const [first, second] = screen.getAllByTestId('checkbox-root');
+    expect(first.id).not.toBe(second.id);
+    expect(first.id).toBeTruthy();
+  });
+
+  it('points each label at its own checkbox', () => {
+    render(<Checkbox label="Subscribe" />);
+
+    expect(screen.getByText('Subscribe').closest('label')).toHaveAttribute(
+      'for',
+      screen.getByTestId('checkbox-root').id,
+    );
+  });
+
+  it('lets a caller pin the id explicitly', () => {
+    render(
+      <Checkbox
+        label="Subscribe"
+        id="subscribe-jane"
+      />,
+    );
+
+    expect(screen.getByTestId('checkbox-root')).toHaveAttribute('id', 'subscribe-jane');
+    expect(screen.getByText('Subscribe').closest('label')).toHaveAttribute('for', 'subscribe-jane');
+  });
 });

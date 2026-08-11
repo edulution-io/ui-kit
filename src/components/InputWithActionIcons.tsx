@@ -24,7 +24,7 @@ import { type VariantProps } from 'class-variance-authority';
 import cn from '../utils/cn';
 import { Input, inputVariants } from './Input';
 
-type ActionIcon = { icon: IconDefinition; onClick: () => void; className?: string };
+type ActionIcon = { icon: IconDefinition; onClick: () => void; className?: string; label?: string };
 
 type InputWithActionIconsProps = React.InputHTMLAttributes<HTMLInputElement> &
   VariantProps<typeof inputVariants> & { actionIcons?: ActionIcon[] };
@@ -49,12 +49,13 @@ const InputWithActionIcons = React.forwardRef<HTMLInputElement, InputWithActionI
         />
         {iconCount > 0 && (
           <div className="absolute inset-y-0 right-0 flex items-center space-x-2 pr-2">
-            {actionIcons.map(({ icon, onClick, className: btnClass }) => (
+            {actionIcons.map(({ icon, onClick, className: btnClass, label }) => (
               <button
                 key={icon.iconName}
                 type="button"
                 onClick={onClick}
                 disabled={disabled}
+                aria-label={label}
                 className="flex items-center justify-center hover:opacity-60"
               >
                 <FontAwesomeIcon
