@@ -123,6 +123,22 @@ describe('InputWithActionIcons', () => {
     expect(container.firstChild).toHaveClass('custom-wrapper');
   });
 
+  it('names an icon button after its label', () => {
+    const actionIcons = [{ icon: mockIcon, onClick: vi.fn(), label: 'Add tag' }];
+
+    render(<InputWithActionIcons actionIcons={actionIcons} />);
+
+    expect(screen.getByRole('button', { name: 'Add tag' })).toBeInTheDocument();
+  });
+
+  it('leaves an icon button without a label unnamed', () => {
+    const actionIcons = [{ icon: mockIcon, onClick: vi.fn() }];
+
+    render(<InputWithActionIcons actionIcons={actionIcons} />);
+
+    expect(screen.getByRole('button')).not.toHaveAttribute('aria-label');
+  });
+
   it('applies custom className to action icon', () => {
     const actionIcons = [{ icon: mockIcon, onClick: vi.fn(), className: 'icon-red' }];
 

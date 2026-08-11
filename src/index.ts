@@ -467,6 +467,7 @@ export { default as IconWithCount } from './components/IconWithCount';
 
 /**
  * InputWithActionIcons – A text input with action icon buttons positioned on the right side.
+ * Each action icon accepts an optional `label`, rendered as the icon button's `aria-label`.
  */
 export { default as InputWithActionIcons } from './components/InputWithActionIcons';
 export type { InputWithActionIconsProps, ActionIcon } from './components/InputWithActionIcons';
