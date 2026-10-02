@@ -1,20 +1,7 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-use-before-define, react/display-name, react/button-has-type, jsx-a11y/role-has-required-aria-props */
@@ -45,9 +32,10 @@ vi.mock('@radix-ui/react-checkbox', () => ({
 }));
 
 vi.mock('@fortawesome/react-fontawesome', () => ({
-  FontAwesomeIcon: ({ className }: any) => (
+  FontAwesomeIcon: ({ className, icon }: any) => (
     <span
       data-testid="fa-icon"
+      data-icon={icon.iconName}
       className={className}
     />
   ),
@@ -110,5 +98,15 @@ describe('Checkbox', () => {
 
     expect(screen.getByTestId('checkbox-root')).toHaveAttribute('id', 'subscribe-jane');
     expect(screen.getByText('Subscribe').closest('label')).toHaveAttribute('for', 'subscribe-jane');
+  });
+
+  it('draws a check mark when checked', () => {
+    render(<Checkbox checked />);
+    expect(screen.getByTestId('fa-icon')).toHaveAttribute('data-icon', 'check');
+  });
+
+  it('draws a dash instead of a check mark when indeterminate', () => {
+    render(<Checkbox checked="indeterminate" />);
+    expect(screen.getByTestId('fa-icon')).toHaveAttribute('data-icon', 'minus');
   });
 });

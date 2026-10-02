@@ -1,27 +1,14 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 import * as React from 'react';
 import { useId } from 'react';
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faMinus } from '@fortawesome/free-solid-svg-icons';
 import cn from '../utils/cn';
 
 export interface CheckboxProps extends React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> {
@@ -30,7 +17,7 @@ export interface CheckboxProps extends React.ComponentPropsWithoutRef<typeof Che
 }
 
 const Checkbox = React.forwardRef<React.ElementRef<typeof CheckboxPrimitive.Root>, CheckboxProps>(
-  ({ className, onCheckboxClick = () => {}, label, disabled, id, ...props }, ref) => {
+  ({ className, onCheckboxClick = () => {}, label, disabled, id, checked, ...props }, ref) => {
     const generatedId = useId();
     const checkboxId = id ?? generatedId;
 
@@ -40,7 +27,7 @@ const Checkbox = React.forwardRef<React.ElementRef<typeof CheckboxPrimitive.Root
           ref={ref}
           id={checkboxId}
           className={cn(
-            'peer flex h-4 w-4 shrink-0 flex-col rounded-sm border border-primary shadow data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+            'peer flex h-4 w-4 shrink-0 flex-col rounded-sm border border-primary shadow data-[state=checked]:bg-primary data-[state=indeterminate]:bg-primary data-[state=checked]:text-primary-foreground data-[state=indeterminate]:text-primary-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
             className,
           )}
           onClick={(event) => {
@@ -48,11 +35,12 @@ const Checkbox = React.forwardRef<React.ElementRef<typeof CheckboxPrimitive.Root
             onCheckboxClick(event);
           }}
           disabled={disabled}
+          checked={checked}
           {...props}
         >
           <CheckboxPrimitive.Indicator className={cn('flex flex-col items-center justify-center text-current')}>
             <FontAwesomeIcon
-              icon={faCheck}
+              icon={checked === 'indeterminate' ? faMinus : faCheck}
               className="h-3"
             />
           </CheckboxPrimitive.Indicator>

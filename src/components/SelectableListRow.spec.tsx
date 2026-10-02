@@ -1,20 +1,7 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 import React from 'react';
@@ -104,5 +91,69 @@ describe('SelectableListRow', () => {
     expect(row).toHaveAttribute('aria-busy', 'true');
     expect(row.className).toContain('pointer-events-none');
     expect(row.className).toContain('opacity-50');
+  });
+
+  it('renders a passed data-testid on the row, so a list can address its rows', () => {
+    render(<SelectableListRow data-testid="member-row">row</SelectableListRow>);
+
+    expect(screen.getByTestId('member-row')).toHaveTextContent('row');
+  });
+
+  it('forwards any further data-* attribute, so a list can mark a row by its own state', () => {
+    render(
+      <SelectableListRow
+        data-testid="member-row"
+        data-seated="true"
+        data-role="student"
+      >
+        row
+      </SelectableListRow>,
+    );
+
+    const row = screen.getByTestId('member-row');
+    expect(row).toHaveAttribute('data-seated', 'true');
+    expect(row).toHaveAttribute('data-role', 'student');
+  });
+
+  it('forwards nothing but data-* attributes, so an unknown prop cannot leak into the DOM', () => {
+    render(
+      <SelectableListRow
+        data-testid="member-row"
+        {...({ isSeated: 'true' } as Record<string, unknown>)}
+      >
+        row
+      </SelectableListRow>,
+    );
+
+    expect(screen.getByTestId('member-row')).not.toHaveAttribute('isSeated');
+  });
+
+  it('passes the click event to onActivate, so the mouse and keyboard paths agree', () => {
+    const onActivate = vi.fn();
+    render(<SelectableListRow onActivate={onActivate}>row</SelectableListRow>);
+
+    fireEvent.click(screen.getByRole('button'), { metaKey: true });
+
+    expect(onActivate).toHaveBeenCalledTimes(1);
+    expect(onActivate.mock.calls[0][0]).toMatchObject({ metaKey: true });
+  });
+
+  it('passes the keyboard event too, so a row reached by Enter tells the caller as much as a click does', () => {
+    const onActivate = vi.fn();
+    render(<SelectableListRow onActivate={onActivate}>row</SelectableListRow>);
+
+    fireEvent.keyDown(screen.getByRole('button'), { key: 'Enter', metaKey: true });
+
+    expect(onActivate).toHaveBeenCalledTimes(1);
+    expect(onActivate.mock.calls[0][0]).toMatchObject({ key: 'Enter', metaKey: true });
+  });
+
+  it('passes the event on Space as well, the other key that activates the row', () => {
+    const onActivate = vi.fn();
+    render(<SelectableListRow onActivate={onActivate}>row</SelectableListRow>);
+
+    fireEvent.keyDown(screen.getByRole('button'), { key: ' ' });
+
+    expect(onActivate.mock.calls[0][0]).toMatchObject({ key: ' ' });
   });
 });

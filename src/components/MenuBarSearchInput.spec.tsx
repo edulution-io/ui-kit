@@ -1,25 +1,14 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
+import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MenuBarSearchInput from './MenuBarSearchInput';
+import { Dialog, DialogContent, DialogTitle } from './Dialog';
 
 describe('MenuBarSearchInput', () => {
   it('renders a controlled input with the provided placeholder', () => {
@@ -113,14 +102,13 @@ describe('MenuBarSearchInput', () => {
         />
       </div>,
     );
-    const input = screen.getByPlaceholderText('Search');
-    input.focus();
+    await user.click(screen.getByPlaceholderText('Search'));
     await user.keyboard('{Escape}');
     expect(onQueryChange).toHaveBeenCalledWith('');
     expect(parentKeyDown).not.toHaveBeenCalled();
   });
 
-  it('stops propagation on Escape when query is empty but does not fire onQueryChange', async () => {
+  it('lets Escape through when there is nothing to clear, so a surrounding layer can close', async () => {
     const onQueryChange = vi.fn();
     const parentKeyDown = vi.fn();
     const user = userEvent.setup();
@@ -134,10 +122,67 @@ describe('MenuBarSearchInput', () => {
         />
       </div>,
     );
-    screen.getByPlaceholderText('Search').focus();
+    await user.click(screen.getByPlaceholderText('Search'));
     await user.keyboard('{Escape}');
     expect(onQueryChange).not.toHaveBeenCalled();
-    expect(parentKeyDown).not.toHaveBeenCalled();
+    expect(parentKeyDown).toHaveBeenCalled();
+  });
+
+  it('lets Escape through once the input has lost focus', async () => {
+    const onQueryChange = vi.fn();
+    const parentKeyDown = vi.fn();
+    const user = userEvent.setup();
+    render(
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+      <div onKeyDown={parentKeyDown}>
+        <MenuBarSearchInput
+          query="abc"
+          onQueryChange={onQueryChange}
+          placeholder="Search"
+        />
+        <button type="button">Elsewhere</button>
+      </div>,
+    );
+    await user.click(screen.getByPlaceholderText('Search'));
+    await user.click(screen.getByRole('button', { name: 'Elsewhere' }));
+    await user.keyboard('{Escape}');
+    expect(onQueryChange).not.toHaveBeenCalled();
+    expect(parentKeyDown).toHaveBeenCalled();
+  });
+
+  it('keeps a surrounding dialog open while clearing the query, and closes it on the second Escape', async () => {
+    const onOpenChange = vi.fn();
+    const user = userEvent.setup();
+
+    const Host = () => {
+      const [query, setQuery] = useState('abc');
+      return (
+        <Dialog
+          open
+          onOpenChange={onOpenChange}
+        >
+          <DialogContent>
+            <DialogTitle>Sections</DialogTitle>
+            <MenuBarSearchInput
+              query={query}
+              onQueryChange={setQuery}
+              placeholder="Search"
+            />
+          </DialogContent>
+        </Dialog>
+      );
+    };
+    render(<Host />);
+
+    await user.click(screen.getByPlaceholderText('Search'));
+    await user.keyboard('{Escape}');
+
+    expect(screen.getByPlaceholderText('Search')).toHaveValue('');
+    expect(onOpenChange).not.toHaveBeenCalled();
+
+    await user.keyboard('{Escape}');
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
   it('fires onSubmit with the trimmed query on Enter', async () => {

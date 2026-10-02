@@ -1,20 +1,7 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 import React from 'react';
@@ -37,8 +24,8 @@ export interface SelectableListRowProps {
   align?: SelectableListRowAlign;
   /** Selection style: `surface` (neutral fill) or `accentRail` (primary left rail + accent fill). Defaults to `surface`. */
   variant?: SelectableListRowVariant;
-  /** When set, the whole row becomes the click target (`role="button"`, keyboard Enter/Space). */
-  onActivate?: () => void;
+  /** When set, the whole row becomes the click target (`role="button"`, keyboard Enter/Space). Receives the triggering mouse or keyboard event; the argument is optional. */
+  onActivate?: (event?: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>) => void;
   /** Context-menu (right-click) handler; only meaningful for interactive rows. */
   onContextMenu?: (event: React.MouseEvent<HTMLDivElement>) => void;
   /** Leading slot rendered before the content (e.g. a selection checkbox). */
@@ -49,9 +36,16 @@ export interface SelectableListRowProps {
   overlay?: React.ReactNode;
   /** Extra classes for spacing/gap; merged onto the row container. */
   className?: string;
+  /** Test id rendered on the row container. */
+  'data-testid'?: string;
   /** The row's main content. */
   children: React.ReactNode;
+  /** Any further `data-*` attribute; forwarded verbatim onto the row container. */
+  [dataAttribute: `data-${string}`]: unknown;
 }
+
+const dataAttributesOf = (props: Record<string, unknown>): Record<string, unknown> =>
+  Object.fromEntries(Object.entries(props).filter(([key]) => key.startsWith('data-')));
 
 const ACTIVE_CLASSES: Record<SelectableListRowVariant, string> = {
   surface: 'bg-muted-light dark:bg-muted-background',
@@ -82,6 +76,8 @@ const SelectableListRow: React.FC<SelectableListRowProps> = ({
   overlay,
   className,
   children,
+  'data-testid': dataTestId,
+  ...rest
 }) => {
   const isInteractive = typeof onActivate === 'function';
 
@@ -94,7 +90,7 @@ const SelectableListRow: React.FC<SelectableListRowProps> = ({
         onKeyDown: (event) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            onActivate?.();
+            onActivate?.(event);
           }
         },
       }
@@ -103,6 +99,8 @@ const SelectableListRow: React.FC<SelectableListRowProps> = ({
   return (
     <div
       {...interactiveProps}
+      {...dataAttributesOf(rest)}
+      data-testid={dataTestId}
       aria-busy={ariaBusy}
       className={cn(
         'group relative flex w-full text-left transition-colors',

@@ -1,20 +1,7 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, @typescript-eslint/no-use-before-define, jsx-a11y/label-has-associated-control, jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus, jsx-a11y/role-has-required-aria-props, react/button-has-type, react/display-name, react/no-array-index-key, no-underscore-dangle, no-plusplus */
@@ -43,6 +30,18 @@ describe('WarningBox', () => {
     expect(screen.getByText('Warning Title')).toBeInTheDocument();
     expect(screen.getByText('Warning description text')).toBeInTheDocument();
     expect(screen.getByText('file1.txt, file2.txt')).toBeInTheDocument();
+  });
+
+  it('renders no heading when the title is omitted, so a dialog title is not repeated above the description', () => {
+    const { container } = render(
+      <WarningBox
+        description="Warning description text"
+        variant="info"
+      />,
+    );
+
+    expect(screen.getByText('Warning description text')).toBeInTheDocument();
+    expect(container.querySelector('.font-bold')).toBeNull();
   });
 
   it('renders without file list when filenames is empty', () => {
@@ -151,5 +150,35 @@ describe('WarningBox', () => {
 
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
     expect(screen.getByText('a.txt, b.txt, c.txt')).toBeInTheDocument();
+  });
+
+  it('lays title and description on one row without the bottom margin when inline, so it fits a toolbar', () => {
+    const { container } = render(
+      <WarningBox
+        layout="inline"
+        variant="warning"
+        title="3 without a seat"
+        description="20 seats · 23 pupils"
+      />,
+    );
+
+    const box = container.firstElementChild as HTMLElement;
+    expect(box.className).toContain('flex-row');
+    expect(box.className).not.toContain('mb-4');
+    expect(box.className).not.toContain('flex-col');
+    expect(box).toHaveTextContent('3 without a seat');
+    expect(box).toHaveTextContent('20 seats · 23 pupils');
+  });
+
+  it('keeps the block layout when no layout is given, so existing boxes do not change', () => {
+    const { container } = render(
+      <WarningBox
+        variant="warning"
+        title="t"
+        description="d"
+      />,
+    );
+
+    expect((container.firstElementChild as HTMLElement).className).toContain('flex-col');
   });
 });

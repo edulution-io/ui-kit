@@ -1,26 +1,15 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 import * as React from 'react';
+import { useCallback, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass, faXmark } from '@fortawesome/free-solid-svg-icons';
 import cn from '../utils/cn';
+import useEscapeCapture from '../hooks/useEscapeCapture';
 import { Input } from './Input';
 
 const DEFAULT_CLEAR_LABEL = 'Clear';
@@ -42,6 +31,12 @@ const MenuBarSearchInput: React.FC<MenuBarSearchInputProps> = ({
   clearLabel = DEFAULT_CLEAR_LABEL,
   className,
 }) => {
+  const [isFocused, setIsFocused] = useState(false);
+
+  const clearQuery = useCallback(() => onQueryChange(''), [onQueryChange]);
+
+  useEscapeCapture(isFocused && query.length > 0, clearQuery);
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     onQueryChange(event.target.value);
   };
@@ -51,13 +46,6 @@ const MenuBarSearchInput: React.FC<MenuBarSearchInputProps> = ({
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      event.stopPropagation();
-      event.preventDefault();
-      event.nativeEvent.stopImmediatePropagation();
-      if (query.length > 0) onQueryChange('');
-      return;
-    }
     if (event.key === 'Enter') {
       const trimmed = query.trim();
       if (trimmed.length === 0) return;
@@ -83,6 +71,8 @@ const MenuBarSearchInput: React.FC<MenuBarSearchInputProps> = ({
           value={query}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
           className={cn('pl-9', showClear && 'pr-9')}
         />

@@ -81,4 +81,8 @@ The library uses CSS variables for theming. Define these in your global CSS:
 
 ## License
 
-AGPL-3.0-or-later
+Copyright (C) 2024-2026 Netzint GmbH
+
+Dual-licensed: `AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial`. You may use this package either under the GNU Affero General Public License, version 3 or (at your option) any later version, or under a commercial license agreement with Netzint GmbH. The full text of both licenses ships with the package in `LICENSES/`; the name edulution and its branding are subject to the additional terms in `LICENSE_EXCEPTIONS.md`.
+
+For commercial licensing, contact info@netzint.de.

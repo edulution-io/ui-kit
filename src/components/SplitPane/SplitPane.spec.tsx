@@ -1,20 +1,7 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -25,31 +12,40 @@ import SplitPane from './SplitPane';
 
 const mediaQueryMatches = vi.fn<[string], boolean>(() => false);
 const useDefaultLayoutMock = vi.fn();
+const resizeLeftPanel = vi.fn();
+const group: { onLayoutChanged?: (layout: Record<string, number>, meta: { isUserInteraction: boolean }) => void } = {};
 
 vi.mock('../../hooks/useMediaQuery', () => ({
   default: (query: string) => mediaQueryMatches(query),
 }));
 
 vi.mock('react-resizable-panels', () => ({
-  Group: ({ children, orientation, className }: any) => (
-    <div
-      data-testid="rp-group"
-      data-orientation={orientation}
-      className={className}
-    >
-      {children}
-    </div>
-  ),
-  Panel: ({ children, id, defaultSize, minSize, maxSize }: any) => (
-    <div
-      data-testid={`rp-panel-${id}`}
-      data-default-size={defaultSize}
-      data-min-size={minSize}
-      data-max-size={maxSize}
-    >
-      {children}
-    </div>
-  ),
+  Group: ({ children, orientation, className, onLayoutChanged }: any) => {
+    group.onLayoutChanged = onLayoutChanged;
+    return (
+      <div
+        data-testid="rp-group"
+        data-orientation={orientation}
+        className={className}
+      >
+        {children}
+      </div>
+    );
+  },
+  Panel: ({ children, id, defaultSize, minSize, maxSize, panelRef, groupResizeBehavior }: any) => {
+    if (panelRef) Object.assign(panelRef, { current: { resize: resizeLeftPanel } });
+    return (
+      <div
+        data-testid={`rp-panel-${id}`}
+        data-default-size={defaultSize}
+        data-min-size={minSize}
+        data-max-size={maxSize}
+        data-group-resize-behavior={groupResizeBehavior}
+      >
+        {children}
+      </div>
+    );
+  },
   Separator: ({ children, ...rest }: any) => (
     <div
       role="separator"
@@ -67,6 +63,8 @@ beforeEach(() => {
   mediaQueryMatches.mockReturnValue(false);
   useDefaultLayoutMock.mockReset();
   useDefaultLayoutMock.mockReturnValue({ defaultLayout: undefined, onLayoutChanged: undefined });
+  resizeLeftPanel.mockReset();
+  group.onLayoutChanged = undefined;
 });
 
 describe('SplitPane', () => {
@@ -159,5 +157,177 @@ describe('SplitPane', () => {
       id: 'custom-save-id',
       panelIds: ['split-pane-left', 'split-pane-right'],
     });
+  });
+
+  it('sizes the left pane to fitLeftSize and follows it while nobody has dragged the handle', () => {
+    const { rerender } = render(
+      <SplitPane
+        left={<span>l</span>}
+        right={<span>r</span>}
+        fitLeftSize="280px"
+      />,
+    );
+
+    expect(resizeLeftPanel).toHaveBeenLastCalledWith('280px');
+
+    group.onLayoutChanged?.({ 'split-pane-left': 30, 'split-pane-right': 70 }, { isUserInteraction: false });
+    rerender(
+      <SplitPane
+        left={<span>l</span>}
+        right={<span>r</span>}
+        fitLeftSize="320px"
+      />,
+    );
+
+    expect(resizeLeftPanel).toHaveBeenLastCalledWith('320px');
+  });
+
+  it('leaves the left pane at the width the user dragged it to', () => {
+    const { rerender } = render(
+      <SplitPane
+        left={<span>l</span>}
+        right={<span>r</span>}
+        fitLeftSize="280px"
+      />,
+    );
+    resizeLeftPanel.mockClear();
+
+    group.onLayoutChanged?.({ 'split-pane-left': 40, 'split-pane-right': 60 }, { isUserInteraction: true });
+    group.onLayoutChanged?.({ 'split-pane-left': 50, 'split-pane-right': 50 }, { isUserInteraction: false });
+    rerender(
+      <SplitPane
+        left={<span>l</span>}
+        right={<span>r</span>}
+        fitLeftSize="320px"
+      />,
+    );
+
+    expect(resizeLeftPanel).not.toHaveBeenCalled();
+  });
+
+  it('fits the left pane again after a layout change the user did not make, so a narrowed window does not keep it clamped', () => {
+    render(
+      <SplitPane
+        left={<span>l</span>}
+        right={<span>r</span>}
+        fitLeftSize="280px"
+      />,
+    );
+    resizeLeftPanel.mockClear();
+
+    group.onLayoutChanged?.({ 'split-pane-left': 25, 'split-pane-right': 75 }, { isUserInteraction: false });
+
+    expect(resizeLeftPanel).toHaveBeenCalledWith('280px');
+  });
+
+  it('keeps a fitted left pane at its pixel width when the window changes width', () => {
+    render(
+      <SplitPane
+        left={<span>l</span>}
+        right={<span>r</span>}
+        fitLeftSize="280px"
+      />,
+    );
+
+    expect(screen.getByTestId('rp-panel-split-pane-left')).toHaveAttribute(
+      'data-group-resize-behavior',
+      'preserve-pixel-size',
+    );
+    expect(screen.getByTestId('rp-panel-split-pane-right')).not.toHaveAttribute('data-group-resize-behavior');
+  });
+
+  it('lets the left pane scale with the window when it does not fit its content', () => {
+    render(
+      <SplitPane
+        left={<span>l</span>}
+        right={<span>r</span>}
+      />,
+    );
+
+    expect(screen.getByTestId('rp-panel-split-pane-left')).not.toHaveAttribute('data-group-resize-behavior');
+
+    group.onLayoutChanged?.({ 'split-pane-left': 30, 'split-pane-right': 70 }, { isUserInteraction: false });
+
+    expect(resizeLeftPanel).not.toHaveBeenCalled();
+  });
+
+  it('waits for a measured size while fitLeftSize is null', () => {
+    render(
+      <SplitPane
+        left={<span>l</span>}
+        right={<span>r</span>}
+        fitLeftSize={null}
+      />,
+    );
+
+    expect(resizeLeftPanel).not.toHaveBeenCalled();
+  });
+
+  it('saves only dragged widths once the left pane fits its content, so a fitted width never counts as chosen', () => {
+    render(
+      <SplitPane
+        left={<span>l</span>}
+        right={<span>r</span>}
+        autoSaveId="fit-save-id"
+        fitLeftSize={null}
+      />,
+    );
+
+    expect(useDefaultLayoutMock).toHaveBeenCalledWith({
+      id: 'fit-save-id',
+      panelIds: ['split-pane-left', 'split-pane-right'],
+      onlySaveAfterUserInteractions: true,
+    });
+  });
+
+  it('fits the left pane while no width has been saved under its autoSaveId', () => {
+    useDefaultLayoutMock.mockReturnValue({ defaultLayout: undefined, onLayoutChanged: vi.fn() });
+
+    render(
+      <SplitPane
+        left={<span>l</span>}
+        right={<span>r</span>}
+        autoSaveId="fit-save-id"
+        fitLeftSize="280px"
+      />,
+    );
+
+    expect(resizeLeftPanel).toHaveBeenLastCalledWith('280px');
+  });
+
+  it('keeps a width the user saved earlier instead of fitting the content', () => {
+    useDefaultLayoutMock.mockReturnValue({
+      defaultLayout: { 'split-pane-left': 45, 'split-pane-right': 55 },
+      onLayoutChanged: vi.fn(),
+    });
+
+    render(
+      <SplitPane
+        left={<span>l</span>}
+        right={<span>r</span>}
+        autoSaveId="fit-save-id"
+        fitLeftSize="280px"
+      />,
+    );
+
+    expect(resizeLeftPanel).not.toHaveBeenCalled();
+  });
+
+  it('still hands every layout change to the persistence hook', () => {
+    const save = vi.fn();
+    useDefaultLayoutMock.mockReturnValue({ defaultLayout: undefined, onLayoutChanged: save });
+    render(
+      <SplitPane
+        left={<span>l</span>}
+        right={<span>r</span>}
+        autoSaveId="fit-save-id"
+        fitLeftSize="280px"
+      />,
+    );
+
+    const layout = { 'split-pane-left': 40, 'split-pane-right': 60 };
+    group.onLayoutChanged?.(layout, { isUserInteraction: true });
+
+    expect(save).toHaveBeenCalledWith(layout, { isUserInteraction: true });
   });
 });

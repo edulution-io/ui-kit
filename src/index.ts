@@ -1,20 +1,7 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 /**
@@ -35,7 +22,8 @@ export { Avatar, AvatarImage, AvatarFallback } from './components/Avatar';
 export type { AvatarProps, AvatarImageProps, AvatarFallbackProps } from './components/Avatar';
 
 /**
- * Badge – A styled label component with variant support for status indicators and tags.
+ * Badge – A styled label component with variant support for status indicators and tags. It has a fixed height and
+ * never grows past its container: text children are truncated with an ellipsis and keep the full text as `title`.
  */
 export { Badge, badgeVariants } from './components/Badge';
 export type { BadgeProps, BadgeVariant } from './components/Badge';
@@ -119,6 +107,12 @@ export type { ButtonProps, ButtonVariant } from './components/Button';
  * active theme. Previously it relied on a fixed border color and white
  * background — consumers upgrading past 2.0.90 will see the ring-based focus
  * style and theme-aware surface colors.
+ *
+ * A `type="number"` field hands `onChange` a numeric `event.target.value`, and a
+ * cleared field reports `''` rather than `0`, so a caller can tell "empty" apart
+ * from "the user typed zero". Previously the empty string was coerced too and a
+ * cleared field was indistinguishable from a zero — consumers upgrading past
+ * 2.2.39 that feed the value straight into arithmetic should handle `''`.
  */
 export { Input, inputVariants } from './components/Input';
 export { INPUT_BASE_CLASSES, VARIANT_COLORS } from './constants/inputClassNames';
@@ -155,7 +149,8 @@ export type { CardListProps, CardListItemProps, CardListHeader } from './compone
  * Owns the full-width selection/hover background (so it spans the leading checkbox and the trailing
  * action menu, not just the content), the `leading` / content / `trailing` slot layout, an optional
  * `overlay`, and optional row-level click + keyboard activation (`onActivate` → `role="button"`,
- * Enter/Space). Two selection looks via `variant`: `surface` (neutral fill) and `accentRail`
+ * Enter/Space; the handler receives the triggering mouse or keyboard event as an optional
+ * argument). Two selection looks via `variant`: `surface` (neutral fill) and `accentRail`
  * (primary left rail + accent fill). Used by the mail message list and the chat conversation list.
  */
 export { default as SelectableListRow } from './components/SelectableListRow';
@@ -169,17 +164,31 @@ export type {
  * SectionCard – The standard liquid-glass content surface for page sections.
  *
  * Renders a `<section>` with the `liquid-glass` surface (variant `default`) or no
- * background (variant `transparent`), an optional header (a string `label` renders
- * as an `h3`, or pass a custom `header` node), a body and an optional `footer`
- * action area. Padding density is controlled via the `padding` prop (`default`,
- * `compact`, `none`). Set `divided` to separate header, body and footer with a
- * `Separator`. When `id` is set, the content is wrapped in an `AnchorSection` for
- * anchor-based navigation. Set `selected` to render a primary-colored selection
- * ring; combine it with a forwarded `onClick` to turn the whole card into a
- * selection target.
+ * background (variant `transparent`), an optional header and a body. The header is
+ * either a custom `header` node or, failing that, a `label` — a string `label`
+ * renders as an `h3`, any other node renders as-is. Padding density is controlled
+ * via the `padding` prop (`default`, `compact`, `none`); the body drops its top
+ * padding automatically when a header is present. The body always carries
+ * `text-sm`, so content that needs the default body size must set its own.
+ * `className` and `bodyClassName` extend their respective class strings;
+ * `headerClassName` extends the header generated from `label`, while a custom
+ * `header` node is rendered as-is. Set `bordered={false}` to drop the surface
+ * border and `withBackground={false}` to force a transparent, unblurred surface.
+ * When `id` is set, the content is wrapped in an `AnchorSection` for anchor-based
+ * navigation, while `surfaceId` sets the DOM id of the `<section>` itself.
+ * Remaining props are spread onto the `<section>`.
+ *
+ * Passing `onClick` makes the whole card an activatable surface: it joins the tab
+ * order with `tabIndex={0}`, activates on Enter and Space, and gains `cursor-pointer`
+ * plus a focus-visible ring, so callers need not paint the pointer cursor themselves.
+ * A key press on a control inside the card is left to that control, an explicit
+ * `tabIndex` takes precedence, and a caller `onKeyDown` runs first and can suppress
+ * the card's own activation by calling `preventDefault()`. No
+ * `role="button"` is set — a card hosting its own buttons must not be announced as
+ * a button, since a `button` role may not contain interactive descendants.
  *
  * `SECTION_CARD_STYLES` exposes the underlying class strings (surface, variant
- * backgrounds, padding axes, header, body and footer bases) for components that
+ * backgrounds, padding densities, header and body bases) for components that
  * compose the same surface themselves, such as section accordions.
  */
 export { default as SectionCard } from './components/SectionCard';
@@ -204,8 +213,9 @@ export type { AddCardProps } from './components/AddCard';
  *
  * Renders a large, bold `value` (foreground) next to an optional muted `total`
  * (shown as `/ {total}`), an optional `unit` appended to the total (e.g. `GB`)
- * and an optional trailing `label` caption. The `size` prop (`md`, `lg`) switches
- * between a card-sized and a hero-sized scale. All content is supplied via props,
+ * and an optional trailing `label` caption. The `size` prop (`sm`, `md`, `lg`) picks
+ * the scale: `sm` for dense tiles placing several stats side by side, `md` for a
+ * card-sized stat and `lg` for a hero-sized one. All content is supplied via props,
  * so the component stays i18n- and data-source-agnostic. Used by the conference
  * cards and the dashboard quota card. The matching `StatValueProps` and
  * `StatValueSize` types are exported.
@@ -306,8 +316,9 @@ export type { default as MenuBarDropData } from './components/MenuBarDropData';
 /**
  * MenuBarSearchInput – Opt-in search input rendered inside `MenuBar` when `MenuBarConfig.search`
  * is provided. Controlled input with a magnifier icon, clear-X button, Enter-to-submit (forwards
- * the trimmed query), and Escape-to-clear. Escape always stops propagation while the input is
- * focused so wrapping dialogs do not close.
+ * the trimmed query), and Escape-to-clear. While the field is focused and holds a query, `Escape` clears it and stops
+ * propagating, so a surrounding dialog stays open with the input entered in it. A second `Escape` — or a first one on
+ * an empty field — reaches the dialog and closes it.
  */
 export { default as MenuBarSearchInput } from './components/MenuBarSearchInput';
 export type { MenuBarSearchInputProps } from './components/MenuBarSearchInput';
@@ -328,6 +339,9 @@ export type { FilterMenuTreeResult } from './utils/filterMenuTreeByQuery';
  * persistence via `autoSaveId`. Use `withHandle` on `ResizableHandle` to render a visible
  * grip indicator. Pass a stable `id` to each `ResizablePanel` when panels are
  * conditionally rendered so persisted layouts survive panel-set changes.
+ * `useResizablePanelLayout(id, panelIds, { onlySaveAfterUserInteractions })` restores and
+ * stores a group's layout under `id`; with `onlySaveAfterUserInteractions` it stores only
+ * layouts the user resized.
  */
 export {
   ResizablePanelGroup,
@@ -343,6 +357,11 @@ export {
  * (`'1/4'`, `'1/3'`, `'1/2'`, `'2/3'`, `'3/4'`). Use `orientation="vertical"` for top/bottom splits.
  * Min/max/default sizes are interpreted as percentages of the parent group.
  *
+ * `fitLeftSize` sizes the left pane to a CSS width (e.g. `'296px'`) and follows it until the user drags
+ * the handle; pass `null` while the width is still being measured. With it, `autoSaveId` stores only
+ * dragged widths, a dragged or stored width wins over the fitted one, and the left pane keeps its pixel
+ * width when the window changes width.
+ *
  * `autoSaveId` must be unique per SplitPane instance — two SplitPanes sharing the same value
  * will alias each other's persisted layouts in `localStorage`.
  */
@@ -355,9 +374,58 @@ export type {
 } from './components/SplitPane/splitPaneInternals';
 
 /**
+ * SelectionWizard – A step-driven selection surface for pick-then-pick flows with any number of steps. With
+ * `layout="columns"` the steps render side by side as resizable columns on wide screens, in a window of up to
+ * `maxColumns` (default 3) that slides along with the active step; on narrow screens or with `layout="steps"`
+ * one step renders at a time. The step rail in the header
+ * shows progress, each step's `pickLabel` and, on a finished step, its `pickIcon` instead of a check mark; the footer carries back/next, an optional submit and the
+ * active step's `secondaryAction`. State stays with the caller: pass `steps` with `isComplete` and `render`,
+ * plus `activeStepId`/`onActiveStepChange`. Render it inline, as a dialog via `as="dialog"`, or via `as="adaptive"`
+ * as that dialog on wide screens and as a bottom sheet on narrow ones, both with `isOpen`/`onClose` and a required
+ * `title`, which names the dialog for a screen reader. Labels are pre-translated strings.
+ */
+export { default as SelectionWizard } from './components/SelectionWizard/SelectionWizard';
+export type {
+  SelectionWizardProps,
+  SelectionWizardStep,
+  SelectionWizardLabels,
+  SelectionWizardLayout,
+  SelectionWizardShell,
+  SelectionWizardSecondaryAction,
+} from './components/SelectionWizard/selectionWizardInternals';
+
+/**
  * useMediaQuery – Hook that tracks whether a CSS media query matches (e.g. responsive breakpoints).
  */
 export { default as useMediaQuery } from './hooks/useMediaQuery';
+
+/**
+ * useKeyboardInset – Hook that returns how many pixels the on-screen keyboard covers at the bottom of the viewport,
+ * so a bottom sheet can move above it. Returns 0 where the browser has no visualViewport.
+ */
+export { default as useKeyboardInset } from './hooks/useKeyboardInset';
+
+/**
+ * keyboardInsetStyle – Turns the inset from `useKeyboardInset` into the `bottom` and `maxHeight` that lift a bottom
+ * sheet above the on-screen keyboard. Returns undefined while no keyboard covers the viewport.
+ */
+export { default as keyboardInsetStyle } from './utils/keyboardInsetStyle';
+
+/**
+ * useEscapeCapture – Hook that swallows `Escape` while a floating panel is open, so only that panel closes.
+ *
+ * Radix's `DismissableLayer` listens for `Escape` on the document in the capture phase, so a panel that is not
+ * itself a Radix layer (a portaled option list, a command panel) lets the keypress through and the surrounding
+ * dialog closes with it, losing whatever was entered. This listens one step higher — on the window, same phase —
+ * and calls `stopImmediatePropagation`, so the dialog never sees the keypress. The listener exists only while
+ * `isActive`, so the next `Escape` closes the dialog as usual.
+ *
+ * `onEscape` is read through a ref, so passing a fresh closure on every render does not re-register the listener.
+ *
+ * @param isActive Whether the panel is open; the listener is registered only while this is true.
+ * @param onEscape Called instead of the dialog's own dismissal when `Escape` is pressed.
+ */
+export { default as useEscapeCapture } from './hooks/useEscapeCapture';
 
 /**
  * useOnClickOutside – Hook that fires a callback when a click occurs outside the referenced element.
@@ -473,11 +541,12 @@ export { default as InputWithActionIcons } from './components/InputWithActionIco
 export type { InputWithActionIconsProps, ActionIcon } from './components/InputWithActionIcons';
 
 /**
- * WarningBox – A color-customizable warning box displaying a title, description, and an optional
- * comma-separated inline file list that wraps within the box.
+ * WarningBox – A color-customizable warning box displaying an optional title, a description, and an optional
+ * comma-separated inline file list that wraps within the box. `layout="inline"` lays it out as a single row for
+ * toolbars and headers.
  */
 export { default as WarningBox } from './components/WarningBox';
-export type { WarningBoxProps, WarningBoxVariant } from './components/WarningBox';
+export type { WarningBoxLayout, WarningBoxProps, WarningBoxVariant } from './components/WarningBox';
 
 /**
  * CircleLoader – A spinning circle loading indicator with configurable size and speed.
@@ -554,10 +623,10 @@ export { Calendar } from './components/Calendar';
 export type { CalendarProps } from './components/Calendar';
 
 /**
- * CalendarDropdownCaption – A drop-in `Caption` component for {@link Calendar}. Pass it via
- * `components={{ Caption: CalendarDropdownCaption }}` together with `fromYear`/`toYear` to replace the plain
- * month/year label with month and year dropdowns plus previous/next month buttons. Reads its accessible names
- * from the DayPicker `labels` (`labelMonthDropdown`, `labelYearDropdown`, `labelPrevious`, `labelNext`).
+ * CalendarDropdownCaption – A drop-in `MonthCaption` component for {@link Calendar}. Pass it via
+ * `components={{ MonthCaption: CalendarDropdownCaption }}` with `hideNavigation` (it renders its own previous/next
+ * buttons) and `startMonth`/`endMonth`, to replace the plain month/year label with month and year dropdowns. Reads its accessible
+ * names from the DayPicker `labels` (`labelMonthDropdown`, `labelYearDropdown`, `labelPrevious`, `labelNext`).
  */
 export { default as CalendarDropdownCaption } from './components/CalendarDropdownCaption';
 
@@ -567,6 +636,9 @@ export { default as CalendarDropdownCaption } from './components/CalendarDropdow
  * direct text entry on the field itself (single click opens the calendar, double click edits the date and
  * time as text). Pass `mode` to switch between date, time and datetime. Provide `previousMonthLabel` and
  * `nextMonthLabel` to give the icon-only month-navigation buttons accessible names.
+ *
+ * While the field is in text-entry mode, `Escape` cancels the edit and stops propagating, so a surrounding dialog
+ * stays open and keeps the input entered in it. A second `Escape` then reaches the dialog and closes it.
  */
 export { default as DateTimePicker } from './components/DateTimePicker';
 export type { DateTimePickerProps } from './components/DateTimePicker';
@@ -595,6 +667,15 @@ export {
 
 /**
  * DraggableTableRow – A table row with drag-and-drop support built on dnd-kit.
+ *
+ * The row takes only dnd-kit's activation listeners, never its attribute bag, so it keeps its native
+ * `row` semantics and never becomes a button or a tab stop.
+ *
+ * `isRowDisabled` suppresses dragging and sets `data-disabled`. `aria-disabled` follows only on a row
+ * that carries no `onRowClick`, because that state applies to the row's focusable descendants as well
+ * and would announce a still-operable row's controls as disabled. A disabled row that stays clickable
+ * therefore has no accessible disabled state of its own: the caller must render the row's own
+ * interactive controls -- its selection checkbox, its action buttons -- in a disabled state.
  */
 export { default as DraggableTableRow } from './components/DraggableTableRow';
 export type { DraggableTableRowProps } from './components/DraggableTableRow';
@@ -648,9 +729,27 @@ export type { MinuteButtonProps } from './components/MinuteButton';
  * Defaults match the previous behavior: the search input appears when more than three options are passed, and the
  * panel is rendered into `document.body` via `createPortal`. Both behaviors can be disabled per call site:
  * - `enableSearch={false}` keeps the trigger as a read-only field even with many options.
+ * - `searchFromOptionCount` moves the threshold, e.g. `1` to offer the field for a short list of long labels.
  * - `enablePortalUsage={false}` renders the panel inline next to the trigger using CSS absolute positioning, for
  *   embeddings in third-party-managed DOM trees (e.g. SurveyJS) where a portal target outside the host tree is
  *   unreachable.
+ *
+ * Two hooks shape how an option reads. `renderLabel` maps an option's name to the text used in the trigger, the
+ * search filter and the option row. `renderOption` replaces the body of a single option row with arbitrary content
+ * — an icon beside the name, a colour swatch, an avatar — while `renderLabel` keeps governing the trigger and the
+ * search, so an option stays findable by typing its name. It also governs the option's accessible name, so a row
+ * that draws only part of the label is still announced in full.
+ *
+ * `groupOf` names the group an option belongs to and turns the flat list into a grouped one: the panel writes the
+ * name as a heading above the first option of each group and wraps that group's options in a `role="group"` the
+ * heading labels. The headings follow the filtered list, so they stay correct while the user searches. An option
+ * the function names no group for keeps its place without a heading.
+ *
+ * While the option list is open, `Escape` closes only the list and stops propagating, so a surrounding dialog stays
+ * open and keeps the input entered in it. A second `Escape` then reaches the dialog and closes it. Closing the list
+ * without picking an option — by `Escape` or by a click outside — discards any text typed into the search filter, so
+ * the trigger shows the current selection again rather than the abandoned query. With the focus in the field or in
+ * the list, that `Escape` also hands the focus back to the field.
  */
 export { default as DropdownSelect } from './components/DropdownSelect';
 export type { DropdownSelectProps, DropdownOptions, DropdownVariant } from './components/DropdownSelect';

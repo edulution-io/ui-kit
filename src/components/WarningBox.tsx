@@ -1,26 +1,30 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 import React from 'react';
 import ItemList from './ItemList';
 
 type WarningBoxVariant = 'warning' | 'error' | 'success' | 'info';
+
+type WarningBoxLayout = 'block' | 'inline';
+
+const LAYOUT_STYLES: Record<WarningBoxLayout, { box: string; icon: string; title: string; description: string }> = {
+  block: {
+    box: 'mb-4 rounded-lg p-3 flex flex-col items-center text-center',
+    icon: 'mb-2 flex h-6 w-6 items-center justify-start',
+    title: 'font-bold',
+    description: 'text-sm',
+  },
+  inline: {
+    box: 'rounded-md px-2.5 py-1 flex min-w-0 flex-row items-center gap-2 text-left',
+    icon: 'flex h-4 w-4 shrink-0 items-center justify-center',
+    title: 'shrink-0 text-sm font-semibold',
+    description: 'min-w-0 truncate text-sm',
+  },
+};
 
 const VARIANT_STYLES: Record<WarningBoxVariant, { borderColor: string; backgroundColor: string; textColor: string }> = {
   warning: {
@@ -46,7 +50,7 @@ const VARIANT_STYLES: Record<WarningBoxVariant, { borderColor: string; backgroun
 };
 
 interface WarningBoxProps {
-  title: string;
+  title?: string;
   description: string;
   filenames?: string[];
   variant?: WarningBoxVariant;
@@ -54,6 +58,7 @@ interface WarningBoxProps {
   backgroundColor?: string;
   textColor?: string;
   icon?: React.ReactNode;
+  layout?: WarningBoxLayout;
 }
 
 const WarningBox: React.FC<WarningBoxProps> = ({
@@ -65,22 +70,21 @@ const WarningBox: React.FC<WarningBoxProps> = ({
   backgroundColor,
   textColor,
   icon,
+  layout = 'block',
 }: WarningBoxProps) => {
   const variantStyles = variant ? VARIANT_STYLES[variant] : { borderColor: '', backgroundColor: '', textColor: '' };
   const resolvedBorderColor = borderColor ?? variantStyles.borderColor;
   const resolvedBackgroundColor = backgroundColor ?? variantStyles.backgroundColor;
   const resolvedTextColor = textColor ?? variantStyles.textColor;
+  const layoutStyles = LAYOUT_STYLES[layout];
 
   return (
     <div
-      className={`
-        mb-4 rounded-lg border ${resolvedBorderColor} ${resolvedBackgroundColor} p-3 ${resolvedTextColor}
-        flex flex-col items-center text-center
-      `}
+      className={`border ${resolvedBorderColor} ${resolvedBackgroundColor} ${resolvedTextColor} ${layoutStyles.box}`}
     >
-      {icon && <div className="mb-2 flex h-6 w-6 items-center justify-start">{icon}</div>}
-      <p className="font-bold">{title}</p>
-      <p className="text-sm">{description}</p>
+      {icon && <div className={layoutStyles.icon}>{icon}</div>}
+      {title && <p className={layoutStyles.title}>{title}</p>}
+      <p className={layoutStyles.description}>{description}</p>
       {filenames && filenames.length > 0 && (
         <ItemList
           layout="inline"
@@ -92,4 +96,4 @@ const WarningBox: React.FC<WarningBoxProps> = ({
 };
 
 export default WarningBox;
-export type { WarningBoxProps, WarningBoxVariant };
+export type { WarningBoxLayout, WarningBoxProps, WarningBoxVariant };
