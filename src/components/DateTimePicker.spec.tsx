@@ -1,29 +1,19 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any, react/button-has-type, jsx-a11y/control-has-associated-label, react/display-name, @typescript-eslint/no-use-before-define */
 
 vi.mock('./Calendar', () => ({
-  Calendar: ({ onSelect, disabled }: any) => {
+  Calendar: ({ onSelect, disabled, hideNavigation }: any) => {
     const day = new Date(2026, 2, 15);
     return (
-      <div data-testid="calendar">
+      <div
+        data-testid="calendar"
+        data-hide-navigation={String(!!hideNavigation)}
+      >
         <button
           data-testid="calendar-day-15"
           disabled={disabled?.(day) ?? false}
@@ -97,6 +87,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DateTimePicker, { DateTimePickerProps } from './DateTimePicker';
 import DATETIME_PICKER_MODES from '../constants/dateTimePickerModes';
+import { Dialog, DialogContent, DialogTitle } from './Dialog';
 
 const runOpenDelay = () =>
   act(() => {
@@ -573,6 +564,23 @@ describe('DateTimePicker', () => {
     expect(screen.getByRole('button', { name: 'Month' })).toHaveTextContent('May');
   });
 
+  it('asks the calendar to hide the day-picker navigation because it renders its own month controls', async () => {
+    const user = userEvent.setup();
+    render(
+      <Host
+        initial={new Date(2026, 5, 15)}
+        mode={DATETIME_PICKER_MODES.DATE}
+        displayLocale="en"
+        monthLabel="Month"
+        previousMonthLabel="Previous month"
+        nextMonthLabel="Next month"
+      />,
+    );
+    await user.click(screen.getAllByRole('button')[0]);
+
+    expect(await screen.findByTestId('calendar')).toHaveAttribute('data-hide-navigation', 'true');
+  });
+
   it('cancels field text editing on Escape', async () => {
     const user = userEvent.setup();
     render(
@@ -587,8 +595,119 @@ describe('DateTimePicker', () => {
     const input = screen.getByDisplayValue('30.06.2026');
     await user.clear(input);
     await user.type(input, '24.12.2026');
-    fireEvent.keyDown(input, { key: 'Escape' });
+    await user.keyboard('{Escape}');
 
+    expect(screen.queryByDisplayValue('24.12.2026')).not.toBeInTheDocument();
     expect(screen.getByTestId('iso').textContent).toBe(new Date(2026, 5, 30, 14, 5).toISOString());
+  });
+
+  it('commits an edit made after an earlier one was cancelled with Escape', async () => {
+    const user = userEvent.setup();
+    render(
+      <Host
+        initial={new Date(2026, 5, 30, 14, 5)}
+        mode={DATETIME_PICKER_MODES.DATE}
+        displayLocale="de"
+      />,
+    );
+
+    fireEvent.doubleClick(screen.getAllByRole('button')[0]);
+    const abandoned = screen.getByDisplayValue('30.06.2026');
+    await user.clear(abandoned);
+    await user.type(abandoned, '24.12.2026');
+    await user.keyboard('{Escape}');
+
+    fireEvent.doubleClick(screen.getAllByRole('button')[0]);
+    const retried = screen.getByDisplayValue('30.06.2026');
+    await user.clear(retried);
+    await user.type(retried, '25.12.2026');
+    await user.keyboard('{Enter}');
+
+    expect(screen.getByTestId('iso').textContent).toBe(new Date(2026, 11, 25, 14, 5).toISOString());
+    expect(screen.queryByDisplayValue('25.12.2026')).not.toBeInTheDocument();
+  });
+
+  it('keeps a surrounding dialog open when Escape cancels field text editing, and closes it on the second Escape', async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    render(
+      <Dialog
+        open
+        onOpenChange={onOpenChange}
+      >
+        <DialogContent>
+          <DialogTitle>Event</DialogTitle>
+          <input
+            type="text"
+            aria-label="Comment"
+          />
+          <Host
+            initial={new Date(2026, 5, 30, 14, 5)}
+            mode={DATETIME_PICKER_MODES.DATE}
+            displayLocale="de"
+          />
+        </DialogContent>
+      </Dialog>,
+    );
+
+    await user.type(screen.getByLabelText('Comment'), 'do not lose me');
+    const [trigger] = screen.getAllByRole('button', { expanded: false });
+    fireEvent.doubleClick(trigger);
+    const input = screen.getByDisplayValue('30.06.2026');
+    await user.clear(input);
+    await user.type(input, '24.12.2026');
+
+    await user.keyboard('{Escape}');
+
+    expect(screen.queryByDisplayValue('24.12.2026')).not.toBeInTheDocument();
+    expect(screen.getByTestId('iso').textContent).toBe(new Date(2026, 5, 30, 14, 5).toISOString());
+    expect(screen.getByLabelText('Comment')).toHaveValue('do not lose me');
+    expect(onOpenChange).not.toHaveBeenCalled();
+
+    await user.keyboard('{Escape}');
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('cancels a time segment edit on the first Escape, closes the popover on the second and the dialog on the third', async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    render(
+      <Dialog
+        open
+        onOpenChange={onOpenChange}
+      >
+        <DialogContent>
+          <DialogTitle>Event</DialogTitle>
+          <Host
+            initial={new Date(2026, 2, 15, 8, 30)}
+            mode={DATETIME_PICKER_MODES.TIME}
+            hourLabel="Hours"
+          />
+        </DialogContent>
+      </Dialog>,
+    );
+
+    const [trigger] = screen.getAllByRole('button', { expanded: false });
+    await user.click(trigger);
+
+    fireEvent.doubleClick(await screen.findByRole('button', { name: 'Hours' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Hours' }), { target: { value: '21' } });
+
+    await user.keyboard('{Escape}');
+
+    expect(screen.queryByRole('textbox', { name: 'Hours' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('hour-5')).toBeInTheDocument();
+    expect(screen.getByTestId('value').textContent).toBe('8:30');
+    expect(onOpenChange).not.toHaveBeenCalled();
+
+    await user.keyboard('{Escape}');
+
+    expect(screen.queryByTestId('hour-5')).not.toBeInTheDocument();
+    expect(onOpenChange).not.toHaveBeenCalled();
+
+    await user.keyboard('{Escape}');
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });

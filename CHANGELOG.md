@@ -7,6 +7,628 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-02
+
+## [2.2.179] - 2026-10-02
+
+## [2.2.178] - 2026-10-02
+
+### Added
+
+- `SplitPane` accepts `fitLeftSize`, a width the left pane takes for as long as nobody drags the handle, in any CSS
+  size the panels accept (`'296px'`, `'20rem'`). The pane follows the value as it changes, so a consumer can size it to
+  its content and grow it with that content. Pass `null` while the width is not known yet. Once the prop is set,
+  `autoSaveId` stores only widths the user dragged, so a fitted width never comes back as a chosen one, and a dragged
+  or stored width wins over the fitted one from then on. The left pane keeps its width in pixels when the window
+  changes width, and takes the fitted width back once a window too narrow for it widens again, so a fitted list
+  neither truncates nor gains empty space. Without the prop the pane is unchanged.
+
+- `useResizablePanelLayout` accepts a third argument, `{ onlySaveAfterUserInteractions }`, which it hands to
+  `useDefaultLayout`, so a layout is stored only when the user resized it. The option's type is taken from
+  `useDefaultLayout`, so a react-resizable-panels release that renames or drops it fails the build.
+
+- `useKeyboardInset` returns how many pixels the on-screen keyboard covers at the bottom of the viewport, read from
+  `window.visualViewport`, and 0 where the browser has none. It moved here from the edulution-ui frontend, where
+  `AdaptiveDialog` already lifts its bottom sheet with it, so kit components can do the same. `keyboardInsetStyle`
+  turns that inset into the `bottom` and `maxHeight` a bottom sheet needs, and undefined while no keyboard is open.
+
+- `DropdownSelect` accepts `groupOf`, a function that names the group an option belongs to. The panel then writes that
+  name as a heading above the first option of each group, separated from the group above it by a hairline, and wraps
+  that group's options in a `role="group"` the heading labels, so a screen reader reads them as one group. The heading
+  is drawn over the _filtered_ list, so a search never leaves options standing without the group they belong to, and it
+  carries `role="presentation"`, so it is neither selectable nor reachable by keyboard. Without the prop the panel is
+  unchanged.
+
+- `DropdownSelect` accepts `searchFromOptionCount`, the number of options from which its search field appears. It
+  defaults to 4, which is the threshold the component hard-coded before, so nothing changes for callers that do not
+  pass it. A picker whose list is short but whose labels are long can now ask for the field from the first option.
+
+- `Button` accepts `keepsPenPressUncancelled`, which skips the synthesized pen click. A button that doubles as a drag
+  surface needs the browser's compatibility mouse press to survive, and cancelling the pen press swallows it.
+- `SelectableListRow`: accepts `data-testid`, rendered on the row container.
+- `SelectableListRow`: forwards any further `data-*` attribute onto the row container, so a list can mark a row
+  with its own state. Props that are not `data-*` are still dropped rather than leaking into the DOM.
+- `SelectableListRow`: `onActivate` receives the triggering mouse or keyboard event. The argument is optional, so every
+  handler that takes none keeps working; no consumer in this repository reads it yet.
+- `WarningBox`: `layout="inline"` renders the box as a single row for toolbars and headers; the default block layout is unchanged.
+- `SelectionWizard`: a step-driven selection surface for pick-then-pick flows with any number of steps. With
+  `layout="columns"` the steps render side by side as resizable columns on wide screens, in a window of up to
+  `maxColumns` (default 3) that slides along with the active step; on narrow screens or with `layout="steps"` one
+  step renders at a time, and each step mounts fresh there, so a search typed in one step does not filter the next
+  step's list when both render the same component. A step rail in the header shows progress and each step's pick,
+  the footer carries cancel, back, next, an optional submit and the active step's secondary action, with cancel
+  outlined and every button sized and spaced like the footer of any other dialog, and is left out when it has none of
+  them to show. Renders inline, as a
+  dialog (`as="dialog"`), or with `as="adaptive"` as that dialog on a wide screen and as a sheet sliding up from the
+  bottom below `mobileBreakpointQuery`, where the wizard already shows one step at a time. The sheet rounds its top
+  corners with `rounded-t-lg`, like every other dialog. `as="dialog"` stays a dialog
+  on every screen, so only callers that ask for the sheet get it. The sheet moves up above the on-screen keyboard, so
+  the footer stays in reach while a step's search field has focus. The rendered shell is exposed as `data-shell`
+  (`inline`, `dialog` or `sheet`) on the wizard. Inline the title is optional, since the page around it usually
+  carries one. With `as="dialog"` or `as="adaptive"` the type requires it, since it names the dialog for a screen
+  reader. The rail
+  reserves the pick line under every step title (`labels.pickPlaceholder` fills it until a pick arrives), so the
+  body below does not jump when a step is picked. A finished step shows its `pickIcon`, the icon of what it
+  picked, and falls back to a check mark without one. Every step keeps its title on every screen, and the rail scrolls
+  sideways rather than hiding what is coming. State stays with the caller, the kit holds no i18n. An `activeStepId`
+  that names no step shows the first step, and the rail, the footer and the columns treat that step as the active one.
+
+### Changed
+
+- `react-resizable-panels` is required at `^4.12.0`. Every desktop `SplitPane` reads the `isUserInteraction` flag that
+  4.12 first passes to `onLayoutChanged`, and `useResizablePanelLayout` hands on `onlySaveAfterUserInteractions`, which
+  4.11 ignores.
+
+- `DropdownSelect` names every option by its `renderLabel` text rather than by what `renderOption` draws. A row that
+  draws only part of the label — the layout name under a room heading, say — was announced by that part alone, so two
+  rows differing only in the part left out could not be told apart.
+
+### Fixed
+
+- `SelectableListRow`: Enter and Space now really hand `onActivate` the event, which the entry above had already
+  promised while the keyboard path called the handler with no argument. The event reached a handler from a click and
+  never from the keyboard.
+- `DropdownSelect`: Escape pressed while the focus sits in the field or in its open option list hands the focus back to
+  the field once the list is closed, so the next key lands in the field again. With the focus anywhere else the list
+  closes and the focus stays where it is. Swallowing the key and clearing a typed search came with 2.2.159.
+- `DropdownSelect`: a group keeps its accessible name when the id of its first option contains a space. The heading id
+  was built from that option id, and `aria-labelledby` reads a space as the start of a second id.
+- `DialogContent` and `SheetContent` stay open when a press outside them lands on an element that is gone by the time
+  Radix evaluates it, or that sits in a dialog which is closing. Radix waits for the click before it dismisses a layer,
+  so a button in a second dialog that closes its own dialog on that click also dismissed the dialog beneath it. A sheet
+  keeps that button on the page while it slides out, which is why the closing dialog counts too. The same holds for a
+  pen press, whose click `synthesizePenClick` fires a frame later. A press beside the dialog still closes it, and an
+  `onPointerDownOutside` passed by the caller still runs first.
+
+## [2.2.177] - 2026-10-02
+
+## [2.2.176] - 2026-10-02
+
+## [2.2.175] - 2026-10-02
+
+## [2.2.174] - 2026-10-02
+
+## [2.2.173] - 2026-10-02
+
+## [2.2.172] - 2026-10-02
+
+## [2.2.171] - 2026-10-02
+
+### Fixed
+
+- `Badge`: a label longer than the badge's container no longer wraps and spills out of the fixed 36 px height. The
+  badge is capped at the width of its container (`max-w-full`), and its text is rendered in a truncating `span` that
+  ends in an ellipsis and carries the full text as its `title`. Adjacent text children share one `span`, so a label
+  written as `{count} new` keeps its spaces and gets one `title`. Element children, such as a delete button, stay
+  next to that `span` and remain visible.
+
+## [2.2.170] - 2026-10-02
+
+## [2.2.169] - 2026-10-02
+
+## [2.2.168] - 2026-10-02
+
+## [2.2.167] - 2026-10-02
+
+## [2.2.166] - 2026-10-02
+
+## [2.2.165] - 2026-10-02
+
+### Changed
+
+- `TabsList` shows a thin scrollbar below the `md` breakpoint, so a tab bar wider than the viewport signals that it
+  scrolls. From `md` up the scrollbar stays hidden as before.
+- `DropdownSelect` caps its option list at 3.5 option rows (134.75px instead of 125px), so the half row cut off at the
+  bottom shows that the list scrolls. `maxMenuHeight` still overrides it.
+- `WarningBox` takes `title` as optional and renders no heading without one, for a box whose heading would only
+  repeat the title of the dialog around it.
+
+### Fixed
+
+- `Checkbox` draws a dash instead of a check mark while `checked` is `"indeterminate"`, and fills the box like a checked
+  one.
+- `DraggableTableRow` makes a row with an `onRowClick` focusable (`tabIndex` 0, pointer cursor, focus-visible outline)
+  and activates it with Enter or Space when the row itself has focus. Key events from controls inside the row are
+  ignored, and a row that is draggable without a drag handle keeps its drag keyboard behaviour. Rows without
+  `onRowClick` are unchanged.
+- `DropdownSelect` no longer shows its read-only trigger text as selected when the trigger receives focus. With three
+  options or fewer the trigger holds the selected label or the placeholder as its value, and a dialog that focuses its
+  first field (Radix `FocusScope` focuses and then calls `select()`) left that text highlighted in the system selection
+  colour. The trigger now collapses the selection right after it gains focus; the searchable trigger keeps its query
+  selection as before.
+
+## [2.2.164] - 2026-10-02
+
+## [2.2.163] - 2026-10-02
+
+## [2.2.162] - 2026-10-02
+
+## [2.2.161] - 2026-10-02
+
+## [2.2.160] - 2026-10-02
+
+## [2.2.159] - 2026-10-02
+
+### Added
+
+- `useEscapeCapture(isActive, onEscape)`: swallows `Escape` while a floating panel is open, so only that panel closes
+  and a surrounding dialog stays open. Radix's `DismissableLayer` listens on the document in the capture phase, so a
+  panel that is not itself a Radix layer lets the keypress through; this listens one step higher, on the window in the
+  same phase. `onEscape` is read through a ref, so an unstable callback does not re-register the listener.
+
+### Fixed
+
+- `DropdownSelect` swallows `Escape` while its option list is open, so the keypress closes only the list and a
+  surrounding dialog stays open with its entered input intact. Every dialog hosting a `DropdownSelect` previously read
+  the keypress as a close request. A second `Escape` reaches the dialog and closes it as before.
+- The published package now ships the type declarations for its hooks. `files` listed `components`, `constants`,
+  `styles` and `utils` but not `hooks`, so `index.d.ts` re-exported `./hooks/*` declarations the tarball never
+  carried and an external TypeScript consumer could not resolve `useOnClickOutside`, `useMediaQuery`,
+  `useCenterScroll`, `useElementWidth`, `usePopoverOutsideDismiss` or `useEscapeCapture`.
+- `DateTimePicker` swallows `Escape` while its field is in text-entry mode, so the keypress cancels the edit and a
+  surrounding dialog stays open with its entered input intact. The field handled `Escape` through a React `onKeyDown`,
+  which runs after Radix's document-level capture listener and so could not stop the dialog from closing. A second
+  `Escape` reaches the dialog and closes it as before. Editing an hour or minute segment inside the popover swallows
+  `Escape` the same way, so the first keypress cancels that edit, the second closes the popover and the third closes
+  the dialog.
+- `MenuBarSearchInput` swallows `Escape` through `useEscapeCapture` while its field is focused and holds a query, so the
+  keypress clears the query and a surrounding dialog stays open. It handled `Escape` through a React `onKeyDown`, whose
+  `stopImmediatePropagation` runs at the React root in the bubble phase — after Radix's document-level capture listener
+  — so it could not stop the dialog from closing. `Escape` with an empty field now propagates instead of being
+  swallowed, so the surrounding layer closes on the second press as it does for the other panels.
+- `DateTimePicker` commits a field edit made after an earlier one was cancelled with `Escape`. Cancelling armed an
+  internal guard against the `blur` that follows the input being torn down; that `blur` never fires, so the guard
+  survived and silently discarded the next commit, leaving the field stuck in text-entry mode. The guard is gone —
+  tearing the input down ends the edit on its own.
+- Typing into a `DropdownSelect`'s search filter reopens the option list, so the text filters the options instead of
+  sitting in a trigger with no list under it. `Escape` closes the list without blurring the field, and typing from
+  there only wrote the filter; the list stayed closed and the next click on the field discarded what was typed.
+- Clicking into a `DropdownSelect`'s search filter while its option list is open keeps the typed text. Every click on
+  the field cleared the filter, so moving the caret with the mouse emptied it and listed all options again.
+- A `DropdownSelect` closes its option list when focus leaves it, so no more than one list is open at a time. Typing
+  into a search filter opens its list, and tabbing on to the next dropdown and typing there left both open; the first
+  list swallowed the next `Escape`, which then closed the list the user had already left instead of the one being
+  typed into.
+- Closing a `DropdownSelect`'s option list without picking an option — by `Escape` or by a click outside — discards any
+  text typed into the search filter, so the trigger shows the current selection again. It previously kept the abandoned
+  query on display while `selectedVal` was unchanged, so a search-enabled dropdown read as though the typed text were
+  the selection.
+
+## [2.2.158] - 2026-10-01
+
+## [2.2.157] - 2026-10-01
+
+## [2.2.156] - 2026-10-01
+
+## [2.2.155] - 2026-10-01
+
+## [2.2.154] - 2026-09-30
+
+## [2.2.153] - 2026-09-30
+
+## [2.2.152] - 2026-09-30
+
+### Changed
+
+- `SectionCard`: a card given an `onClick` is now keyboard operable — it takes `tabIndex={0}`, activates on Enter and Space, and renders with `cursor-pointer` and a focus-visible ring. Callers that painted the pointer cursor by hand can drop it. A card without `onClick` stays out of the tab order, a caller-supplied `tabIndex` wins, an `onKeyDown` runs first and suppresses the card's own activation by calling `preventDefault()`, and a key press on a control inside the card no longer reaches the card's own handler. No `role="button"` is set, since the cards carry their own buttons and a `button` role may not contain interactive descendants.
+
+## [2.2.151] - 2026-09-30
+
+## [2.2.150] - 2026-09-30
+
+## [2.2.149] - 2026-09-30
+
+## [2.2.148] - 2026-09-28
+
+## [2.2.147] - 2026-09-28
+
+## [2.2.146] - 2026-09-25
+
+## [2.2.145] - 2026-09-25
+
+## [2.2.144] - 2026-09-25
+
+## [2.2.143] - 2026-09-25
+
+## [2.2.142] - 2026-09-25
+
+## [2.2.141] - 2026-09-24
+
+## [2.2.140] - 2026-09-24
+
+## [2.2.139] - 2026-09-24
+
+## [2.2.138] - 2026-09-24
+
+## [2.2.137] - 2026-09-24
+
+## [2.2.136] - 2026-09-24
+
+## [2.2.135] - 2026-09-24
+
+## [2.2.134] - 2026-09-24
+
+## [2.2.133] - 2026-09-23
+
+## [2.2.132] - 2026-09-23
+
+## [2.2.131] - 2026-09-23
+
+## [2.2.130] - 2026-09-23
+
+### Added
+
+- `MenuBarConfigItem.excludeFromBadgeAggregation`: an item marked with it keeps showing its own badge but its own badge is left out of a collapsed parent's aggregated badge. Its children still count unless they opt out themselves.
+
+## [2.2.129] - 2026-09-23
+
+## [2.2.128] - 2026-09-23
+
+## [2.2.127] - 2026-09-22
+
+## [2.2.126] - 2026-09-22
+
+## [2.2.125] - 2026-09-22
+
+## [2.2.124] - 2026-09-22
+
+## [2.2.123] - 2026-09-22
+
+## [2.2.122] - 2026-09-22
+
+## [2.2.121] - 2026-09-22
+
+## [2.2.120] - 2026-09-22
+
+## [2.2.119] - 2026-09-22
+
+## [2.2.118] - 2026-09-22
+
+## [2.2.117] - 2026-09-22
+
+## [2.2.116] - 2026-09-22
+
+## [2.2.115] - 2026-09-22
+
+## [2.2.114] - 2026-09-21
+
+## [2.2.113] - 2026-09-21
+
+## [2.2.112] - 2026-09-21
+
+## [2.2.111] - 2026-09-21
+
+## [2.2.110] - 2026-09-21
+
+## [2.2.109] - 2026-09-21
+
+## [2.2.108] - 2026-09-21
+
+### Changed
+
+- **BREAKING** `Calendar` now builds on `react-day-picker` v9. The `classNames` keys follow the v9 vocabulary
+  (`month_caption`, `month_grid`, `weekdays`, `weekday`, `week`, `day`, `day_button`, `button_previous`,
+  `button_next`, `selected`, `today`, `outside`, `disabled`, `range_start`, `range_middle`, `range_end`, `hidden`),
+  and the chevron icons are supplied through a single `Chevron` component instead of `IconLeft`/`IconRight`.
+  Modifier classes such as `selected` are applied to the day cell (`<td>`) rather than the day button, and
+  `aria-selected` now sits on that cell too — a `classNames` override that reached the selected day through
+  `[&:has([aria-selected])]` in v8 has to target the cell directly. `selected`, `today` and `range_middle` style
+  the day button through `[&>button]:`, so the highlight keeps the button's rounded shape. Because those variants
+  all compile to the same `0-1-1` specificity, `range_middle` marks its colours `!important` and `outside` reaches
+  the button through `[&[aria-selected]>button]:` — v8 let `aria-selected:` outrank a bare utility on specificity
+  alone, and an override that relies on emission order to beat `selected` will not win in v9.
+- **BREAKING** `CalendarDropdownCaption` is now a `MonthCaption` component. Pass it as
+  `components={{ MonthCaption: CalendarDropdownCaption }}` with `hideNavigation`, and bound the year dropdown with
+  `startMonth`/`endMonth` instead of `fromYear`/`toYear`, which v10 removes.
+- `CalendarDropdownCaption` falls back to `en-US` month names when the calendar is given no `locale`. In v8 the
+  library resolved that default itself; v9 leaves `locale` unset, which would otherwise format month names with
+  the browser's locale.
+
+### Fixed
+
+- `Calendar` styles a selected range again. `aria-selected` sits on the day cell in v9, so the `:has([aria-selected])`
+  selectors inherited from v8 matched nothing and a range rendered without its accent band or its rounded ends.
+  `range_start` and `range_end` now carry their own caps, which also stops v9 emitting an unstyled `rdp-range_start`
+  fallback class on the first day of a range.
+- `CalendarDropdownCaption` bounds its year dropdown with the deprecated `fromYear`/`toYear`/`fromMonth`/`toMonth`
+  as well, matching what react-day-picker still honours for its own navigation. It read `startMonth`/`endMonth` off
+  `dayPickerProps`, which is the raw props object: v9 resolves the deprecated props inside `getNavMonths` and never
+  writes the result back, so a calendar still wired up the v8 way offered only the displayed year and no way to
+  jump. Upgrading steers a consumer straight into it — v9's `CustomComponents` has no `Caption` key, so the
+  `components` line fails to compile and gets fixed while `fromYear`/`toYear` beside it stay silently valid.
+  `getNavMonths` is not exported, so the fallback is duplicated; it can go when v10 drops the deprecated props.
+- `CalendarDropdownCaption` applies the `className`, `style` and `data-animated-caption` that v9 hands a custom
+  `MonthCaption`. It read `calendarMonth` only and hardcoded its root class, so `classNames={{ month_caption }}`,
+  `styles={{ month_caption }}` and the animation hook were all dropped without an error or a warning —
+  `MonthCaptionProps` is `{ calendarMonth; displayIndex } & HTMLAttributes<HTMLDivElement>` and the library's own
+  default spreads everything it does not consume onto its root `div`. In v8 a replacement caption owned its class,
+  so this contract changed underneath the component while its shape stayed the same.
+- `Calendar` merges a consumer's `components` with its own instead of being replaced by it. `components` arrived
+  through the trailing prop spread, so `components={{ MonthCaption }}` discarded the FontAwesome `Chevron` and fell
+  back to react-day-picker's own icon.
+- `Calendar` no longer imposes its `month_caption` base on a custom `MonthCaption`. That base centres
+  react-day-picker's built-in caption, and once the caption above began honouring `className` its `justify-center`
+  would have overridden a replacement caption's own layout. An explicit `classNames={{ month_caption }}` from a
+  consumer still wins, as it always did — it replaces the base outright.
+- `Calendar` styles react-day-picker's own `captionLayout="dropdown"`. The `dropdowns`, `dropdown_root` and `dropdown`
+  parts carried no classes, and the library ships no stylesheet of its own here, so each `<select>` rendered _beside_
+  the `<span>` holding the same value instead of invisibly on top of it. The caption came out roughly twice as wide as
+  its text, which pushed the month dropdown under the previous-month button — measured in a browser, the leftmost
+  ~16px of that dropdown resolved to the nav button, so clicking it navigated instead of opening the menu. The three
+  parts now mirror upstream (`position: absolute; inset: 0; opacity: 0` over a `relative` root), which restores the
+  intended look, returns the calendar to the same width as one with the default caption, and makes both dropdowns
+  hit-testable across their whole rect. In-repo consumers pass their own `MonthCaption` and never rendered these parts.
+- `Calendar` no longer announces hardcoded English to screen readers. v9 puts an `aria-label` on every day button
+  and builds it as `Today, {date}` / `{date}, selected` (and `Today, {date}` on the gridcell of a non-interactive
+  calendar); the date goes through the locale but the literals do not, and `getLabels` only consults `props.labels`
+  and `locale.labels`, which date-fns locales do not carry. The package now defaults `labelDayButton` and
+  `labelGridcell` to the localized date alone, merged per key so a consumer's `labels` still wins key by key. Pass
+  `labelDayButton` to convey "today" in your own language; selection is already announced from the cell's
+  `aria-selected`. v8 never applied `labelDay`, so its day buttons carried no `aria-label` at all.
+- `DateTimePicker` accepts `calendarLabels` to reach the calendar's `labels`, matching how it already takes
+  `monthLabel`, `previousMonthLabel` and the other translated strings from its consumer.
+- `Calendar` keeps react-day-picker's own `captionLayout="dropdown"` usable. `nav` is a full-width absolute overlay
+  (`inset-x-0`) above the caption in v9, so it covered the centred month and year dropdowns and swallowed every
+  click aimed at them; upstream avoids this by keeping `.rdp-nav` content-width and right-aligned. The bar is now
+  `pointer-events-none` with `pointer-events-auto` on the two nav buttons, so its empty middle passes clicks
+  through. Both in-repo consumers pass `hideNavigation` and were unaffected.
+- `Calendar` dims the middle of a range and a selected outside day again. Both were styled by `[&>button]:` variants
+  of the same specificity as `selected`, so Tailwind's emission order decided the winner and `bg-primary` painted
+  every day of a range solid; the outside day's cell background was additionally covered by the button, which fills
+  the cell exactly. `range_middle` and `outside` now outrank `selected` instead of tying with it.
+
+## [2.2.107] - 2026-09-21
+
+## [2.2.106] - 2026-09-21
+
+## [2.2.105] - 2026-09-18
+
+## [2.2.104] - 2026-09-18
+
+### Changed
+
+- License notices: every source file now carries a short SPDX header — the copyright line (`Copyright (C) 2024-2026 Netzint GmbH`), the SPDX expression (`SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial`) and a pointer to `LICENSE` and `LICENSES/` — instead of the 18-line prose block. The dual license itself is unchanged. The package now ships `LICENSES/` with the full text of both licenses, and the README states the dual license instead of naming the AGPL alone.
+
+## [2.2.103] - 2026-09-18
+
+## [2.2.102] - 2026-09-18
+
+## [2.2.101] - 2026-09-18
+
+## [2.2.100] - 2026-09-18
+
+## [2.2.99] - 2026-09-17
+
+## [2.2.98] - 2026-09-17
+
+## [2.2.97] - 2026-09-17
+
+## [2.2.96] - 2026-09-17
+
+## [2.2.95] - 2026-09-17
+
+## [2.2.94] - 2026-09-17
+
+## [2.2.93] - 2026-09-17
+
+## [2.2.92] - 2026-09-17
+
+## [2.2.91] - 2026-09-17
+
+## [2.2.90] - 2026-09-17
+
+## [2.2.89] - 2026-09-17
+
+## [2.2.88] - 2026-09-17
+
+## [2.2.87] - 2026-09-17
+
+## [2.2.86] - 2026-09-17
+
+## [2.2.85] - 2026-09-16
+
+## [2.2.84] - 2026-09-16
+
+## [2.2.83] - 2026-09-16
+
+## [2.2.82] - 2026-09-16
+
+## [2.2.81] - 2026-09-16
+
+## [2.2.80] - 2026-09-16
+
+## [2.2.79] - 2026-09-16
+
+## [2.2.78] - 2026-09-16
+
+### Fixed
+
+- `SectionCard`'s JSDoc no longer advertises props the component does not have. It described an optional `footer` action area, a `divided` prop separating header, body and footer with a `Separator`, a `selected` prop rendering a primary-coloured selection ring, and "footer bases" among the class strings `SECTION_CARD_STYLES` exposes. None of the three props exist on `SectionCardProps` and the styles record has no footer entry, so a consumer writing `<SectionCard footer={…} divided />` from the documented API got a compile error. The comment now describes what the component actually accepts: `header` takes precedence over `label` (a string `label` renders as an `h3`), `bordered={false}` drops the surface border, `withBackground={false}` forces a transparent unblurred surface, `surfaceId` sets the `<section>` id while `id` triggers the `AnchorSection` wrap, `bodyClassName` extends the body class string while `headerClassName` extends only the header generated from `label` (a custom `header` node is rendered as-is), the body drops its top padding automatically under a header, and remaining props are spread onto the `<section>`. It also states that the body always carries `text-sm`, so content needing the default body size must set its own.
+
+## [2.2.77] - 2026-09-16
+
+## [2.2.76] - 2026-09-16
+
+## [2.2.75] - 2026-09-14
+
+## [2.2.74] - 2026-09-14
+
+## [2.2.73] - 2026-09-14
+
+## [2.2.72] - 2026-09-11
+
+## [2.2.71] - 2026-09-11
+
+## [2.2.70] - 2026-09-11
+
+## [2.2.69] - 2026-09-11
+
+## [2.2.68] - 2026-09-11
+
+## [2.2.67] - 2026-09-10
+
+## [2.2.66] - 2026-09-10
+
+## [2.2.65] - 2026-09-10
+
+## [2.2.64] - 2026-09-10
+
+## [2.2.63] - 2026-09-09
+
+### Fixed
+
+- `TableHead` was transparent, so rows scrolling under the sticky header collided with the column labels. It relied on `backdrop-blur-md`, which cannot work there: the table sits inside a `liquid-glass` surface, and `backdrop-filter` on that surface makes it a backdrop root, which a nested backdrop filter never sees past. The header now paints an opaque `bg-accent` on every table, dialog-hosted ones included, so the treatment is the same everywhere. A translucent frosted header is deliberately not part of this change — it needs a layer that escapes the table's containing block, which is tracked separately in [edulution-io/edulution-ui#3592](https://github.com/edulution-io/edulution-ui/issues/3592).
+- The 1px divider under the sticky table header used `bg-muted`, which sits at 1.15:1 against the new `bg-accent` fill in dark and is invisible there. It now uses `bg-muted-foreground/20`, which separates in both themes without reading as a hard rule — 1.54:1 dark, 1.30:1 light.
+
+## [2.2.62] - 2026-09-09
+
+## [2.2.61] - 2026-09-09
+
+## [2.2.60] - 2026-09-09
+
+## [2.2.59] - 2026-09-09
+
+## [2.2.58] - 2026-09-08
+
+## [2.2.57] - 2026-09-08
+
+### Fixed
+
+- `DraggableTableRow` no longer puts dnd-kit's drag attributes on any row or drag handle cell. dnd-kit derives `role="button"`, `tabIndex=0`, `aria-disabled`, `aria-roledescription="draggable"` and `aria-describedby` from the draggable's `disabled` flag and emits them unconditionally, so a table rendered with `enableDragAndDrop` off announced every row as a disabled button, made each row a dead tab stop, and propagated the disabled state to the controls inside the row. The row and the drag handle cell now take only dnd-kit's activation listeners, which the library already withholds when dragging is disabled. `role="button"` is no longer placed on a `<tr>` at all: it is not a valid role for a table row, it removes the row from the table's accessibility tree, and — with no keyboard sensor registered — the `tabIndex` and drag instructions it brought advertised a keyboard drag that could never be performed. Dragging with a pointer is unaffected. A row disabled via `isRowDisabled` keeps its `data-disabled` marker, and now carries `aria-disabled="true"` when it has no `onRowClick`. The attribute is withheld from a clickable row because that state applies to the row's focusable descendants as well -- the same propagation this fix removes -- and such a row still holds operable controls; it conveys its state through those controls instead, so the caller must render them disabled.
+- `DraggableTableRow`'s JSDoc now states the `isRowDisabled` contract: it suppresses dragging, sets `data-disabled`, and sets `aria-disabled` only on a row with no `onRowClick`, because that state applies to the row's focusable descendants as well; a disabled row that stays clickable therefore has no accessible disabled state of its own and the caller must render the row's own interactive controls disabled.
+
+## [2.2.56] - 2026-09-08
+
+### Changed
+
+- `Input`: a cleared `type="number"` field now reports the empty string rather than `0`. The coercion ran before the caller saw the event, so emptying a numeric field looked identical to typing zero and callers had no way to tell the two apart — a cleared timeout silently became `0`. Typing a number is unchanged.
+
+### Added
+
+- `DropdownSelect`: new optional `renderOption`, which replaces the text of a single entry in the open menu with arbitrary content while `renderLabel` keeps governing the trigger and the search. Entries that carry a picture — an icon list, a colour swatch, an avatar — had no way to show it and had to be rebuilt as a bespoke menu. Additive and unset by default, so existing callers render exactly as before. The JSDoc on the public export now describes it alongside `renderLabel`, and says which of the two governs the trigger and the search.
+
+## [2.2.55] - 2026-09-08
+
+## [2.2.54] - 2026-09-08
+
+## [2.2.53] - 2026-09-08
+
+## [2.2.52] - 2026-09-08
+
+## [2.2.51] - 2026-09-08
+
+## [2.2.50] - 2026-09-08
+
+## [2.2.49] - 2026-09-08
+
+## [2.2.48] - 2026-09-08
+
+## [2.2.47] - 2026-09-07
+
+## [2.2.46] - 2026-09-07
+
+## [2.2.45] - 2026-09-03
+
+## [2.2.44] - 2026-09-03
+
+## [2.2.43] - 2026-09-03
+
+## [2.2.42] - 2026-09-03
+
+## [2.2.41] - 2026-09-03
+
+## [2.2.40] - 2026-09-02
+
+## [2.2.39] - 2026-09-02
+
+## [2.2.38] - 2026-09-01
+
+## [2.2.37] - 2026-09-01
+
+## [2.2.36] - 2026-09-01
+
+## [2.2.35] - 2026-08-31
+
+## [2.2.34] - 2026-08-25
+
+## [2.2.33] - 2026-08-24
+
+## [2.2.32] - 2026-08-24
+
+## [2.2.31] - 2026-08-24
+
+## [2.2.30] - 2026-08-24
+
+## [2.2.29] - 2026-08-24
+
+## [2.2.28] - 2026-08-24
+
+## [2.2.27] - 2026-08-24
+
+## [2.2.26] - 2026-08-24
+
+## [2.2.25] - 2026-08-24
+
+## [2.2.24] - 2026-08-21
+
+### Added
+
+- `StatValue`: new `sm` size, sitting below the existing `md` and `lg` (`text-lg` value, `text-sm` secondary). Dense tile layouts that place several stats side by side had no size small enough and had to override the classes. Additive — existing callers are unchanged. The JSDoc on the public export documents all three sizes and what each is for.
+
+## [2.2.23] - 2026-08-21
+
+## [2.2.22] - 2026-08-21
+
+## [2.2.21] - 2026-08-20
+
+## [2.2.20] - 2026-08-20
+
+## [2.2.19] - 2026-08-20
+
+## [2.2.18] - 2026-08-20
+
+## [2.2.17] - 2026-08-20
+
+## [2.2.16] - 2026-08-19
+
+## [2.2.15] - 2026-08-19
+
+## [2.2.14] - 2026-08-19
+
+## [2.2.13] - 2026-08-18
+
+## [2.2.12] - 2026-08-18
+
+## [2.2.11] - 2026-08-17
+
+## [2.2.10] - 2026-08-17
+
+## [2.2.9] - 2026-08-17
+
+## [2.2.8] - 2026-08-11
+
+## [2.2.7] - 2026-08-11
+
 ## [2.2.6] - 2026-08-11
 
 ## [2.2.5] - 2026-08-10

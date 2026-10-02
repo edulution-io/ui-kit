@@ -1,25 +1,13 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import cn from '../utils/cn';
+import useEscapeCapture from '../hooks/useEscapeCapture';
 import { INPUT_BASE_CLASSES, VARIANT_COLORS } from '../constants/inputClassNames';
 
 const DROPDOWN_SELECT_CLASSES = `${INPUT_BASE_CLASSES} box-border truncate !pl-2.5 !pr-8 text-start placeholder:text-foreground`;
@@ -31,6 +19,8 @@ export type DropdownOptions = {
   name: string;
   disabled?: boolean;
 };
+
+const DEFAULT_SEARCH_FROM_OPTION_COUNT = 4;
 
 export interface DropdownSelectProps {
   options: DropdownOptions[];
@@ -44,13 +34,18 @@ export interface DropdownSelectProps {
   placeholder?: string;
   ariaLabel?: string;
   enableSearch?: boolean;
+  searchFromOptionCount?: number;
   enablePortalUsage?: boolean;
   noResultsText?: string;
   renderLabel?: (name: string) => string;
+  renderOption?: (option: DropdownOptions, label: string) => React.ReactNode;
+  groupOf?: (option: DropdownOptions) => string | undefined;
   maxMenuHeight?: number;
 }
 
-const MENU_MAX_HEIGHT = 125;
+const OPTION_ROW_HEIGHT = 38.5;
+const VISIBLE_OPTION_ROWS = 3.5;
+const MENU_MAX_HEIGHT = OPTION_ROW_HEIGHT * VISIBLE_OPTION_ROWS;
 const MENU_MARGIN = 2;
 
 const DropdownSelect: React.FC<DropdownSelectProps> = ({
@@ -65,21 +60,28 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
   placeholder = '',
   ariaLabel,
   enableSearch = true,
+  searchFromOptionCount = DEFAULT_SEARCH_FROM_OPTION_COUNT,
   enablePortalUsage = true,
   noResultsText = 'No results',
   renderLabel = (name: string) => name,
+  renderOption,
+  groupOf,
   maxMenuHeight,
 }: DropdownSelectProps) => {
-  const searchEnabled = enableSearch && options.length > 3;
+  const searchEnabled = enableSearch && options.length >= searchFromOptionCount;
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, width: 0 });
   const [openToTop, setOpenToTop] = useState(openToTopProp);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const listboxId = useId();
 
-  const closeMenu = useCallback(() => setIsOpen(false), []);
+  const closeMenu = useCallback(() => {
+    setIsOpen(false);
+    setQuery('');
+  }, []);
 
   const resolvedMaxHeight = maxMenuHeight ?? MENU_MAX_HEIGHT;
 
@@ -145,6 +147,16 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
     return () => document.removeEventListener('pointerdown', handleClickOutside);
   }, [isOpen]);
 
+  const closeMenuOnEscape = () => {
+    const focused = document.activeElement;
+    const focusWasInside =
+      Boolean(dropdownRef.current?.contains(focused)) || Boolean(menuRef.current?.contains(focused));
+    closeMenu();
+    if (focusWasInside) inputRef.current?.focus();
+  };
+
+  useEscapeCapture(isOpen, closeMenuOnEscape);
+
   const selectedOption = options.find((o) => o.id === selectedVal);
   const selectedLabel = selectedOption ? renderLabel(selectedOption.name) : '';
 
@@ -154,13 +166,31 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
     return options.filter((option) => renderLabel(option.name).toLowerCase().includes(q));
   }, [options, query, renderLabel]);
 
-  const openMenu = () => {
+  const collapseDisplaySelection = (event: React.FocusEvent<HTMLInputElement>) => {
+    if (searchEnabled) return;
+    const input = event.currentTarget;
+    queueMicrotask(() => {
+      if (input.selectionStart !== input.selectionEnd) input.setSelectionRange(0, 0);
+    });
+  };
+
+  const openMenu = () => setIsOpen(true);
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(event.target.value);
     setIsOpen(true);
-    if (searchEnabled) setQuery('');
+  };
+
+  const handleBlur = (event: React.FocusEvent<HTMLDivElement>) => {
+    const nextFocused = event.relatedTarget as Node | null;
+    if (!nextFocused) return;
+
+    const staysInside =
+      Boolean(dropdownRef.current?.contains(nextFocused)) || Boolean(menuRef.current?.contains(nextFocused));
+    if (!staysInside) closeMenu();
   };
 
   const selectOption = (option: DropdownOptions) => {
-    setQuery('');
     handleChange(option.id);
     closeMenu();
   };
@@ -211,6 +241,48 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
     },
   };
 
+  const renderOptionRow = (option: DropdownOptions) => {
+    const label = renderLabel(option.name);
+    const selected = option.id === selectedVal;
+    const classes = optionVariantClasses[variant];
+
+    return (
+      <div
+        key={option.id}
+        role="option"
+        aria-selected={selected}
+        aria-disabled={option.disabled || undefined}
+        aria-label={label}
+        tabIndex={option.disabled ? -1 : 0}
+        onClick={option.disabled ? undefined : () => selectOption(option)}
+        onKeyDown={option.disabled ? undefined : (e) => handleKeyDown(e, option)}
+        className={cn(
+          'box-border block px-2.5 py-2',
+          option.disabled
+            ? 'cursor-not-allowed opacity-50'
+            : cn('cursor-pointer', selected ? classes.selected : classes.base),
+        )}
+        title={label}
+      >
+        {renderOption ? renderOption(option, label) : label}
+      </div>
+    );
+  };
+
+  const toGroupRuns = (optionsToGroup: DropdownOptions[]) =>
+    optionsToGroup.reduce<{ group: string | undefined; options: DropdownOptions[] }[]>((runs, option) => {
+      const group = groupOf?.(option);
+      const openRun = runs.at(-1);
+
+      if (openRun && openRun.group === group) {
+        openRun.options.push(option);
+        return runs;
+      }
+
+      runs.push({ group, options: [option] });
+      return runs;
+    }, []);
+
   const renderPanel = () => {
     const panelStyle: React.CSSProperties = enablePortalUsage
       ? { maxHeight: resolvedMaxHeight, top: menuPosition.top, left: menuPosition.left, width: menuPosition.width }
@@ -232,29 +304,31 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
       >
-        {filteredOptions.map((option) => {
-          const label = renderLabel(option.name);
-          const selected = option.id === selectedVal;
-          const classes = optionVariantClasses[variant];
+        {toGroupRuns(filteredOptions).map((run, runIndex) => {
+          const rows = run.options.map((option) => renderOptionRow(option));
+
+          if (!run.group) return <React.Fragment key={run.options[0].id}>{rows}</React.Fragment>;
+
+          const headingId = `${listboxId}-group-${runIndex}`;
 
           return (
             <div
-              key={option.id}
-              role="option"
-              aria-selected={selected}
-              aria-disabled={option.disabled || undefined}
-              tabIndex={option.disabled ? -1 : 0}
-              onClick={option.disabled ? undefined : () => selectOption(option)}
-              onKeyDown={option.disabled ? undefined : (e) => handleKeyDown(e, option)}
-              className={cn(
-                'box-border block px-2.5 py-2',
-                option.disabled
-                  ? 'cursor-not-allowed opacity-50'
-                  : cn('cursor-pointer', selected ? classes.selected : classes.base),
-              )}
-              title={label}
+              key={run.options[0].id}
+              role="group"
+              aria-labelledby={headingId}
             >
-              {label}
+              <div
+                id={headingId}
+                role="presentation"
+                className={cn(
+                  'box-border block truncate px-2.5 py-1.5 text-xs font-medium text-muted-foreground',
+                  runIndex > 0 && 'mt-1 border-t border-accent-light pt-2',
+                )}
+                title={run.group}
+              >
+                {run.group}
+              </div>
+              {rows}
             </div>
           );
         })}
@@ -278,14 +352,17 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
       aria-expanded={isOpen}
       aria-haspopup="listbox"
       aria-controls={listboxId}
+      onBlur={handleBlur}
     >
       <input
+        ref={inputRef}
         type="text"
         name={searchEnabled ? 'searchTerm' : undefined}
         value={searchEnabled ? query : selectedLabel || placeholder}
         placeholder={searchEnabled ? selectedLabel || placeholder : undefined}
-        onChange={searchEnabled ? (e) => setQuery(e.target.value) : undefined}
+        onChange={searchEnabled ? handleSearchChange : undefined}
         onClick={openMenu}
+        onFocus={collapseDisplaySelection}
         readOnly={!searchEnabled}
         disabled={options.length === 0}
         aria-label={ariaLabel}

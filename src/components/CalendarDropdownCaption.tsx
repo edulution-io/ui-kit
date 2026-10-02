@@ -1,53 +1,55 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 import React, { useMemo } from 'react';
-import { CaptionProps, useDayPicker, useNavigation } from 'react-day-picker';
+import { type MonthCaptionProps, useDayPicker } from 'react-day-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { Button } from './Button';
 import MonthYearSelect, { MonthYearOption } from './MonthYearSelect';
 import buildMonthOptions from '../utils/buildMonthOptions';
 import buildYearOptions from '../utils/buildYearOptions';
+import cn from '../utils/cn';
 
-const CalendarDropdownCaption = ({ displayMonth }: CaptionProps): React.ReactElement => {
-  const { goToMonth, previousMonth, nextMonth } = useNavigation();
-  const { fromDate, toDate, locale, labels } = useDayPicker();
+const FALLBACK_LOCALE_CODE = 'en-US';
 
+const CalendarDropdownCaption = ({
+  calendarMonth,
+  displayIndex: _displayIndex,
+  className,
+  ...divProps
+}: MonthCaptionProps): React.ReactElement => {
+  const { goToMonth, previousMonth, nextMonth, labels, dayPickerProps } = useDayPicker();
+  const { startMonth, endMonth, fromMonth, toMonth, fromYear, toYear, locale } = dayPickerProps;
+
+  const displayMonth = calendarMonth.date;
   const displayYear = displayMonth.getFullYear();
   const displayMonthIndex = displayMonth.getMonth();
 
-  const monthFormatter = useMemo(() => new Intl.DateTimeFormat(locale?.code, { month: 'long' }), [locale]);
+  const monthFormatter = useMemo(
+    () => new Intl.DateTimeFormat(locale?.code ?? FALLBACK_LOCALE_CODE, { month: 'long' }),
+    [locale],
+  );
 
   const monthOptions = useMemo<MonthYearOption[]>(() => buildMonthOptions(monthFormatter), [monthFormatter]);
 
   const yearOptions = useMemo<MonthYearOption[]>(() => {
-    const fromYear = fromDate?.getFullYear() ?? displayYear;
-    const toYear = toDate?.getFullYear() ?? displayYear;
-    return buildYearOptions(Math.min(fromYear, displayYear), Math.max(toYear, displayYear));
-  }, [fromDate, toDate, displayYear]);
+    const from = (startMonth ?? fromMonth)?.getFullYear() ?? fromYear ?? displayYear;
+    const to = (endMonth ?? toMonth)?.getFullYear() ?? toYear ?? displayYear;
+    return buildYearOptions(Math.min(from, displayYear), Math.max(to, displayYear));
+  }, [startMonth, endMonth, fromMonth, toMonth, fromYear, toYear, displayYear]);
 
   return (
-    <div className="mb-2 flex items-center justify-between gap-1">
+    <div
+      {...divProps}
+      className={cn('mb-2 flex items-center justify-between gap-1', className)}
+    >
       <Button
         variant="btn-outline"
-        aria-label={previousMonth ? labels.labelPrevious(previousMonth, { locale }) : undefined}
+        aria-label={labels.labelPrevious(previousMonth)}
         disabled={!previousMonth}
         className="h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
         onClick={() => previousMonth && goToMonth(previousMonth)}
@@ -75,7 +77,7 @@ const CalendarDropdownCaption = ({ displayMonth }: CaptionProps): React.ReactEle
       </div>
       <Button
         variant="btn-outline"
-        aria-label={nextMonth ? labels.labelNext(nextMonth, { locale }) : undefined}
+        aria-label={labels.labelNext(nextMonth)}
         disabled={!nextMonth}
         className="h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
         onClick={() => nextMonth && goToMonth(nextMonth)}

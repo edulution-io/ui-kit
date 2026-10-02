@@ -1,20 +1,7 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-use-before-define, react/display-name */
@@ -22,12 +9,21 @@
 const dndKitMocks = vi.hoisted(() => ({
   setActivatorNodeRef: vi.fn(),
   setDraggableNodeRef: vi.fn(),
+  onPointerDown: vi.fn(),
+  onKeyDown: vi.fn(),
 }));
 
 vi.mock('@dnd-kit/core', () => ({
-  useDraggable: () => ({
-    attributes: { 'data-draggable': 'true' },
-    listeners: {},
+  useDraggable: ({ disabled = false }: any) => ({
+    attributes: {
+      'data-draggable': 'true',
+      role: 'button',
+      tabIndex: 0,
+      'aria-disabled': disabled,
+      'aria-roledescription': 'draggable',
+      'aria-describedby': 'DndDescribedBy-0',
+    },
+    listeners: disabled ? undefined : { onPointerDown: dndKitMocks.onPointerDown, onKeyDown: dndKitMocks.onKeyDown },
     setNodeRef: dndKitMocks.setDraggableNodeRef,
     setActivatorNodeRef: dndKitMocks.setActivatorNodeRef,
     isDragging: false,
@@ -54,7 +50,7 @@ vi.mock('./Table', () => ({
 }));
 
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DraggableTableRow from './DraggableTableRow';
 
@@ -160,8 +156,9 @@ describe('DraggableTableRow', () => {
       </table>,
     );
 
-    expect(screen.getByTestId('table-row')).toHaveAttribute('data-draggable', 'true');
     expect(screen.getByTestId('table-row')).toHaveClass('cursor-move');
+    fireEvent.pointerDown(screen.getByTestId('table-row'));
+    expect(dndKitMocks.onPointerDown).toHaveBeenCalled();
   });
 
   it('moves drag activation to the configured drag handle cell while keeping the row as the draggable node', () => {
@@ -182,12 +179,246 @@ describe('DraggableTableRow', () => {
       </table>,
     );
 
-    expect(screen.getByTestId('table-row')).not.toHaveAttribute('data-draggable');
     expect(screen.getByTestId('table-row')).not.toHaveClass('cursor-move');
-    expect(screen.getByTestId('name-cell')).toHaveAttribute('data-draggable', 'true');
     expect(screen.getByTestId('name-cell')).toHaveClass('cursor-move');
-    expect(screen.getByTestId('modified-cell')).not.toHaveAttribute('data-draggable');
+    expect(screen.getByTestId('name-cell')).not.toHaveAttribute('role');
     expect(dndKitMocks.setDraggableNodeRef).toHaveBeenCalledWith(screen.getByTestId('table-row'));
     expect(dndKitMocks.setActivatorNodeRef).toHaveBeenCalledWith(screen.getByTestId('name-cell'));
+
+    fireEvent.pointerDown(screen.getByTestId('table-row'));
+    expect(dndKitMocks.onPointerDown).not.toHaveBeenCalled();
+    fireEvent.pointerDown(screen.getByTestId('modified-cell'));
+    expect(dndKitMocks.onPointerDown).not.toHaveBeenCalled();
+    fireEvent.pointerDown(screen.getByTestId('name-cell'));
+    expect(dndKitMocks.onPointerDown).toHaveBeenCalled();
+  });
+
+  it('leaves a row without drag-and-drop free of drag attributes', () => {
+    const row = createMockRow();
+
+    render(
+      <table>
+        <tbody>
+          <DraggableTableRow
+            row={row as any}
+            enableDragAndDrop={false}
+          >
+            <td>Cell</td>
+          </DraggableTableRow>
+        </tbody>
+      </table>,
+    );
+
+    const tableRow = screen.getByTestId('table-row');
+    expect(tableRow).not.toHaveAttribute('role');
+    expect(tableRow).not.toHaveAttribute('tabindex');
+    expect(tableRow).not.toHaveAttribute('aria-disabled');
+    expect(tableRow).not.toHaveAttribute('aria-roledescription');
+    expect(tableRow).not.toHaveAttribute('aria-describedby');
+
+    fireEvent.pointerDown(tableRow);
+    expect(dndKitMocks.onPointerDown).not.toHaveBeenCalled();
+  });
+
+  it('marks a disabled, unclickable row without drag-and-drop as disabled', () => {
+    const row = createMockRow();
+
+    render(
+      <table>
+        <tbody>
+          <DraggableTableRow
+            row={row as any}
+            enableDragAndDrop={false}
+            isRowDisabled
+          >
+            <td>Cell</td>
+          </DraggableTableRow>
+        </tbody>
+      </table>,
+    );
+
+    const tableRow = screen.getByTestId('table-row');
+    expect(tableRow).toHaveAttribute('data-disabled', 'true');
+    expect(tableRow).toHaveAttribute('aria-disabled', 'true');
+    expect(tableRow).not.toHaveAttribute('role');
+    expect(tableRow).not.toHaveAttribute('tabindex');
+  });
+
+  it('activates a draggable row without overriding its table semantics', () => {
+    const row = createMockRow();
+
+    render(
+      <table>
+        <tbody>
+          <DraggableTableRow
+            row={row as any}
+            enableDragAndDrop
+          >
+            <td>Cell</td>
+          </DraggableTableRow>
+        </tbody>
+      </table>,
+    );
+
+    const tableRow = screen.getByTestId('table-row');
+    expect(tableRow).not.toHaveAttribute('role');
+    expect(tableRow).not.toHaveAttribute('tabindex');
+    expect(tableRow).not.toHaveAttribute('aria-disabled');
+    expect(tableRow).not.toHaveAttribute('aria-roledescription');
+
+    fireEvent.pointerDown(tableRow);
+    expect(dndKitMocks.onPointerDown).toHaveBeenCalled();
+  });
+
+  it('marks a disabled, unclickable row in a drag-enabled table as disabled and undraggable', () => {
+    const row = createMockRow();
+
+    render(
+      <table>
+        <tbody>
+          <DraggableTableRow
+            row={row as any}
+            enableDragAndDrop
+            isRowDisabled
+          >
+            <td>Cell</td>
+          </DraggableTableRow>
+        </tbody>
+      </table>,
+    );
+
+    const tableRow = screen.getByTestId('table-row');
+    expect(tableRow).toHaveAttribute('data-disabled', 'true');
+    expect(tableRow).toHaveAttribute('aria-disabled', 'true');
+    expect(tableRow).not.toHaveAttribute('role');
+    expect(tableRow).not.toHaveAttribute('tabindex');
+
+    fireEvent.pointerDown(tableRow);
+    expect(dndKitMocks.onPointerDown).not.toHaveBeenCalled();
+  });
+
+  it('leaves a disabled but clickable row free of aria-disabled', () => {
+    const row = createMockRow();
+    const handleRowClick = vi.fn();
+
+    render(
+      <table>
+        <tbody>
+          <DraggableTableRow
+            row={row as any}
+            enableDragAndDrop
+            isRowDisabled
+            onRowClick={handleRowClick}
+          >
+            <td>Cell</td>
+          </DraggableTableRow>
+        </tbody>
+      </table>,
+    );
+
+    const tableRow = screen.getByTestId('table-row');
+    expect(tableRow).toHaveAttribute('data-disabled', 'true');
+    expect(tableRow).not.toHaveAttribute('aria-disabled');
+
+    fireEvent.click(tableRow);
+    expect(handleRowClick).toHaveBeenCalledWith(row.original);
+  });
+
+  it('leaves a drag handle cell without drag-and-drop free of drag attributes', () => {
+    const row = createMockRow();
+
+    render(
+      <table>
+        <tbody>
+          <DraggableTableRow
+            row={row as any}
+            enableDragAndDrop={false}
+            dragHandleCellIndex={0}
+          >
+            <td data-testid="name-cell">Name</td>
+            <td data-testid="modified-cell">Modified</td>
+          </DraggableTableRow>
+        </tbody>
+      </table>,
+    );
+
+    const handleCell = screen.getByTestId('name-cell');
+    expect(handleCell).not.toHaveAttribute('role');
+    expect(handleCell).not.toHaveAttribute('tabindex');
+    expect(handleCell).not.toHaveAttribute('aria-disabled');
+    expect(handleCell).not.toHaveAttribute('aria-roledescription');
+    expect(handleCell).not.toHaveAttribute('aria-describedby');
+    expect(handleCell).not.toHaveClass('cursor-move');
+
+    fireEvent.pointerDown(handleCell);
+    expect(dndKitMocks.onPointerDown).not.toHaveBeenCalled();
+  });
+
+  describe('keyboard activation', () => {
+    const renderRow = (props: Record<string, any>, handleClick = vi.fn()) => {
+      render(
+        <table>
+          <tbody>
+            <DraggableTableRow
+              row={createMockRow() as any}
+              enableDragAndDrop={false}
+              {...props}
+              onRowClick={props.noClick ? undefined : handleClick}
+            >
+              <td>
+                <button type="button">Inner</button>
+              </td>
+            </DraggableTableRow>
+          </tbody>
+        </table>,
+      );
+      return handleClick;
+    };
+
+    it('makes a clickable row focusable and activates it with Enter and Space', async () => {
+      const user = userEvent.setup();
+      const handleClick = renderRow({});
+      const tableRow = screen.getByTestId('table-row');
+
+      expect(tableRow).toHaveAttribute('tabindex', '0');
+      tableRow.focus();
+      await user.keyboard('{Enter}');
+      await user.keyboard(' ');
+
+      expect(handleClick).toHaveBeenCalledTimes(2);
+      expect(handleClick).toHaveBeenCalledWith({ id: '1', name: 'Item A' });
+    });
+
+    it('ignores key events that originate from an interactive child', () => {
+      const handleClick = renderRow({});
+
+      fireEvent.keyDown(screen.getByRole('button', { name: 'Inner' }), { key: 'Enter' });
+
+      expect(handleClick).not.toHaveBeenCalled();
+    });
+
+    it('ignores other keys', async () => {
+      const user = userEvent.setup();
+      const handleClick = renderRow({});
+
+      screen.getByTestId('table-row').focus();
+      await user.keyboard('a');
+
+      expect(handleClick).not.toHaveBeenCalled();
+    });
+
+    it('leaves a row without a click handler unfocusable', () => {
+      renderRow({ noClick: true });
+      const tableRow = screen.getByTestId('table-row');
+
+      expect(tableRow).not.toHaveAttribute('tabindex');
+      expect(tableRow.className).not.toContain('cursor-pointer');
+    });
+
+    it('does not take over the keyboard of a draggable row', () => {
+      renderRow({ enableDragAndDrop: true });
+
+      expect(screen.getByTestId('table-row')).not.toHaveAttribute('tabindex');
+    });
   });
 });

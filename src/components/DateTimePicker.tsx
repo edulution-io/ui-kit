@@ -1,20 +1,7 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -37,6 +24,7 @@ import HourButton from './HourButton';
 import MinuteButton from './MinuteButton';
 import { DropdownVariant } from './DropdownSelect';
 import usePopoverOutsideDismiss from '../hooks/usePopoverOutsideDismiss';
+import useEscapeCapture from '../hooks/useEscapeCapture';
 
 const SCROLL_AREA_VIEWPORT_SELECTOR = '[data-radix-scroll-area-viewport]';
 const HOURS_IN_DAY = 24;
@@ -186,6 +174,7 @@ export interface DateTimePickerProps {
   minuteLabel?: string;
   previousMonthLabel?: string;
   nextMonthLabel?: string;
+  calendarLabels?: CalendarProps['labels'];
 }
 
 interface EditableTimeSegmentProps {
@@ -211,6 +200,10 @@ const EditableTimeSegment: React.FC<EditableTimeSegmentProps> = ({ value, max, a
     setIsEditing(false);
   }, [draft, max, onCommit]);
 
+  const cancelEditing = useCallback(() => setIsEditing(false), []);
+
+  useEscapeCapture(isEditing, cancelEditing);
+
   useEffect(() => {
     if (!isEditing) return;
     const input = inputRef.current;
@@ -232,7 +225,6 @@ const EditableTimeSegment: React.FC<EditableTimeSegmentProps> = ({ value, max, a
         onBlur={commit}
         onKeyDown={(event) => {
           if (event.key === 'Enter') commit();
-          if (event.key === 'Escape') setIsEditing(false);
         }}
       />
     );
@@ -271,6 +263,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   minuteLabel,
   previousMonthLabel,
   nextMonthLabel,
+  calendarLabels,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [displayMonth, setDisplayMonth] = useState<Date>(() => safeGetDate(value));
@@ -283,7 +276,6 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   const isOpenRef = useRef(isOpen);
   const wasOpenOnTriggerPointerDownRef = useRef(false);
   const sawTriggerPointerDownRef = useRef(false);
-  const skipCommitRef = useRef(false);
 
   const showCalendar = mode !== DATETIME_PICKER_MODES.TIME;
   const showTime = mode !== DATETIME_PICKER_MODES.DATE;
@@ -405,19 +397,14 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   }, [disabled, clearClickTimer, value, dateFormatInfo, showCalendar, showTime]);
 
   const commitText = useCallback(() => {
-    if (skipCommitRef.current) {
-      skipCommitRef.current = false;
-      return;
-    }
     const parsed = parseEditDraft(textDraft, dateFormatInfo, showCalendar, showTime, safeGetDate(value));
     if (parsed) onChange(parsed);
     setIsTextEditing(false);
   }, [textDraft, dateFormatInfo, showCalendar, showTime, value, onChange]);
 
-  const cancelTextEditing = useCallback(() => {
-    skipCommitRef.current = true;
-    setIsTextEditing(false);
-  }, []);
+  const cancelTextEditing = useCallback(() => setIsTextEditing(false), []);
+
+  useEscapeCapture(isTextEditing, cancelTextEditing);
 
   const onChangeHour = useCallback(
     (hour: number) => emitWithMutation((next) => next.setHours(hour)),
@@ -482,10 +469,6 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
               if (event.key === 'Enter') {
                 event.preventDefault();
                 commitText();
-              }
-              if (event.key === 'Escape') {
-                event.preventDefault();
-                cancelTextEditing();
               }
             }}
           />
@@ -581,7 +564,9 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                 disabled={disabledDate}
                 locale={locale}
                 className="p-0"
-                classNames={{ caption: 'hidden' }}
+                hideNavigation
+                classNames={{ month_caption: 'hidden' }}
+                labels={calendarLabels}
               />
             </div>
           )}

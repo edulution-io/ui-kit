@@ -1,20 +1,7 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -69,6 +56,85 @@ describe('Badge', () => {
   it('always applies fixed height', () => {
     const { container } = render(<Badge>Tag</Badge>);
     expect(container.firstElementChild.className).toContain('h-[36px]');
+  });
+
+  it('caps its width at the width of its container', () => {
+    const { container } = render(<Badge>Tag</Badge>);
+    expect(container.firstElementChild.className).toContain('max-w-full');
+  });
+
+  it('wraps a text child in a truncating element that carries the full text as its title', () => {
+    render(<Badge>A label that is longer than its container</Badge>);
+
+    const label = screen.getByText('A label that is longer than its container');
+    expect(label.tagName).toBe('SPAN');
+    expect(label.className).toContain('truncate');
+    expect(label.className).toContain('min-w-0');
+    expect(label).toHaveAttribute('title', 'A label that is longer than its container');
+  });
+
+  it('keeps an element child next to the truncating element instead of inside it', () => {
+    const { container } = render(
+      <Badge>
+        Label
+        <button type="button">delete</button>
+      </Badge>,
+    );
+
+    expect(screen.getByRole('button', { name: 'delete' }).parentElement).toBe(container.firstElementChild);
+    expect(screen.getByText('Label').querySelector('button')).toBeNull();
+  });
+
+  it('renders adjacent text children as one truncating element so the space between them stays', () => {
+    const running = true;
+    const name = 'sshd';
+    const { container } = render(
+      <Badge>
+        {running ? '●' : '○'} {name}
+      </Badge>,
+    );
+
+    expect(container.firstElementChild.children).toHaveLength(1);
+    const label = container.firstElementChild.firstElementChild;
+    expect(label.tagName).toBe('SPAN');
+    expect(label.textContent).toBe('● sshd');
+    expect(label).toHaveAttribute('title', '● sshd');
+  });
+
+  it('joins a number with the text next to it into one title', () => {
+    const count = 3;
+    render(<Badge>{count} new</Badge>);
+
+    expect(screen.getByText('3 new')).toHaveAttribute('title', '3 new');
+  });
+
+  it('keeps text on both sides of an element child in two separate truncating elements', () => {
+    const { container } = render(
+      <Badge>
+        Before
+        <button type="button">delete</button>
+        After
+      </Badge>,
+    );
+
+    expect(Array.from(container.firstElementChild.children).map((child) => child.tagName)).toEqual([
+      'SPAN',
+      'BUTTON',
+      'SPAN',
+    ]);
+    expect(screen.getByText('Before')).toHaveAttribute('title', 'Before');
+    expect(screen.getByText('After')).toHaveAttribute('title', 'After');
+  });
+
+  it('leaves a badge that holds only elements unwrapped', () => {
+    const { container } = render(
+      <Badge>
+        <em>custom</em>
+      </Badge>,
+    );
+
+    expect(container.firstElementChild.children).toHaveLength(1);
+    expect(container.firstElementChild.firstElementChild.tagName).toBe('EM');
   });
 
   it('passes additional HTML attributes', () => {

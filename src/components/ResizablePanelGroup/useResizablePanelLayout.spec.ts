@@ -1,20 +1,7 @@
 /*
- * Copyright (C) [2025] [Netzint GmbH]
- * All rights reserved.
- *
- * This software is dual-licensed under the terms of:
- *
- * 1. The GNU Affero General Public License (AGPL-3.0-or-later), as published by the Free Software Foundation.
- *    You may use, modify and distribute this software under the terms of the AGPL, provided that you comply with its conditions.
- *
- *    A copy of the license can be found at: https://www.gnu.org/licenses/agpl-3.0.html
- *
- * OR
- *
- * 2. A commercial license agreement with Netzint GmbH. Licensees holding a valid commercial license from Netzint GmbH
- *    may use this software in accordance with the terms contained in such written agreement, without the obligations imposed by the AGPL.
- *
- * If you are uncertain which license applies to your use case, please contact us at info@netzint.de for clarification.
+ * Copyright (C) 2024-2026 Netzint GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 /**
@@ -41,6 +28,16 @@ describe('useResizablePanelLayout', () => {
 
     expect(useDefaultLayoutMock).toHaveBeenCalledTimes(1);
     expect(useDefaultLayoutMock).toHaveBeenCalledWith({ id: 'save-id', panelIds: ['a', 'b'] });
+  });
+
+  it('forwards the choice to save only layouts the user dragged', () => {
+    renderHook(() => useResizablePanelLayout('save-id', ['a', 'b'], { onlySaveAfterUserInteractions: true }));
+
+    expect(useDefaultLayoutMock).toHaveBeenCalledWith({
+      id: 'save-id',
+      panelIds: ['a', 'b'],
+      onlySaveAfterUserInteractions: true,
+    });
   });
 
   it('returns whatever useDefaultLayout returns', () => {

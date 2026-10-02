@@ -1,0 +1,14 @@
+Netzint Commercial License
+
+This software is also available under a commercial license agreement with
+Netzint GmbH. Licensees holding a valid commercial license agreement with
+Netzint GmbH may use this software in accordance with the terms of that
+written agreement, without the obligations imposed by the GNU Affero General
+Public License.
+
+The terms of the commercial license are set out in the individual written
+agreement between the licensee and Netzint GmbH. They are not published in
+this repository.
+
+For commercial licensing, or if you are uncertain which license applies to
+your use case, contact Netzint GmbH at info@netzint.de.
