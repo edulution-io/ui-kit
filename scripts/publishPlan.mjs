@@ -58,16 +58,16 @@ const planPublish = (version, ref, previousVersion) => {
   if (ref !== channel.ref) {
     throw new Error(`${version} is a ${channel.name} version and is published from ${channel.ref}, not from ${ref}`);
   }
+  const missing = Object.entries(REGISTRIES).map(([name, registry]) => [
+    `publish-${name}`,
+    !isPublished(version, registry),
+  ]);
+  const publishes = missing.some(([, isMissing]) => isMissing);
   return {
     version,
     'dist-tag': channel.distTag,
-    ...Object.fromEntries(
-      Object.entries(REGISTRIES).map(([name, registry]) => [
-        `publish-${name}`,
-        String(!isPublished(version, registry)),
-      ]),
-    ),
-    tag: String(channel.tag && version !== previousVersion),
+    ...Object.fromEntries(missing.map(([key, isMissing]) => [key, String(isMissing)])),
+    tag: String(channel.tag && (version !== previousVersion || publishes)),
   };
 };
 
