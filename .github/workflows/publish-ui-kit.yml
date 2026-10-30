@@ -1,59 +1,125 @@
 name: Publish UI-Kit
 
+# Publishes what edulution-ui syncs here: a release X.Y.Z merged into master under latest, tagged vX.Y.Z, and the nightly
+# X.Y.Z-next.N pushed to next under the dist-tag next. scripts/publishPlan.mjs, synced from edulution-ui, decides what is still missing.
+# npm trusted publishing is bound to this file's name, so every publish stays in this workflow.
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - master
+      - next
   workflow_dispatch:
 
 permissions:
   contents: read
-  packages: write
-  id-token: write
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
 
       - name: Setup Node.js for GitHub Packages
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
           registry-url: https://npm.pkg.github.com
           scope: '@edulution-io'
 
+      - name: Plan the publish
+        id: plan
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PREVIOUS_VERSION=$(git show HEAD^:package.json 2>/dev/null | node -p 'JSON.parse(require("fs").readFileSync(0, "utf-8")).version' 2>/dev/null || true)
+          export PREVIOUS_VERSION
+          node scripts/publishPlan.mjs
+
       - name: Install dependencies
+        if: steps.plan.outputs.publish-github-packages == 'true' || steps.plan.outputs.publish-npmjs == 'true'
         run: npm install --no-audit --no-fund
 
       - name: Build ui-kit
+        if: steps.plan.outputs.publish-github-packages == 'true' || steps.plan.outputs.publish-npmjs == 'true'
         run: npm run build
 
-      - name: Verify build output
-        run: |
-          ls -la dist/
-          cat dist/package.json
-
       - name: Publish to GitHub Packages
-        run: |
-          cd dist
-          npm publish --registry https://npm.pkg.github.com
+        if: steps.plan.outputs.publish-github-packages == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DIST_TAG: ${{ steps.plan.outputs.dist-tag }}
+        run: |
+          cd dist
+          npm publish --registry https://npm.pkg.github.com --tag "$DIST_TAG"
 
       - name: Setup Node.js for npmjs
-        uses: actions/setup-node@v6
+        if: steps.plan.outputs.publish-npmjs == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
           registry-url: https://registry.npmjs.org
           scope: '@edulution-io'
 
       - name: Publish to npmjs
+        if: steps.plan.outputs.publish-npmjs == 'true'
+        env:
+          NODE_AUTH_TOKEN: ''
+          DIST_TAG: ${{ steps.plan.outputs.dist-tag }}
         run: |
           cd dist
           npm config delete //registry.npmjs.org/:_authToken || true
-          npm publish --provenance --access public --registry https://registry.npmjs.org
+          npm publish --provenance --access public --registry https://registry.npmjs.org --tag "$DIST_TAG"
+
+  # Separate from publish so the token that writes tags never reaches dependency install or build code.
+  tag:
+    needs: publish
+    if: needs.publish.outputs.tag == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+
+    steps:
+      - name: Tag the release
         env:
-          NODE_AUTH_TOKEN: ''
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.publish.outputs.version }}
+        run: |
+          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          then
+            echo "::error::The publish job handed over no release version: $VERSION"
+            exit 1
+          fi
+          if tagged=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$VERSION" --jq .object.sha 2>&1)
+          then
+            if [[ $tagged != "$GITHUB_SHA" ]]
+            then
+              echo "::error::v$VERSION already tags $tagged, not $GITHUB_SHA"
+              exit 1
+            fi
+            echo "v$VERSION already tags $GITHUB_SHA"
+          elif [[ $tagged == *'HTTP 404'* ]]
+          then
+            gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/v$VERSION" -f "sha=$GITHUB_SHA" --jq .ref
+          else
+            echo "::error::Could not look up the tag v$VERSION: $tagged"
+            exit 1
+          fi
