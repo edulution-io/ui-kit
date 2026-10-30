@@ -48,10 +48,7 @@ jobs:
         id: plan
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PREVIOUS_VERSION=$(git show HEAD^:package.json 2>/dev/null | node -p 'JSON.parse(require("fs").readFileSync(0, "utf-8")).version' 2>/dev/null || true)
-          export PREVIOUS_VERSION
-          node scripts/publishPlan.mjs
+        run: node scripts/publishPlan.mjs
 
       - name: Install dependencies
         if: steps.plan.outputs.publish-github-packages == 'true' || steps.plan.outputs.publish-npmjs == 'true'
@@ -98,28 +95,13 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Tag the release
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.publish.outputs.version }}
-        run: |
-          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          then
-            echo "::error::The publish job handed over no release version: $VERSION"
-            exit 1
-          fi
-          if tagged=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$VERSION" --jq .object.sha 2>&1)
-          then
-            if [[ $tagged != "$GITHUB_SHA" ]]
-            then
-              echo "::error::v$VERSION already tags $tagged, not $GITHUB_SHA"
-              exit 1
-            fi
-            echo "v$VERSION already tags $GITHUB_SHA"
-          elif [[ $tagged == *'HTTP 404'* ]]
-          then
-            gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/v$VERSION" -f "sha=$GITHUB_SHA" --jq .ref
-          else
-            echo "::error::Could not look up the tag v$VERSION: $tagged"
-            exit 1
-          fi
+        run: node scripts/tagRelease.mjs

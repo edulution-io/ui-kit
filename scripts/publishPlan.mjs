@@ -40,6 +40,16 @@ const isPublished = (version, registry) => {
   }
 };
 
+const readPreviousVersion = () => {
+  try {
+    return JSON.parse(
+      execFileSync('git', ['show', 'HEAD^:package.json'], { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }),
+    ).version;
+  } catch {
+    return undefined;
+  }
+};
+
 const planPublish = (version, ref, previousVersion) => {
   const channel = CHANNELS.find((candidate) => candidate.version.test(version));
   if (!channel) {
@@ -63,7 +73,7 @@ const planPublish = (version, ref, previousVersion) => {
 
 try {
   const { version } = JSON.parse(readFileSync('package.json', 'utf-8'));
-  const plan = planPublish(version, process.env.GITHUB_REF, process.env.PREVIOUS_VERSION);
+  const plan = planPublish(version, process.env.GITHUB_REF, readPreviousVersion());
   const lines = Object.entries(plan).map(([key, value]) => `${key}=${value}`);
   appendFileSync(process.env.GITHUB_OUTPUT, `${lines.join('\n')}\n`);
   console.log(lines.join('\n'));
