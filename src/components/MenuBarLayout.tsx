@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -23,7 +23,7 @@ const MenuBarLayout = React.forwardRef<HTMLDivElement, MenuBarLayoutProps>(
           <div
             ref={ref}
             className={cn(
-              'liquid-glass liquid-glass-panel h-full w-64 overflow-hidden !rounded-lg border-0 transition-all duration-300',
+              'liquid-glass h-full w-64 overflow-hidden !rounded-lg border-0 transition-all duration-300',
               className,
             )}
           >
@@ -44,7 +44,7 @@ const MenuBarLayout = React.forwardRef<HTMLDivElement, MenuBarLayoutProps>(
         <div
           ref={ref}
           className={cn(
-            'liquid-glass liquid-glass-panel fixed left-0 h-full w-64 overflow-x-hidden !rounded-lg border-0',
+            'liquid-glass liquid-glass-overlay fixed left-0 h-full w-64 overflow-x-hidden !rounded-lg border-0',
             'pt-[var(--mobile-top-bar-height,0px)]',
             className,
           )}

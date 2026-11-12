@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -40,7 +40,7 @@ describe('MenuBarLayout', () => {
     expect(aside).toBeInTheDocument();
   });
 
-  it('uses the liquid glass panel surface in desktop mode', () => {
+  it('uses the plain liquid glass surface of the app sidebar in desktop mode', () => {
     const ref = createRef<HTMLDivElement>();
     render(
       <MenuBarLayout
@@ -50,8 +50,9 @@ describe('MenuBarLayout', () => {
         Desktop
       </MenuBarLayout>,
     );
-    expect(ref.current?.className).toContain('liquid-glass');
-    expect(ref.current?.className).toContain('liquid-glass-panel');
+    expect(ref.current).toHaveClass('liquid-glass');
+    expect(ref.current).not.toHaveClass('liquid-glass-panel');
+    expect(ref.current).not.toHaveClass('liquid-glass-overlay');
   });
 
   it('renders as fixed drawer in mobile mode', () => {
@@ -81,7 +82,7 @@ describe('MenuBarLayout', () => {
     expect(wrapper.className).not.toContain('-translate-x-full');
   });
 
-  it('uses the liquid glass panel surface in mobile mode', () => {
+  it('uses the tinted liquid glass overlay surface of the mobile app sidebar so it stays legible over page content', () => {
     const ref = createRef<HTMLDivElement>();
     render(
       <MenuBarLayout
@@ -91,8 +92,9 @@ describe('MenuBarLayout', () => {
         Mobile
       </MenuBarLayout>,
     );
-    expect(ref.current?.className).toContain('liquid-glass');
-    expect(ref.current?.className).toContain('liquid-glass-panel');
+    expect(ref.current).toHaveClass('liquid-glass');
+    expect(ref.current).toHaveClass('liquid-glass-overlay');
+    expect(ref.current).not.toHaveClass('liquid-glass-panel');
   });
 
   it('applies -translate-x-full when mobile drawer is closed', () => {

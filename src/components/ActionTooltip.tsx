@@ -1,12 +1,13 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
-import { TooltipContent, TooltipTrigger } from '@radix-ui/react-tooltip';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { TooltipContent, TooltipPortal, TooltipTrigger } from '@radix-ui/react-tooltip';
 import cn from '../utils/cn';
+import TABBABLE_SELECTOR from '../constants/tabbableSelector';
 import { Tooltip } from './Tooltip';
 
 interface ActionTooltipProps {
@@ -19,6 +20,8 @@ interface ActionTooltipProps {
 
 const TOUCH_TOOLTIP_AUTO_CLOSE_MS = 1500;
 
+const NATIVE_CONTROL_SELECTOR = 'a[href], button, input, select, textarea, summary';
+
 const ActionTooltip: React.FC<ActionTooltipProps> = ({
   trigger,
   onAction,
@@ -27,7 +30,13 @@ const ActionTooltip: React.FC<ActionTooltipProps> = ({
   openOnSide = 'top',
 }) => {
   const [open, setOpen] = useState(false);
+  const [isTriggerTabbable, setIsTriggerTabbable] = useState(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    setIsTriggerTabbable(Boolean(triggerRef.current?.querySelector(TABBABLE_SELECTOR)));
+  }, [trigger]);
 
   useEffect(
     () => () => {
@@ -44,6 +53,8 @@ const ActionTooltip: React.FC<ActionTooltipProps> = ({
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.target instanceof Element && event.target.matches(NATIVE_CONTROL_SELECTOR)) return;
+
     if ((event.key === 'Enter' || event.key === ' ') && onAction) {
       onAction();
     }
@@ -55,23 +66,38 @@ const ActionTooltip: React.FC<ActionTooltipProps> = ({
       onOpenChange={setOpen}
     >
       <TooltipTrigger asChild>
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={onAction}
-          onPointerDown={handlePointerDown}
-          onKeyDown={handleKeyDown}
-        >
-          {trigger}
-        </div>
+        {isTriggerTabbable ? (
+          <div
+            ref={triggerRef}
+            role="presentation"
+            onClick={onAction}
+            onPointerDown={handlePointerDown}
+            onKeyDown={handleKeyDown}
+          >
+            {trigger}
+          </div>
+        ) : (
+          <div
+            ref={triggerRef}
+            role="button"
+            tabIndex={0}
+            onClick={onAction}
+            onPointerDown={handlePointerDown}
+            onKeyDown={handleKeyDown}
+          >
+            {trigger}
+          </div>
+        )}
       </TooltipTrigger>
-      <TooltipContent
-        className={cn('rounded-lg bg-accent p-2 shadow-xl', className)}
-        side={openOnSide}
-        align="center"
-      >
-        {tooltipText}
-      </TooltipContent>
+      <TooltipPortal>
+        <TooltipContent
+          className={cn('z-50 rounded-lg bg-accent p-2 shadow-xl', className)}
+          side={openOnSide}
+          align="center"
+        >
+          {tooltipText}
+        </TooltipContent>
+      </TooltipPortal>
     </Tooltip>
   );
 };

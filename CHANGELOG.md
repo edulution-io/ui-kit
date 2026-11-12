@@ -7,6 +7,330 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.117] - 2026-10-28
+
+## [2.3.116] - 2026-10-27
+
+## [2.3.115] - 2026-10-27
+
+## [2.3.114] - 2026-10-27
+
+## [2.3.113] - 2026-10-27
+
+## [2.3.112] - 2026-10-27
+
+## [2.3.111] - 2026-10-27
+
+## [2.3.110] - 2026-10-27
+
+## [2.3.109] - 2026-10-26
+
+## [2.3.108] - 2026-10-26
+
+## [2.3.107] - 2026-10-26
+
+## [2.3.106] - 2026-10-26
+
+## [2.3.105] - 2026-10-26
+
+## [2.3.104] - 2026-10-26
+
+## [2.3.103] - 2026-10-26
+
+## [2.3.102] - 2026-10-26
+
+## [2.3.101] - 2026-10-26
+
+## [2.3.100] - 2026-10-26
+
+## [2.3.99] - 2026-10-26
+
+## [2.3.98] - 2026-10-26
+
+## [2.3.97] - 2026-10-23
+
+## [2.3.96] - 2026-10-23
+
+## [2.3.95] - 2026-10-23
+
+## [2.3.94] - 2026-10-23
+
+## [2.3.93] - 2026-10-23
+
+## [2.3.92] - 2026-10-22
+
+### Changed
+
+- License: Digitale Schule Innovationsberatung GmbH replaces Netzint GmbH as copyright holder, commercial licensor and owner of the edulution name and branding. The commercial license is now `LicenseRef-DSI-Commercial`, shipped as `LICENSES/LicenseRef-DSI-Commercial.txt` in place of the Netzint license text, and `README.md` and `LICENSE_EXCEPTIONS.md` name info@edulution.io as contact. The `license` field in `package.json` stays `AGPL-3.0-or-later`, because npm rejects `LicenseRef` identifiers.
+- License notices: the header of every source file names Digitale Schule Innovationsberatung GmbH as copyright holder and declares `AGPL-3.0-or-later OR LicenseRef-DSI-Commercial`.
+
+## [2.3.91] - 2026-10-22
+
+## [2.3.90] - 2026-10-22
+
+## [2.3.89] - 2026-10-22
+
+## [2.3.88] - 2026-10-21
+
+## [2.3.87] - 2026-10-21
+
+## [2.3.86] - 2026-10-21
+
+## [2.3.85] - 2026-10-20
+
+### Added
+
+- `SplitPane` accepts an optional third pane, `end`, rendered after `right` behind its own handle labelled by
+  `endHandleAriaLabel`. `defaultEndSize` (number or preset, default `'1/4'`), `minEndSize` and `maxEndSize` (defaults
+  10 and 40 percent) size it, and `right` takes what the left and the end pane leave. `fitEndSize` fits the end pane to
+  a CSS width until the user resizes that pane and keeps its pixel width when the window changes width, like
+  `fitLeftSize` does for the left pane; dragging the left handle stops only the left fit and dragging the end handle
+  only the end fit. A drag counts only for the set of panes on screen when it was made: an end pane that appears after
+  the left handle was dragged gets both panes fitted, and once the end pane is gone again a left pane the user dragged
+  is not fitted again. An end pane that appears while the split pane is already on screen is fitted once the library
+  has mounted it. A layout stored under `autoSaveId` for the panes on screen wins over both fits, also when the end
+  pane appears after mount. `undefined`, `null` and `false` render no end pane, so a conditionally rendered `end`
+  leaves the two-pane layout exactly as before. Below the mobile breakpoint, where one pane is visible
+  at a time, `mobilePane` takes `'end'` as a third value and shows the end pane as a view of its own, falling back to
+  `right` while there is no end pane. With `autoSaveId` the three-pane layout is stored under its own panel ids, so it
+  never overwrites the stored two-pane layout.
+
+## [2.3.84] - 2026-10-20
+
+## [2.3.83] - 2026-10-20
+
+## [2.3.82] - 2026-10-19
+
+## [2.3.81] - 2026-10-19
+
+## [2.3.80] - 2026-10-19
+
+## [2.3.79] - 2026-10-19
+
+## [2.3.78] - 2026-10-19
+
+## [2.3.77] - 2026-10-16
+
+### Changed
+
+- `useMediaQuery` resolves one `MediaQueryList` per query instead of one per component mount, so a per-row consumer no longer allocates two of them for every row. The cache follows a replaced `matchMedia`, so an environment that swaps it never reads a list from the previous one.
+
+## [2.3.76] - 2026-10-16
+
+## [2.3.75] - 2026-10-16
+
+## [2.3.74] - 2026-10-16
+
+## [2.3.73] - 2026-10-16
+
+## [2.3.72] - 2026-10-16
+
+### Changed
+
+- `MenuBarLayout` no longer uses `liquid-glass liquid-glass-panel`, so the menu bar has the same surface as the app
+  sidebar beside it: plain `liquid-glass` on desktop, and `liquid-glass liquid-glass-overlay` for the mobile drawer,
+  which keeps it legible over page content. Dropdowns, dialogs and the date picker keep the panel surface.
+
+## [2.3.71] - 2026-10-16
+
+## [2.3.70] - 2026-10-16
+
+## [2.3.69] - 2026-10-16
+
+## [2.3.68] - 2026-10-16
+
+### Added
+
+- `TABBABLE_SELECTOR`: the CSS selector `ActionTooltip` uses to tell whether its trigger can take keyboard focus
+  itself (links with `href`, enabled buttons and form fields, `contenteditable`, a `tabindex` other than `-1`), exported
+  so a consumer that looks for the first focusable element in a container matches the same set.
+
+### Fixed
+
+- `ActionTooltip`: Enter or Space on a button, Enter on a link and Space on a checkbox inside the trigger run
+  `onAction` once. The wrapper used to run it on the key press and again on the click the control fires for the same
+  key, so a toggle switched straight back and every other action ran twice. The wrapper now leaves keys pressed on a
+  nested native control (a link with `href`, a button, a form field, a `summary`) to that control, whose own click
+  still runs `onAction`; a key that fires no click there, such as Space typed into a text field or Enter on a
+  checkbox, no longer runs it. Keys pressed on the wrapper or on a custom focusable trigger, such as a `span` with
+  `role="button"`, still run `onAction`.
+- `ActionTooltip`: a trigger that can take focus itself (an enabled button, a link, an element with `tabIndex`) is now
+  the only tab stop. The wrapper used to add a second stop of its own with `role="button"` in front of it, which did
+  not carry the trigger's `aria-pressed` state; it now renders with `role="presentation"` and no `tabIndex`. A trigger
+  that cannot take focus keeps the focusable `role="button"` wrapper. The tooltip text still describes the wrapper
+  (`aria-describedby`), not the focused trigger inside it, so screen readers no longer read it out for a focusable
+  trigger: give that trigger its own accessible name, for example an `aria-label` with the tooltip text.
+
+## [2.3.67] - 2026-10-15
+
+## [2.3.66] - 2026-10-15
+
+## [2.3.65] - 2026-10-15
+
+### Fixed
+
+- `CardList` drops a pending debounced search when its search field is cleared or the list unmounts. Clearing the field within the debounce delay used to fire the search for the cleared text afterwards, so the list was filtered by a term the field no longer showed.
+
+## [2.3.64] - 2026-10-15
+
+## [2.3.63] - 2026-10-15
+
+## [2.3.62] - 2026-10-15
+
+## [2.3.61] - 2026-10-15
+
+## [2.3.60] - 2026-10-15
+
+## [2.3.59] - 2026-10-15
+
+### Fixed
+
+- `DropdownSelect` forwards `id`, `aria-describedby` and `aria-invalid` onto its inner text input. It destructured a
+  closed prop list with no rest spread, so the attributes a `FormControl` wrapper injects through its Radix `Slot`
+  were dropped: the combobox carried no accessible name even with a `FormLabel` beside it, because the label's
+  `htmlFor` pointed at an id that never landed, and a `FormDescription` or `FormMessage` was never announced with
+  the field. Consumers that worked around this by passing `ariaLabel` are unaffected.
+
+## [2.3.58] - 2026-10-15
+
+## [2.3.57] - 2026-10-15
+
+## [2.3.56] - 2026-10-15
+
+## [2.3.55] - 2026-10-15
+
+## [2.3.54] - 2026-10-15
+
+## [2.3.53] - 2026-10-15
+
+### Fixed
+
+- `ImageComponent` fits the image into its container instead of stretching it to the container's width. The image is
+  centred, scaled down when it is larger than the container and kept at its own size when it is smaller, so a portrait
+  image in a container of fixed height is no longer cut off at the bottom and a small image is no longer upscaled. The
+  component fills its container's height, and the error text sits below the image; the image shrinks to make room for
+  it, so the text also stays inside the container below a placeholder as tall as the container.
+- `ImageComponent` draws the border and the error text of an image that failed to load in the danger colour. The
+  classes it used for that had no matching colour, so both kept their default colour.
+
+## [2.3.52] - 2026-10-14
+
+## [2.3.51] - 2026-10-14
+
+## [2.3.50] - 2026-10-14
+
+## [2.3.49] - 2026-10-14
+
+## [2.3.48] - 2026-10-14
+
+## [2.3.47] - 2026-10-14
+
+## [2.3.46] - 2026-10-14
+
+## [2.3.45] - 2026-10-14
+
+## [2.3.44] - 2026-10-13
+
+## [2.3.43] - 2026-10-13
+
+## [2.3.42] - 2026-10-13
+
+## [2.3.41] - 2026-10-13
+
+## [2.3.40] - 2026-10-13
+
+## [2.3.39] - 2026-10-13
+
+## [2.3.38] - 2026-10-13
+
+## [2.3.37] - 2026-10-13
+
+## [2.3.36] - 2026-10-13
+
+### Fixed
+
+- `DialogContent` no longer widens past its `max-w-*` when a child is wider than the dialog; its grid track can now shrink, so a child's own overflow handling applies.
+- `TabsList` keeps its scrollbar visible from `md` up and fades the clipped edge while its triggers overflow, so a clipped tab is discoverable. The state is re-measured when a trigger widens inside an already full row.
+
+## [2.3.35] - 2026-10-13
+
+## [2.3.34] - 2026-10-13
+
+## [2.3.33] - 2026-10-13
+
+## [2.3.32] - 2026-10-13
+
+## [2.3.31] - 2026-10-13
+
+## [2.3.30] - 2026-10-13
+
+## [2.3.29] - 2026-10-13
+
+## [2.3.28] - 2026-10-12
+
+## [2.3.27] - 2026-10-12
+
+## [2.3.26] - 2026-10-12
+
+## [2.3.25] - 2026-10-12
+
+## [2.3.24] - 2026-10-12
+
+## [2.3.23] - 2026-10-12
+
+## [2.3.22] - 2026-10-11
+
+## [2.3.21] - 2026-10-11
+
+## [2.3.20] - 2026-10-09
+
+## [2.3.19] - 2026-10-08
+
+## [2.3.18] - 2026-10-08
+
+## [2.3.17] - 2026-10-08
+
+## [2.3.16] - 2026-10-08
+
+## [2.3.15] - 2026-10-08
+
+## [2.3.14] - 2026-10-08
+
+## [2.3.13] - 2026-10-08
+
+## [2.3.12] - 2026-10-08
+
+## [2.3.11] - 2026-10-07
+
+## [2.3.10] - 2026-10-07
+
+## [2.3.9] - 2026-10-07
+
+## [2.3.8] - 2026-10-07
+
+## [2.3.7] - 2026-10-07
+
+## [2.3.6] - 2026-10-07
+
+## [2.3.5] - 2026-10-07
+
+## [2.3.4] - 2026-10-07
+
+## [2.3.3] - 2026-10-07
+
+## [2.3.2] - 2026-10-07
+
+## [2.3.1] - 2026-10-06
+
+### Fixed
+
+- `ActionTooltip` renders its content through a portal into the document body, as `TooltipContent` already does. It
+  used to render next to its trigger, so an ancestor that is a containing block for fixed elements (a `transform`, a
+  `filter`, a `backdrop-filter`) and clips its overflow, such as a `ResizableWindow`, cut off every part of the tooltip
+  reaching past its edge. The content keeps its classes and gains `z-50`, the stacking order of `TooltipContent`, so an
+  overlay around its trigger, such as a `Dialog` or a `Sheet`, does not cover it. It now inherits colour and font from
+  the body instead of from the trigger's surroundings.
+
 ## [2.3.0] - 2026-10-02
 
 ## [2.2.179] - 2026-10-02

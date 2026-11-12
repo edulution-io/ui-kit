@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -12,6 +12,8 @@ import SplitPanePersistentDesktop from './SplitPanePersistentDesktop';
 import {
   DEFAULT_MOBILE_BREAKPOINT_QUERY,
   DEFAULT_MOBILE_PANE,
+  pickMobilePane,
+  resolveEndSize,
   resolveLeftSize,
   SPLIT_PANE_MOBILE_CLASSES,
 } from './splitPaneInternals';
@@ -21,7 +23,9 @@ const SplitPane: React.FC<SplitPaneProps> = (pane) => {
   const {
     left,
     right,
+    end,
     defaultLeftSize,
+    defaultEndSize,
     autoSaveId,
     mobilePane = DEFAULT_MOBILE_PANE,
     mobileBreakpointQuery = DEFAULT_MOBILE_BREAKPOINT_QUERY,
@@ -30,16 +34,20 @@ const SplitPane: React.FC<SplitPaneProps> = (pane) => {
   const isMobileView = useMediaQuery(mobileBreakpointQuery);
 
   if (isMobileView) {
-    return <div className={cn(SPLIT_PANE_MOBILE_CLASSES, className)}>{mobilePane === 'right' ? right : left}</div>;
+    return (
+      <div className={cn(SPLIT_PANE_MOBILE_CLASSES, className)}>{pickMobilePane({ left, right, end }, mobilePane)}</div>
+    );
   }
 
   const leftSize = resolveLeftSize(defaultLeftSize);
+  const endSize = resolveEndSize(defaultEndSize);
 
   if (autoSaveId) {
     return (
       <SplitPanePersistentDesktop
         pane={pane}
         leftSize={leftSize}
+        endSize={endSize}
         autoSaveId={autoSaveId}
       />
     );
@@ -49,6 +57,7 @@ const SplitPane: React.FC<SplitPaneProps> = (pane) => {
     <SplitPaneDesktop
       pane={pane}
       leftSize={leftSize}
+      endSize={endSize}
     />
   );
 };

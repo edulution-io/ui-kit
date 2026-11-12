@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -351,7 +351,7 @@ export {
 } from './components/ResizablePanelGroup';
 
 /**
- * SplitPane – Two-pane resizable layout primitive composed on top of `ResizablePanelGroup`. Handles
+ * SplitPane – Two- or three-pane resizable layout primitive composed on top of `ResizablePanelGroup`. Handles
  * mobile single-pane fallback (configurable via `mobileBreakpointQuery` and `mobilePane`), optional
  * `localStorage` persistence (`autoSaveId`), and percentage sizing including preset shorthands
  * (`'1/4'`, `'1/3'`, `'1/2'`, `'2/3'`, `'3/4'`). Use `orientation="vertical"` for top/bottom splits.
@@ -361,6 +361,13 @@ export {
  * the handle; pass `null` while the width is still being measured. With it, `autoSaveId` stores only
  * dragged widths, a dragged or stored width wins over the fitted one, and the left pane keeps its pixel
  * width when the window changes width.
+ *
+ * `end` adds an optional third pane after `right`, behind its own handle (`endHandleAriaLabel`), sized by
+ * `defaultEndSize` (default `'1/4'`), `minEndSize` and `maxEndSize` (defaults 10 and 40 percent); `right` takes the
+ * rest. `fitEndSize` fits it to a CSS width the way `fitLeftSize` fits the left pane. `undefined`, `null` and `false`
+ * render no end pane, so a conditional `end` keeps the two-pane layout. Below the mobile breakpoint the end pane is shown
+ * only as a view of its own, with `mobilePane="end"`. With `autoSaveId`, the three-pane layout is stored apart from the
+ * two-pane one.
  *
  * `autoSaveId` must be unique per SplitPane instance — two SplitPanes sharing the same value
  * will alias each other's persisted layouts in `localStorage`.
@@ -519,9 +526,18 @@ export {
 export type { TableRowVariant, TableRowProps } from './components/Table';
 
 /**
- * ActionTooltip – A tooltip wrapper that also acts as a clickable button with keyboard support.
+ * ActionTooltip – A tooltip wrapper that also acts as a clickable button with keyboard support. A trigger that can
+ * take focus itself keeps the only tab stop; otherwise the wrapper becomes one.
  */
 export { default as ActionTooltip } from './components/ActionTooltip';
+
+/**
+ * TABBABLE_SELECTOR – CSS selector for elements that take keyboard focus on their own: links with `href`, enabled
+ * buttons and form fields, `contenteditable` regions and anything with a `tabindex` other than `-1`. `ActionTooltip`
+ * uses it to decide whether its trigger keeps the tab stop; components that move focus into a container can use it to
+ * find the first focusable element.
+ */
+export { default as TABBABLE_SELECTOR } from './constants/tabbableSelector';
 
 /**
  * AnchorSection – A section element with scroll-margin for anchor-based navigation.
@@ -733,6 +749,9 @@ export type { MinuteButtonProps } from './components/MinuteButton';
  * - `enablePortalUsage={false}` renders the panel inline next to the trigger using CSS absolute positioning, for
  *   embeddings in third-party-managed DOM trees (e.g. SurveyJS) where a portal target outside the host tree is
  *   unreachable.
+ *
+ * Forwards `id`, `aria-describedby` and `aria-invalid` onto the inner text input, so a `FormControl` wrapper can
+ * name the control through its `FormLabel` and point it at its `FormDescription` / `FormMessage`.
  *
  * Two hooks shape how an option reads. `renderLabel` maps an option's name to the text used in the trigger, the
  * search filter and the option row. `renderOption` replaces the body of a single option row with arbitrary content
