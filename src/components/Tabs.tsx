@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -8,22 +8,41 @@ import * as React from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 
 import cn from '../utils/cn';
+import useHorizontalScrollFade from '../hooks/useHorizontalScrollFade';
 
 const Tabs = TabsPrimitive.Root;
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.List
-    ref={ref}
-    className={cn(
-      'inline-flex h-auto max-w-full items-center justify-start overflow-x-auto rounded-lg bg-white p-1 text-muted-foreground shadow-md scrollbar-thin dark:bg-accent dark:shadow-none md:scrollbar-none',
-      className,
-    )}
-    {...props}
-  />
-));
+>(({ className, style, ...props }, forwardedRef) => {
+  const { ref: scrollRef, isOverflowing, fadeStyle } = useHorizontalScrollFade<HTMLDivElement>();
+
+  const setRefs = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      (scrollRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      if (typeof forwardedRef === 'function') forwardedRef(node);
+      else if (forwardedRef) {
+        const forwardedTarget = forwardedRef as React.MutableRefObject<HTMLDivElement | null>;
+        forwardedTarget.current = node;
+      }
+    },
+    [scrollRef, forwardedRef],
+  );
+
+  return (
+    <TabsPrimitive.List
+      ref={setRefs}
+      className={cn(
+        'inline-flex h-auto max-w-full items-center justify-start overflow-x-auto rounded-lg bg-white p-1 text-muted-foreground shadow-md scrollbar-thin dark:bg-accent dark:shadow-none',
+        !isOverflowing && 'md:scrollbar-none',
+        className,
+      )}
+      style={{ ...fadeStyle, ...style }}
+      {...props}
+    />
+  );
+});
 TabsList.displayName = TabsPrimitive.List.displayName;
 
 const TabsTrigger = React.forwardRef<

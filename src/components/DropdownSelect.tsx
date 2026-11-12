@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -32,7 +32,10 @@ export interface DropdownSelectProps {
   menuClassName?: string;
   variant?: DropdownVariant;
   placeholder?: string;
+  id?: string;
   ariaLabel?: string;
+  'aria-describedby'?: string;
+  'aria-invalid'?: boolean;
   enableSearch?: boolean;
   searchFromOptionCount?: number;
   enablePortalUsage?: boolean;
@@ -58,7 +61,10 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
   menuClassName,
   variant = 'default',
   placeholder = '',
+  id,
   ariaLabel,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
   enableSearch = true,
   searchFromOptionCount = DEFAULT_SEARCH_FROM_OPTION_COUNT,
   enablePortalUsage = true,
@@ -357,6 +363,7 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
       <input
         ref={inputRef}
         type="text"
+        id={id}
         name={searchEnabled ? 'searchTerm' : undefined}
         value={searchEnabled ? query : selectedLabel || placeholder}
         placeholder={searchEnabled ? selectedLabel || placeholder : undefined}
@@ -366,6 +373,8 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
         readOnly={!searchEnabled}
         disabled={options.length === 0}
         aria-label={ariaLabel}
+        aria-describedby={ariaDescribedBy}
+        aria-invalid={ariaInvalid}
         className={cn(
           DROPDOWN_SELECT_CLASSES,
           variantClasses[variant],

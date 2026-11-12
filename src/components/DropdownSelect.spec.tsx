@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -517,6 +517,23 @@ describe('DropdownSelect', () => {
     const input = screen.getByRole('combobox').querySelector('input');
     expect(input).toHaveFocus();
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
+  it('forwards the id and description a form wrapper injects onto the input, so the label and hint reach it', () => {
+    render(
+      <DropdownSelect
+        {...defaultProps()}
+        id="event-time-zone"
+        aria-describedby="event-time-zone-hint"
+        aria-invalid
+      />,
+    );
+
+    const input = screen.getByRole('combobox').querySelector('input');
+
+    expect(input).toHaveAttribute('id', 'event-time-zone');
+    expect(input).toHaveAttribute('aria-describedby', 'event-time-zone-hint');
+    expect(input).toHaveAttribute('aria-invalid', 'true');
   });
 
   it('closes on Escape from the search field and keeps the typed query from lingering', async () => {

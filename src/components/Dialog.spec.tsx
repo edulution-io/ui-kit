@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -249,6 +249,7 @@ describe('DialogContent', () => {
       </Dialog>,
     );
     const content = screen.getByTestId('dialog-content');
+    expect(content.className).toContain('grid-cols-[minmax(0,1fr)]');
     expect(content.className).toContain('rounded-lg');
     expect(content.className).toContain('max-h-[round(down,90vh,2px)]');
     expect(content.className).toContain('shadow-lg');
