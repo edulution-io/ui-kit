@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -274,6 +274,72 @@ describe('CardList', () => {
       });
       expect(onSearch).toHaveBeenCalledTimes(1);
       expect(onSearch).toHaveBeenLastCalledWith('abc');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  const typeSearch = (input: HTMLElement, value: string) => {
+    act(() => {
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')!.set!.call(input, value);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  };
+
+  it('drops a pending search when the search field is cleared before the debounce fires', () => {
+    vi.useFakeTimers();
+    try {
+      const onSearch = vi.fn();
+      render(
+        <CardList<Item>
+          items={items}
+          keyExtractor={(i) => i.id}
+          renderItem={renderItem}
+          onSearch={onSearch}
+          searchPlaceholder="Search"
+          searchDebounceMs={300}
+        />,
+      );
+
+      const input = screen.getByPlaceholderText('Search');
+      typeSearch(input, 'abc');
+      act(() => {
+        input.parentElement!.querySelector<HTMLButtonElement>('button[type="button"]')!.click();
+      });
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+
+      expect(onSearch).toHaveBeenCalledTimes(1);
+      expect(onSearch).toHaveBeenLastCalledWith('');
+      expect(input).toHaveValue('');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('drops a pending search on unmount', () => {
+    vi.useFakeTimers();
+    try {
+      const onSearch = vi.fn();
+      const { unmount } = render(
+        <CardList<Item>
+          items={items}
+          keyExtractor={(i) => i.id}
+          renderItem={renderItem}
+          onSearch={onSearch}
+          searchPlaceholder="Search"
+          searchDebounceMs={300}
+        />,
+      );
+
+      typeSearch(screen.getByPlaceholderText('Search'), 'abc');
+      unmount();
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+
+      expect(onSearch).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
     }

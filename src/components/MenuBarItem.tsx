@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -8,6 +8,7 @@ import * as React from 'react';
 import { useDndContext, useDroppable } from '@dnd-kit/core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+import MENU_BAR_DRAWER_LABEL_CLASSES from '../constants/menuBarDrawerLabelClasses';
 import findInTree from '../utils/findInTree';
 import cn from '../utils/cn';
 import sumChildBadges from '../utils/sumChildBadges';
@@ -172,7 +173,13 @@ const MenuBarItem = React.forwardRef<HTMLDivElement, MenuBarItemProps>(
         )}
       >
         {icon}
-        <span className={cn('min-w-0 flex-1 truncate text-left text-base', isActive ? 'text-primary-foreground' : '')}>
+        <span
+          className={cn(
+            'min-w-0 flex-1 truncate text-left text-base',
+            MENU_BAR_DRAWER_LABEL_CLASSES,
+            isActive ? 'text-primary-foreground' : '',
+          )}
+        >
           {label}
         </span>
         {showAggregatedBadge && (

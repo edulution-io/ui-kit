@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -823,6 +823,14 @@ describe('SelectionWizard', () => {
 
       expect(screen.getByRole('dialog', { name: 'Start session' })).toHaveClass('rounded-t-lg');
       expect(screen.getByRole('dialog', { name: 'Start session' })).not.toHaveClass('rounded-t-xl');
+    });
+
+    it('keeps the sheet clear of the side safe areas', () => {
+      mediaQueryMatches.mockReturnValue(true);
+
+      renderAdaptive();
+
+      expect(screen.getByRole('dialog', { name: 'Start session' })).toHaveClass('safe-area-inset-x');
     });
 
     it('moves the sheet above the on-screen keyboard, so Start stays in reach while a search field has focus', () => {

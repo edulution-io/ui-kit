@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MenuBar from './MenuBar';
 import type { MenuBarProps, MenuBarConfig } from './MenuBar';
@@ -185,6 +185,106 @@ describe('MenuBar', () => {
       />,
     );
     expect(screen.getByText('Test App').closest('aside')).toBeInTheDocument();
+  });
+
+  describe('mobile drawer', () => {
+    const renderOpenDrawer = (config: MenuBarConfig, onOpenChange = vi.fn()) => {
+      matchMediaMatches = true;
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={config}
+          activeItemId="item-2"
+          isOpen
+          onOpenChange={onOpenChange}
+        />,
+      );
+      return onOpenChange;
+    };
+
+    it('stays open after a child marked keepMenuOpen is tapped, and still runs its action', async () => {
+      const user = userEvent.setup();
+      const config = createConfig();
+      config.items[1].children = [{ id: 'toggle', label: 'Toggle', action: vi.fn(), keepMenuOpen: true }];
+      const onOpenChange = renderOpenDrawer(config);
+
+      await user.click(screen.getByText('Toggle'));
+
+      expect(config.items[1].children[0].action).toHaveBeenCalledTimes(1);
+      expect(onOpenChange).not.toHaveBeenCalledWith(false);
+    });
+
+    it('stays open after a top-level item marked keepMenuOpen is tapped', async () => {
+      const user = userEvent.setup();
+      const config = createConfig();
+      config.items[0].keepMenuOpen = true;
+      const onOpenChange = renderOpenDrawer(config);
+
+      await user.click(screen.getByText('Item 1'));
+
+      expect(config.items[0].action).toHaveBeenCalledTimes(1);
+      expect(onOpenChange).not.toHaveBeenCalledWith(false);
+    });
+
+    it('still closes after an unmarked top-level item is tapped, and runs its action', async () => {
+      const user = userEvent.setup();
+      const config = createConfig();
+      const onOpenChange = renderOpenDrawer(config);
+
+      await user.click(screen.getByText('Item 1'));
+
+      expect(config.items[0].action).toHaveBeenCalledTimes(1);
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+
+    it('still closes after an unmarked child is tapped', async () => {
+      const user = userEvent.setup();
+      const onOpenChange = renderOpenDrawer(createConfig());
+
+      await user.click(screen.getByText('Child 1'));
+
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+
+    it('lets long item and child names wrap to two lines in the drawer', () => {
+      const config = createConfig();
+      config.items[1].label = 'Subscribed calendars of the whole school';
+      renderOpenDrawer(config);
+
+      const drawerLabel = screen.getByText('Subscribed calendars of the whole school');
+      const drawerChildLabel = screen.getByText('Child 1');
+      const drawer = drawerLabel.closest('[data-layout="drawer"]');
+      expect(drawer?.className).toContain('group/menubar');
+      expect(drawerLabel.className).toContain('group-data-[layout=drawer]/menubar:line-clamp-2');
+      expect(drawerChildLabel.className).toContain('group-data-[layout=drawer]/menubar:line-clamp-2');
+    });
+
+    it('does not mark the desktop sidebar as a drawer', () => {
+      render(
+        <MenuBar
+          {...defaultProps}
+          config={createConfig()}
+        />,
+      );
+
+      expect(screen.getByText('Item 1').closest('[data-layout="drawer"]')).toBeNull();
+    });
+
+    it('stays open while a pointer goes down inside a popover rendered outside it, and closes on any other outside pointer', () => {
+      const onOpenChange = renderOpenDrawer(createConfig());
+      const popover = document.createElement('div');
+      popover.setAttribute('data-radix-popper-content-wrapper', '');
+      const popoverItem = document.createElement('button');
+      popover.appendChild(popoverItem);
+      document.body.appendChild(popover);
+
+      fireEvent.pointerDown(popoverItem);
+      expect(onOpenChange).not.toHaveBeenCalledWith(false);
+
+      fireEvent.pointerDown(document.body);
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+      popover.remove();
+    });
   });
 
   describe('deeply nested submenus', () => {

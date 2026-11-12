@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -37,5 +37,13 @@ describe('liquid glass panel theme styles', () => {
         /^\s*-webkit-backdrop-filter\s*:/,
       );
     });
+  });
+});
+
+describe('safe area theme styles', () => {
+  it('keeps the side safe-area padding more specific than Tailwind padding utilities', () => {
+    expect(themeCss).toMatch(
+      /html \.safe-area-inset-x \{\s*padding-left: env\(safe-area-inset-left\);\s*padding-right: env\(safe-area-inset-right\);\s*\}/,
+    );
   });
 });

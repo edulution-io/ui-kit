@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -22,6 +22,12 @@ interface MenuBarConfigItem {
    */
   excludeFromBadgeAggregation?: boolean;
   groupLabel?: string;
+  /**
+   * When true, tapping this item in the mobile drawer runs its action and leaves
+   * the drawer open, for items that change what the page shows instead of
+   * navigating away (e.g. a visibility toggle). Desktop is unaffected.
+   */
+  keepMenuOpen?: boolean;
   dropData?: MenuBarDropData;
   contextActions?: MenuBarItemAction[];
 }

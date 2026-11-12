@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -41,7 +41,7 @@ const MenuBarItemActions: React.FC<MenuBarItemActionsProps> = ({ actions, label,
           className={cn(
             'shrink-0 p-1 opacity-0 transition-opacity',
             'group-hover/menubar-row:opacity-100 data-[state=open]:opacity-100 focus-visible:opacity-100',
-            '[@media(hover:none)]:opacity-100',
+            '[@media(any-pointer:coarse)]:opacity-100 [@media(hover:none)]:opacity-100',
             className,
           )}
         >

@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -137,7 +137,7 @@ const CardList = <T,>({
       setLocalSearch(value);
 
       if (onSearch) {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
+        clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => {
           onSearch(value);
         }, searchDebounceMs);
@@ -145,6 +145,8 @@ const CardList = <T,>({
     },
     [onSearch, searchDebounceMs],
   );
+
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -185,6 +187,7 @@ const CardList = <T,>({
             placeholder={searchPlaceholder}
             leftIcon={faSearch}
             onClear={() => {
+              clearTimeout(debounceRef.current);
               setLocalSearch('');
               onSearch('');
             }}

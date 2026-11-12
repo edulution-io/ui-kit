@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -83,7 +83,7 @@ vi.mock('@fortawesome/react-fontawesome', () => ({
 }));
 
 import React, { useState } from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DateTimePicker, { DateTimePickerProps } from './DateTimePicker';
 import DATETIME_PICKER_MODES from '../constants/dateTimePickerModes';
@@ -182,7 +182,7 @@ describe('DateTimePicker', () => {
     expect(screen.getByTestId('iso').textContent).toBe(new Date(2026, 2, 15, 9, 45).toISOString());
   });
 
-  it('changing the year updates the displayed year', async () => {
+  it('changing the year without a picked date only updates the displayed year', async () => {
     const user = userEvent.setup();
     render(
       <Host
@@ -195,6 +195,101 @@ describe('DateTimePicker', () => {
     await user.click(await screen.findByText('1990'));
 
     expect(screen.getByRole('button', { name: 'Year' })).toHaveTextContent('1990');
+    expect(screen.getByTestId('iso').textContent).toBe('null');
+  });
+
+  it('changing the month without a picked date only updates the displayed month', async () => {
+    const user = userEvent.setup();
+    render(
+      <Host
+        placeholder="Pick"
+        monthLabel="Month"
+      />,
+    );
+    await user.click(screen.getByText('Pick'));
+
+    await user.click(await screen.findByRole('button', { name: 'February' }));
+
+    expect(screen.getByRole('button', { name: 'Month' })).toHaveTextContent('February');
+    expect(screen.getByTestId('iso').textContent).toBe('null');
+  });
+
+  it('moves a picked date to the chosen year, keeping its day and time', async () => {
+    const user = userEvent.setup();
+    render(
+      <Host
+        initial={new Date(2026, 9, 20, 14, 30)}
+        yearLabel="Year"
+      />,
+    );
+    await user.click(screen.getAllByRole('button')[0]);
+
+    await user.click(await screen.findByText('2027'));
+
+    expect(screen.getByTestId('iso').textContent).toBe(new Date(2027, 9, 20, 14, 30).toISOString());
+    expect(screen.getByRole('button', { name: 'Year' })).toHaveTextContent('2027');
+  });
+
+  it('moves a picked date to the chosen month, keeping its day and time', async () => {
+    const user = userEvent.setup();
+    render(
+      <Host
+        initial={new Date(2026, 9, 20, 14, 30)}
+        monthLabel="Month"
+      />,
+    );
+    await user.click(screen.getAllByRole('button')[0]);
+
+    await user.click(await screen.findByText('December'));
+
+    expect(screen.getByTestId('iso').textContent).toBe(new Date(2026, 11, 20, 14, 30).toISOString());
+    expect(screen.getByRole('button', { name: 'Month' })).toHaveTextContent('December');
+  });
+
+  it('moves a picked day that the chosen month lacks to that month’s last day', async () => {
+    const user = userEvent.setup();
+    render(<Host initial={new Date(2026, 0, 31, 8, 0)} />);
+    await user.click(screen.getAllByRole('button')[0]);
+
+    await user.click(await screen.findByText('February'));
+
+    expect(screen.getByTestId('iso').textContent).toBe(new Date(2026, 1, 28, 8, 0).toISOString());
+  });
+
+  it('moves a picked date to the month and year the header shows after browsing with the chevrons', async () => {
+    const user = userEvent.setup();
+    render(
+      <Host
+        initial={new Date(2026, 9, 20, 14, 30)}
+        monthLabel="Month"
+        nextMonthLabel="Next month"
+      />,
+    );
+    await user.click(screen.getAllByRole('button')[0]);
+    await user.click(await screen.findByRole('button', { name: 'Next month' }));
+
+    await user.click(await screen.findByText('2027'));
+
+    expect(screen.getByTestId('iso').textContent).toBe(new Date(2027, 10, 20, 14, 30).toISOString());
+    expect(screen.getByRole('button', { name: 'Month' })).toHaveTextContent('November');
+  });
+
+  it('only navigates when the chosen month would move a picked date onto a disabled day', async () => {
+    const user = userEvent.setup();
+    const picked = new Date(2026, 10, 20, 14, 30);
+    render(
+      <Host
+        initial={picked}
+        monthLabel="Month"
+        disabledDate={(date) => date < new Date(2026, 9, 1)}
+      />,
+    );
+    await user.click(screen.getAllByRole('button')[0]);
+
+    await user.click(await screen.findByText('January'));
+
+    expect(screen.getByTestId('iso').textContent).toBe(picked.toISOString());
+    expect(screen.getByRole('button', { name: 'Month' })).toHaveTextContent('January');
   });
 
   it('clicking an hour updates the value', async () => {
@@ -562,6 +657,7 @@ describe('DateTimePicker', () => {
     await user.click(screen.getByRole('button', { name: 'Previous month' }));
     await user.click(screen.getByRole('button', { name: 'Previous month' }));
     expect(screen.getByRole('button', { name: 'Month' })).toHaveTextContent('May');
+    expect(screen.getByTestId('iso').textContent).toBe(new Date(2026, 5, 15).toISOString());
   });
 
   it('asks the calendar to hide the day-picker navigation because it renders its own month controls', async () => {
@@ -709,5 +805,202 @@ describe('DateTimePicker', () => {
     await user.keyboard('{Escape}');
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  describe('on a narrow viewport', () => {
+    const VIEWPORT_RECT = { left: 0, top: 0, width: 100, height: 100 };
+    const SELECTED_RECT = { left: 500, top: 300, width: 20, height: 20 };
+    const scrollOffsets = new WeakMap<Element, { left: number; top: number }>();
+    let selectedTestIds = ['hour-15', 'minute-45'];
+    const originalScrollLeft = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollLeft');
+    const originalScrollTop = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollTop');
+
+    const toRect = ({ left, top, width, height }: typeof VIEWPORT_RECT) =>
+      ({ left, top, width, height, right: left + width, bottom: top + height, x: left, y: top }) as DOMRect;
+
+    beforeEach(() => {
+      Object.defineProperty(Element.prototype, 'scrollLeft', {
+        configurable: true,
+        get(this: Element) {
+          return scrollOffsets.get(this)?.left ?? 0;
+        },
+        set(this: Element, left: number) {
+          scrollOffsets.set(this, { top: scrollOffsets.get(this)?.top ?? 0, left });
+        },
+      });
+      Object.defineProperty(Element.prototype, 'scrollTop', {
+        configurable: true,
+        get(this: Element) {
+          return scrollOffsets.get(this)?.top ?? 0;
+        },
+        set(this: Element, top: number) {
+          scrollOffsets.set(this, { left: scrollOffsets.get(this)?.left ?? 0, top });
+        },
+      });
+      vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function rect(this: Element) {
+        const testId = this.getAttribute('data-testid');
+        if (testId && selectedTestIds.includes(testId)) return toRect(SELECTED_RECT);
+        return toRect(VIEWPORT_RECT);
+      });
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      selectedTestIds = ['hour-15', 'minute-45'];
+      if (originalScrollLeft) Object.defineProperty(Element.prototype, 'scrollLeft', originalScrollLeft);
+      if (originalScrollTop) Object.defineProperty(Element.prototype, 'scrollTop', originalScrollTop);
+    });
+
+    it('lists the hours from 0 to 23', async () => {
+      const user = userEvent.setup();
+      render(
+        <Host
+          initial={new Date(2026, 2, 15, 15, 45)}
+          mode={DATETIME_PICKER_MODES.TIME}
+        />,
+      );
+      await user.click(screen.getAllByRole('button')[0]);
+      await screen.findByTestId('hour-0');
+
+      const hourIds = screen.getAllByTestId(/^hour-\d+$/).map((button) => button.getAttribute('data-testid'));
+
+      expect(hourIds).toEqual(Array.from({ length: 24 }, (_, hour) => `hour-${hour}`));
+    });
+
+    it('scrolls the selected hour and minute into the middle of their lists when it opens', async () => {
+      const user = userEvent.setup();
+      render(
+        <Host
+          initial={new Date(2026, 2, 15, 15, 45)}
+          mode={DATETIME_PICKER_MODES.TIME}
+        />,
+      );
+      await user.click(screen.getAllByRole('button')[0]);
+
+      const hourViewport = (await screen.findByTestId('hour-15')).closest('[data-radix-scroll-area-viewport]');
+      const minuteViewport = screen.getByTestId('minute-45').closest('[data-radix-scroll-area-viewport]');
+
+      const centered = { left: 500 - (100 - 20) / 2, top: 300 - (100 - 20) / 2 };
+      expect({ left: hourViewport?.scrollLeft, top: hourViewport?.scrollTop }).toEqual(centered);
+      expect({ left: minuteViewport?.scrollLeft, top: minuteViewport?.scrollTop }).toEqual(centered);
+    });
+
+    it('scrolls to the time picked last when it opens again, not to the time it started with', async () => {
+      const user = userEvent.setup();
+      render(
+        <Host
+          initial={new Date(2026, 2, 15, 15, 45)}
+          mode={DATETIME_PICKER_MODES.TIME}
+        />,
+      );
+      await user.click(screen.getAllByRole('button')[0]);
+      await user.click(await screen.findByTestId('hour-9'));
+      await user.click(screen.getByTestId('minute-10'));
+      expect(screen.getByTestId('value')).toHaveTextContent('9:10');
+
+      await user.keyboard('{Escape}');
+      await waitFor(() => expect(screen.queryByTestId('hour-9')).toBeNull());
+      selectedTestIds = ['hour-9', 'minute-10'];
+      await user.click(screen.getAllByRole('button')[0]);
+
+      const hourViewport = (await screen.findByTestId('hour-9')).closest('[data-radix-scroll-area-viewport]');
+      const minuteViewport = screen.getByTestId('minute-10').closest('[data-radix-scroll-area-viewport]');
+
+      const centered = { left: 500 - (100 - 20) / 2, top: 300 - (100 - 20) / 2 };
+      expect({ left: hourViewport?.scrollLeft, top: hourViewport?.scrollTop }).toEqual(centered);
+      expect({ left: minuteViewport?.scrollLeft, top: minuteViewport?.scrollTop }).toEqual(centered);
+    });
+
+    it('caps the popover to the space the viewport leaves for it', async () => {
+      const user = userEvent.setup();
+      render(<Host initial={new Date(2026, 2, 15, 15, 45)} />);
+      await user.click(screen.getAllByRole('button')[0]);
+
+      const popover = await screen.findByRole('dialog');
+
+      expect(popover.className).toContain('max-h-[var(--radix-popover-content-available-height)]');
+      expect(popover.className).toContain('overflow-y-auto');
+    });
+
+    describe('when the popover is capped', () => {
+      const resizeCallbacks: ResizeObserverCallback[] = [];
+      const CAPPED_HEIGHT = 365;
+
+      beforeEach(() => {
+        resizeCallbacks.length = 0;
+        vi.stubGlobal(
+          'ResizeObserver',
+          class {
+            private readonly callback: ResizeObserverCallback;
+
+            constructor(callback: ResizeObserverCallback) {
+              this.callback = callback;
+            }
+
+            observe = () => {
+              resizeCallbacks.push(this.callback);
+            };
+
+            disconnect = () => {
+              const index = resizeCallbacks.indexOf(this.callback);
+              if (index >= 0) resizeCallbacks.splice(index, 1);
+            };
+
+            unobserve = vi.fn();
+          },
+        );
+      });
+
+      afterEach(() => {
+        vi.unstubAllGlobals();
+      });
+
+      const triggerResize = () =>
+        act(() => {
+          [...resizeCallbacks].forEach((callback) => callback([], {} as ResizeObserver));
+        });
+
+      const openWithStripsEndingAt = async (stripsBottom: number) => {
+        const user = userEvent.setup();
+        render(<Host initial={new Date(2026, 2, 15, 15, 45)} />);
+        await user.click(screen.getAllByRole('button')[0]);
+        const popover = await screen.findByRole('dialog');
+        const strips = (await screen.findByTestId('hour-15')).closest('[data-radix-scroll-area-viewport]')
+          ?.parentElement as HTMLElement;
+        Object.defineProperty(popover, 'clientHeight', { configurable: true, value: CAPPED_HEIGHT });
+        const defaultRect = Element.prototype.getBoundingClientRect.getMockImplementation();
+        vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function rect(this: Element) {
+          if (this === strips) return toRect({ left: 0, top: stripsBottom - 100, width: 100, height: 100 });
+          return defaultRect?.call(this) ?? toRect(VIEWPORT_RECT);
+        });
+        return popover;
+      };
+
+      it('scrolls the popover just far enough to show the hour and minute strips cut off below it', async () => {
+        const popover = await openWithStripsEndingAt(444);
+
+        triggerResize();
+
+        expect(popover.scrollTop).toBe(444 - CAPPED_HEIGHT);
+      });
+
+      it('scrolls the popover only once, so it does not pull the user back after they scroll up', async () => {
+        const popover = await openWithStripsEndingAt(444);
+        triggerResize();
+
+        popover.scrollTop = 0;
+        triggerResize();
+
+        expect(popover.scrollTop).toBe(0);
+      });
+
+      it('leaves the popover scroll alone while the strips are already in view', async () => {
+        const popover = await openWithStripsEndingAt(CAPPED_HEIGHT);
+
+        triggerResize();
+
+        expect(popover.scrollTop).toBe(0);
+      });
+    });
   });
 });

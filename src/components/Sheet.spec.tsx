@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -239,6 +239,20 @@ describe('SheetContent', () => {
     );
     const closeBtn = screen.getByTestId('sheet-close');
     expect(closeBtn.className).toContain('text-foreground');
+  });
+
+  it('keeps the content and the close button clear of the side safe areas', () => {
+    render(
+      <Sheet>
+        <SheetContent>Content</SheetContent>
+      </Sheet>,
+    );
+
+    expect(screen.getByTestId('sheet-content')).toHaveClass(
+      'pl-[max(1.5rem,env(safe-area-inset-left))]',
+      'pr-[max(1.5rem,env(safe-area-inset-right))]',
+    );
+    expect(screen.getByTestId('sheet-close')).toHaveClass('right-[max(1rem,env(safe-area-inset-right))]');
   });
 
   it('applies side=top classes', () => {

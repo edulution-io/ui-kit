@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -11,18 +11,23 @@ type WarningBoxVariant = 'warning' | 'error' | 'success' | 'info';
 
 type WarningBoxLayout = 'block' | 'inline';
 
-const LAYOUT_STYLES: Record<WarningBoxLayout, { box: string; icon: string; title: string; description: string }> = {
+const LAYOUT_STYLES: Record<
+  WarningBoxLayout,
+  { box: string; icon: string; title: string; description: string; wrappingDescription: string }
+> = {
   block: {
     box: 'mb-4 rounded-lg p-3 flex flex-col items-center text-center',
     icon: 'mb-2 flex h-6 w-6 items-center justify-start',
     title: 'font-bold',
     description: 'text-sm',
+    wrappingDescription: 'text-sm',
   },
   inline: {
     box: 'rounded-md px-2.5 py-1 flex min-w-0 flex-row items-center gap-2 text-left',
     icon: 'flex h-4 w-4 shrink-0 items-center justify-center',
     title: 'shrink-0 text-sm font-semibold',
     description: 'min-w-0 truncate text-sm',
+    wrappingDescription: 'min-w-0 break-words text-sm',
   },
 };
 
@@ -59,6 +64,7 @@ interface WarningBoxProps {
   textColor?: string;
   icon?: React.ReactNode;
   layout?: WarningBoxLayout;
+  wrapDescription?: boolean;
 }
 
 const WarningBox: React.FC<WarningBoxProps> = ({
@@ -71,6 +77,7 @@ const WarningBox: React.FC<WarningBoxProps> = ({
   textColor,
   icon,
   layout = 'block',
+  wrapDescription = false,
 }: WarningBoxProps) => {
   const variantStyles = variant ? VARIANT_STYLES[variant] : { borderColor: '', backgroundColor: '', textColor: '' };
   const resolvedBorderColor = borderColor ?? variantStyles.borderColor;
@@ -84,7 +91,7 @@ const WarningBox: React.FC<WarningBoxProps> = ({
     >
       {icon && <div className={layoutStyles.icon}>{icon}</div>}
       {title && <p className={layoutStyles.title}>{title}</p>}
-      <p className={layoutStyles.description}>{description}</p>
+      <p className={wrapDescription ? layoutStyles.wrappingDescription : layoutStyles.description}>{description}</p>
       {filenames && filenames.length > 0 && (
         <ItemList
           layout="inline"

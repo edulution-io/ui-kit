@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -168,6 +168,33 @@ describe('WarningBox', () => {
     expect(box.className).not.toContain('flex-col');
     expect(box).toHaveTextContent('3 without a seat');
     expect(box).toHaveTextContent('20 seats · 23 pupils');
+  });
+
+  it('truncates an inline description to keep the box on one row', () => {
+    render(
+      <WarningBox
+        layout="inline"
+        title="t"
+        description="A long description"
+      />,
+    );
+
+    expect(screen.getByText('A long description')).toHaveClass('truncate');
+  });
+
+  it('wraps an inline description instead of truncating it when asked to', () => {
+    render(
+      <WarningBox
+        layout="inline"
+        title="t"
+        description="A long description"
+        wrapDescription
+      />,
+    );
+
+    const description = screen.getByText('A long description');
+    expect(description).not.toHaveClass('truncate');
+    expect(description).toHaveClass('min-w-0', 'break-words');
   });
 
   it('keeps the block layout when no layout is given, so existing boxes do not change', () => {

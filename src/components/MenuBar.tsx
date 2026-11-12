@@ -1,13 +1,13 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useMediaQuery from '../hooks/useMediaQuery';
-import useOnClickOutside from '../hooks/useOnClickOutside';
+import usePopoverOutsideDismiss from '../hooks/usePopoverOutsideDismiss';
 import buildActionMap from '../utils/buildActionMap';
 import filterMenuTreeByQuery from '../utils/filterMenuTreeByQuery';
 import findInTree from '../utils/findInTree';
@@ -209,30 +209,36 @@ const MenuBar: React.FC<MenuBarProps> = ({
     }
   }, [isDesktop, onOpenChange]);
 
-  useOnClickOutside(menuBarRef, closeMobileMenu);
+  usePopoverOutsideDismiss(menuBarRef, closeMobileMenu);
 
   const activeColorClass = getActiveColorClass(config.color);
   const actionMap = useMemo(() => buildActionMap(config.items), [config.items]);
 
+  const closeMobileMenuAfterClickOn = useCallback(
+    (id: string) => {
+      const keepsMenuOpen = findInTree(config.items, (item) => item.id === id)?.keepMenuOpen;
+      if (!keepsMenuOpen) {
+        closeMobileMenu();
+      }
+    },
+    [config.items, closeMobileMenu],
+  );
+
   const handleItemClick = useCallback(
     (id: string) => {
-      if (!isDesktop) {
-        onOpenChange(false);
-      }
+      closeMobileMenuAfterClickOn(id);
       actionMap.get(id)?.();
     },
-    [isDesktop, onOpenChange, actionMap],
+    [closeMobileMenuAfterClickOn, actionMap],
   );
 
   const handleChildClick = useCallback(
     (childId: string) => {
-      if (!isDesktop) {
-        onOpenChange(false);
-      }
+      closeMobileMenuAfterClickOn(childId);
       onChildClickProp?.(childId);
       actionMap.get(childId)?.();
     },
-    [isDesktop, onOpenChange, onChildClickProp, actionMap],
+    [closeMobileMenuAfterClickOn, onChildClickProp, actionMap],
   );
 
   return (

@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -8,6 +8,7 @@ import * as React from 'react';
 import { useDndContext, useDroppable } from '@dnd-kit/core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import MENU_BAR_DRAWER_LABEL_CLASSES from '../constants/menuBarDrawerLabelClasses';
 import cn from '../utils/cn';
 import sumChildBadges from '../utils/sumChildBadges';
 import { Button } from './Button';
@@ -126,7 +127,7 @@ const MenuBarSubItem: React.FC<MenuBarSubItemProps> = ({
           style={{ paddingLeft }}
         >
           <span className="mr-2 w-4 shrink-0">{item.icon}</span>
-          <span className="flex-1 truncate text-left">{item.label}</span>
+          <span className={cn('flex-1 truncate text-left', MENU_BAR_DRAWER_LABEL_CLASSES)}>{item.label}</span>
           {displayedBadge > 0 && (
             <CountBadge
               count={displayedBadge}

@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -64,6 +64,10 @@ import { render, screen } from '@testing-library/react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
 
 describe('Tabs', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('renders tabs with list and triggers', () => {
     render(
       <Tabs defaultValue="tab1">
@@ -140,6 +144,21 @@ describe('Tabs', () => {
     expect(ref.current).toBe(screen.getByTestId('tabs-list'));
   });
 
+  it('hands the TabsList element to a callback ref', () => {
+    const callbackRef = vi.fn();
+    const { unmount } = render(
+      <Tabs>
+        <TabsList ref={callbackRef}>
+          <TabsTrigger value="a">A</TabsTrigger>
+        </TabsList>
+      </Tabs>,
+    );
+    expect(callbackRef).toHaveBeenCalledWith(screen.getByTestId('tabs-list'));
+
+    unmount();
+    expect(callbackRef).toHaveBeenLastCalledWith(null);
+  });
+
   it('forwards ref to TabsTrigger', () => {
     const ref = createRef<HTMLButtonElement>();
     render(
@@ -183,5 +202,33 @@ describe('Tabs', () => {
     const list = screen.getByTestId('tabs-list');
     expect(list).toHaveClass('overflow-x-auto', 'scrollbar-thin', 'md:scrollbar-none');
     expect(list).not.toHaveClass('scrollbar-none');
+  });
+
+  it('keeps the scrollbar from md up and fades the clipped edge while the triggers overflow', () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(900);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400);
+
+    render(
+      <Tabs defaultValue="tab1">
+        <TabsList>
+          <TabsTrigger value="tab1">One</TabsTrigger>
+        </TabsList>
+      </Tabs>,
+    );
+    const list = screen.getByTestId('tabs-list');
+    expect(list).not.toHaveClass('md:scrollbar-none');
+    expect(list).toHaveClass('scrollbar-thin');
+    expect(list.style.maskImage).toContain('linear-gradient(to right');
+  });
+
+  it('keeps a caller-provided style next to the fade mask', () => {
+    render(
+      <Tabs>
+        <TabsList style={{ minHeight: '3rem' }}>
+          <TabsTrigger value="a">A</TabsTrigger>
+        </TabsList>
+      </Tabs>,
+    );
+    expect(screen.getByTestId('tabs-list').style.minHeight).toBe('3rem');
   });
 });

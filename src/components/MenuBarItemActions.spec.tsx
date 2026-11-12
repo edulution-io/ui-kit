@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -35,6 +35,18 @@ describe('MenuBarItemActions', () => {
       />,
     );
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('shows the trigger without hover wherever a touch pointer is present, hybrid devices included', () => {
+    render(
+      <MenuBarItemActions
+        actions={[{ id: 'edit', label: 'Edit', onClick: vi.fn() }]}
+        label="Actions"
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Actions' }).className).toContain(
+      '[@media(any-pointer:coarse)]:opacity-100',
+    );
   });
 
   it('renders a trigger with the provided accessible label', () => {

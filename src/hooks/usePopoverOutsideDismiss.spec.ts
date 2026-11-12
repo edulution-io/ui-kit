@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -63,6 +63,26 @@ describe('usePopoverOutsideDismiss', () => {
     insideAnchor.dispatchEvent(pointerDown());
 
     expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it('does not dismiss on a pointer down inside an element the extra selector matches', () => {
+    const dialog = appendTo(document.body, 'div');
+    dialog.setAttribute('role', 'dialog');
+    const insideDialog = appendTo(dialog, 'button');
+    renderHook(() => usePopoverOutsideDismiss(anchorRef, onDismiss, '[role="dialog"]'));
+
+    insideDialog.dispatchEvent(pointerDown());
+
+    expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it('still dismisses outside both the poppers and the extra selector', () => {
+    const outside = appendTo(document.body, 'button');
+    renderHook(() => usePopoverOutsideDismiss(anchorRef, onDismiss, '[role="dialog"]'));
+
+    outside.dispatchEvent(pointerDown());
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
   it('dismisses when the pointer down target is not an element', () => {

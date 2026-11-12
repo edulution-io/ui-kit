@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -81,7 +81,7 @@ const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.C
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          'fixed left-[50%] top-[50%] z-50 grid max-h-[round(down,90vh,2px)] w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overflow-auto rounded-lg p-6 outline-none duration-200 scrollbar-thin',
+          'fixed left-[50%] top-[50%] z-50 grid max-h-[round(down,90vh,2px)] w-full max-w-lg translate-x-[-50%] translate-y-[-50%] grid-cols-[minmax(0,1fr)] gap-4 overflow-auto rounded-lg p-6 outline-none duration-200 scrollbar-thin',
           { 'shadow-lg': variant !== 'primary' },
           { 'liquid-glass liquid-glass-panel': variant === 'primary' },
           { 'color-white': variant === 'secondary' },

@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024-2026 Netzint GmbH
- * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Netzint-Commercial
+ * Copyright (C) 2024-2026 Digitale Schule Innovationsberatung GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-DSI-Commercial
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
@@ -36,6 +36,7 @@ const DEFAULT_YEARS_IN_PAST = 120;
 const DEFAULT_YEARS_IN_FUTURE = 10;
 const MONTH_SAMPLE_YEAR = 2000;
 const SINGLE_CLICK_OPEN_DELAY_MS = 180;
+const POPOVER_COLLISION_PADDING_PX = 8;
 const YEAR_DIGITS = 4;
 const REQUIRED_DATE_PART_COUNT = 3;
 const TIME_MASK = 'HH:mm';
@@ -56,6 +57,22 @@ const DATE_PART_TOKENS: Record<DatePartType, string> = { day: 'dd', month: 'MM',
 const DEFAULT_DATE_ORDER: DatePartType[] = ['day', 'month', 'year'];
 
 const isDatePartType = (type: string): type is DatePartType => type === 'day' || type === 'month' || type === 'year';
+
+const scrollSelectedIntoView = (list: HTMLDivElement | null, selectedIndex: number): void => {
+  const selected = list?.children.item(selectedIndex);
+  const viewport = list?.closest<HTMLElement>(SCROLL_AREA_VIEWPORT_SELECTOR);
+  if (!selected || !viewport) return;
+  const viewportRect = viewport.getBoundingClientRect();
+  const selectedRect = selected.getBoundingClientRect();
+  viewport.scrollLeft += selectedRect.left - viewportRect.left - (viewportRect.width - selectedRect.width) / 2;
+  viewport.scrollTop += selectedRect.top - viewportRect.top - (viewportRect.height - selectedRect.height) / 2;
+};
+
+const getHeightHiddenBelow = (container: HTMLElement, target: HTMLElement): number =>
+  target.getBoundingClientRect().bottom -
+  container.getBoundingClientRect().top -
+  container.clientTop -
+  container.clientHeight;
 
 const scrollViewportOnWheel = (event: React.WheelEvent<HTMLDivElement>): void => {
   const viewport = event.currentTarget.closest<HTMLElement>(SCROLL_AREA_VIEWPORT_SELECTOR);
@@ -429,6 +446,19 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
     [displayYear, displayMonthIndex],
   );
 
+  const handleMonthYearSelect = useCallback(
+    (year: number, monthIndex: number) => {
+      setDisplayMonth(new Date(year, monthIndex, 1));
+      if (!value) return;
+      const moved = safeGetDate(value);
+      const lastDayOfMonth = new Date(year, monthIndex + 1, 0).getDate();
+      moved.setFullYear(year, monthIndex, Math.min(moved.getDate(), lastDayOfMonth));
+      if (disabledDate?.(moved)) return;
+      onChange(moved);
+    },
+    [value, disabledDate, onChange],
+  );
+
   const triggerText = useMemo(() => {
     if (!value) return placeholder ?? '';
     const dateOptions: Intl.DateTimeFormatOptions =
@@ -439,11 +469,48 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
     return new Date(value).toLocaleString(displayLocale, { ...dateOptions, ...timeOptions });
   }, [value, placeholder, mode, showTime, displayLocale]);
 
-  const hourValues = useMemo(() => Array.from({ length: HOURS_IN_DAY }, (_, hour) => hour).reverse(), []);
+  const hourValues = useMemo(() => Array.from({ length: HOURS_IN_DAY }, (_, hour) => hour), []);
   const minuteValues = useMemo(
     () => Array.from({ length: Math.ceil(MINUTES_IN_HOUR / minuteStep) }, (_, index) => index * minuteStep),
     [minuteStep],
   );
+
+  const selectedTimeRef = useRef({ hours, minutes, minuteStep });
+
+  useEffect(() => {
+    selectedTimeRef.current = { hours, minutes, minuteStep };
+  }, [hours, minutes, minuteStep]);
+
+  const timeStripsRef = useRef<HTMLDivElement>(null);
+
+  const attachContent = useCallback((content: HTMLDivElement | null) => {
+    contentRef.current = content;
+    if (!content || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(() => {
+      const scrollContainer = contentRef.current;
+      const strips = timeStripsRef.current;
+      if (!scrollContainer || !strips) return;
+      const hiddenBelow = getHeightHiddenBelow(scrollContainer, strips);
+      if (hiddenBelow <= 0) return;
+      scrollContainer.scrollTop += hiddenBelow;
+      observer.disconnect();
+    });
+    observer.observe(content);
+    return () => {
+      observer.disconnect();
+      contentRef.current = null;
+    };
+  }, []);
+
+  const scrollHourListToSelected = useCallback(
+    (list: HTMLDivElement | null) => scrollSelectedIntoView(list, selectedTimeRef.current.hours),
+    [],
+  );
+
+  const scrollMinuteListToSelected = useCallback((list: HTMLDivElement | null) => {
+    const { minutes: selectedMinutes, minuteStep: step } = selectedTimeRef.current;
+    scrollSelectedIntoView(list, Math.floor(selectedMinutes / step));
+  }, []);
 
   return (
     <Popover
@@ -509,8 +576,11 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
       </PopoverAnchor>
 
       <PopoverContent
-        ref={contentRef}
-        className={cn('liquid-glass-panel w-auto rounded-lg p-0 text-foreground')}
+        ref={attachContent}
+        collisionPadding={POPOVER_COLLISION_PADDING_PX}
+        className={cn(
+          'liquid-glass-panel max-h-[var(--radix-popover-content-available-height)] w-auto overflow-y-auto rounded-lg p-0 text-foreground',
+        )}
       >
         <div className="sm:flex">
           {showCalendar && (
@@ -533,14 +603,14 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                     ariaLabel={monthLabel}
                     options={monthOptions}
                     selected={displayMonthIndex}
-                    onSelect={(month) => setDisplayMonth(new Date(displayYear, month, 1))}
+                    onSelect={(month) => handleMonthYearSelect(displayYear, month)}
                   />
                   <MonthYearSelect
                     label={String(displayYear)}
                     ariaLabel={yearLabel}
                     options={yearOptions}
                     selected={displayYear}
-                    onSelect={(year) => setDisplayMonth(new Date(year, displayMonthIndex, 1))}
+                    onSelect={(year) => handleMonthYearSelect(year, displayMonthIndex)}
                   />
                 </div>
                 <Button
@@ -589,9 +659,13 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                 />
                 {timeSlotLabel ? <span className="ml-1">{timeSlotLabel}</span> : null}
               </div>
-              <div className="flex flex-col divide-y sm:h-[300px] sm:flex-row sm:divide-x sm:divide-y-0">
+              <div
+                ref={timeStripsRef}
+                className="flex flex-col divide-y sm:h-[300px] sm:flex-row sm:divide-x sm:divide-y-0"
+              >
                 <ScrollArea className="w-64 sm:h-[300px] sm:w-auto">
                   <div
+                    ref={scrollHourListToSelected}
                     className="flex p-2 sm:flex-col"
                     onWheel={scrollViewportOnWheel}
                   >
@@ -609,6 +683,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
 
                 <ScrollArea className="w-64 sm:h-[300px] sm:w-auto">
                   <div
+                    ref={scrollMinuteListToSelected}
                     className="flex p-2 sm:flex-col"
                     onWheel={scrollViewportOnWheel}
                   >
