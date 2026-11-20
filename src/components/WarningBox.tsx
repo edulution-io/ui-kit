@@ -5,24 +5,42 @@
  */
 
 import React from 'react';
+import cn from '../utils/cn';
 import ItemList from './ItemList';
 
 type WarningBoxVariant = 'warning' | 'error' | 'success' | 'info';
 
 type WarningBoxLayout = 'block' | 'inline';
 
-const LAYOUT_STYLES: Record<WarningBoxLayout, { box: string; icon: string; title: string; description: string }> = {
+const LAYOUT_STYLES: Record<
+  WarningBoxLayout,
+  {
+    box: string;
+    icon: string;
+    title: string;
+    description: string;
+    wrappingDescription: string;
+    content: string;
+    actions: string;
+  }
+> = {
   block: {
     box: 'mb-4 rounded-lg p-3 flex flex-col items-center text-center',
     icon: 'mb-2 flex h-6 w-6 items-center justify-start',
     title: 'font-bold',
     description: 'text-sm',
+    wrappingDescription: 'text-sm',
+    content: 'mt-2 w-full',
+    actions: 'mt-3 flex flex-wrap justify-center gap-2',
   },
   inline: {
     box: 'rounded-md px-2.5 py-1 flex min-w-0 flex-row items-center gap-2 text-left',
     icon: 'flex h-4 w-4 shrink-0 items-center justify-center',
     title: 'shrink-0 text-sm font-semibold',
     description: 'min-w-0 truncate text-sm',
+    wrappingDescription: 'min-w-0 break-words text-sm',
+    content: 'min-w-0',
+    actions: 'ml-auto flex shrink-0 items-center gap-2',
   },
 };
 
@@ -51,7 +69,7 @@ const VARIANT_STYLES: Record<WarningBoxVariant, { borderColor: string; backgroun
 
 interface WarningBoxProps {
   title?: string;
-  description: string;
+  description?: string;
   filenames?: string[];
   variant?: WarningBoxVariant;
   borderColor?: string;
@@ -59,6 +77,10 @@ interface WarningBoxProps {
   textColor?: string;
   icon?: React.ReactNode;
   layout?: WarningBoxLayout;
+  wrapDescription?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+  actions?: React.ReactNode;
 }
 
 const WarningBox: React.FC<WarningBoxProps> = ({
@@ -71,26 +93,33 @@ const WarningBox: React.FC<WarningBoxProps> = ({
   textColor,
   icon,
   layout = 'block',
+  wrapDescription = false,
+  className,
+  children,
+  actions,
 }: WarningBoxProps) => {
   const variantStyles = variant ? VARIANT_STYLES[variant] : { borderColor: '', backgroundColor: '', textColor: '' };
   const resolvedBorderColor = borderColor ?? variantStyles.borderColor;
   const resolvedBackgroundColor = backgroundColor ?? variantStyles.backgroundColor;
   const resolvedTextColor = textColor ?? variantStyles.textColor;
   const layoutStyles = LAYOUT_STYLES[layout];
+  const boxClassName = `border ${resolvedBorderColor} ${resolvedBackgroundColor} ${resolvedTextColor} ${layoutStyles.box}`;
 
   return (
-    <div
-      className={`border ${resolvedBorderColor} ${resolvedBackgroundColor} ${resolvedTextColor} ${layoutStyles.box}`}
-    >
+    <div className={className ? cn(boxClassName, className) : boxClassName}>
       {icon && <div className={layoutStyles.icon}>{icon}</div>}
       {title && <p className={layoutStyles.title}>{title}</p>}
-      <p className={layoutStyles.description}>{description}</p>
+      {description && (
+        <p className={wrapDescription ? layoutStyles.wrappingDescription : layoutStyles.description}>{description}</p>
+      )}
       {filenames && filenames.length > 0 && (
         <ItemList
           layout="inline"
           items={filenames.map((name) => ({ id: name, name }))}
         />
       )}
+      {children && <div className={layoutStyles.content}>{children}</div>}
+      {actions && <div className={layoutStyles.actions}>{actions}</div>}
     </div>
   );
 };

@@ -740,6 +740,194 @@ describe('SelectionWizard', () => {
     });
   });
 
+  describe('submit on Enter', () => {
+    const fieldStep = (id: string, overrides: Partial<SelectionWizardStep> = {}) =>
+      step(id, {
+        render: () => (
+          <div>
+            <input data-testid={`field-${id}`} />
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked="true"
+              data-testid={`checkbox-${id}`}
+            />
+            <button
+              type="button"
+              data-testid={`button-${id}`}
+            />
+            <div
+              role="button"
+              tabIndex={0}
+              data-testid={`row-${id}`}
+            />
+            <div
+              role="menuitem"
+              tabIndex={0}
+              data-testid={`menuitem-${id}`}
+            />
+            <div
+              role="link"
+              tabIndex={0}
+              data-testid={`link-${id}`}
+            />
+            <a
+              href="#target"
+              data-testid={`anchor-${id}`}
+            >
+              target
+            </a>
+            <div
+              role="option"
+              aria-selected="false"
+              tabIndex={0}
+              data-testid={`option-${id}`}
+            />
+            <div
+              role="tab"
+              tabIndex={0}
+              data-testid={`tab-${id}`}
+            />
+            <input
+              role="combobox"
+              aria-expanded="false"
+              aria-controls={`listbox-${id}`}
+              data-testid={`combobox-${id}`}
+            />
+            <textarea data-testid={`textarea-${id}`} />
+          </div>
+        ),
+        ...overrides,
+      });
+
+    const renderEnterWizard = ({
+      submitsOnEnter = true,
+      layout = 'columns' as const,
+      activeStepId = 'b',
+      isLastStepComplete = true,
+      onSubmit = vi.fn(),
+    }: {
+      submitsOnEnter?: boolean;
+      layout?: 'columns' | 'steps';
+      activeStepId?: string;
+      isLastStepComplete?: boolean;
+      onSubmit?: () => Promise<void> | void;
+    } = {}) => {
+      render(
+        <SelectionWizard
+          title="Pick"
+          layout={layout}
+          steps={[fieldStep('a', { isComplete: true }), fieldStep('b', { isComplete: isLastStepComplete })]}
+          activeStepId={activeStepId}
+          onActiveStepChange={vi.fn()}
+          labels={LABELS}
+          onCancel={vi.fn()}
+          onSubmit={onSubmit}
+          submitsOnEnter={submitsOnEnter}
+        />,
+      );
+      return onSubmit;
+    };
+
+    it('submits when Enter is pressed in a field of a step', () => {
+      const onSubmit = renderEnterWizard();
+
+      fireEvent.keyDown(screen.getByTestId('field-b'), { key: 'Enter' });
+
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    it('submits when Enter is pressed on a ticked checkbox', () => {
+      const onSubmit = renderEnterWizard();
+
+      fireEvent.keyDown(screen.getByTestId('checkbox-b'), { key: 'Enter' });
+
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores Enter unless the caller asks for it', () => {
+      const onSubmit = renderEnterWizard({ submitsOnEnter: false });
+
+      fireEvent.keyDown(screen.getByTestId('field-b'), { key: 'Enter' });
+
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('ignores other keys', () => {
+      const onSubmit = renderEnterWizard();
+
+      fireEvent.keyDown(screen.getByTestId('field-b'), { key: 'a' });
+
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('ignores Enter while a required step is incomplete', () => {
+      const onSubmit = renderEnterWizard({ isLastStepComplete: false });
+
+      fireEvent.keyDown(screen.getByTestId('field-b'), { key: 'Enter' });
+
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('leaves Enter on a button to that button', () => {
+      const onSubmit = renderEnterWizard();
+
+      fireEvent.keyDown(screen.getByTestId('button-b'), { key: 'Enter' });
+      fireEvent.keyDown(screen.getByTestId('selection-wizard-cancel'), { key: 'Enter' });
+
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('leaves Enter on a row that acts as a button to that row', () => {
+      const onSubmit = renderEnterWizard();
+
+      fireEvent.keyDown(screen.getByTestId('row-b'), { key: 'Enter' });
+
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['a menu item', 'menuitem'],
+      ['an element that acts as a link', 'link'],
+      ['a link', 'anchor'],
+      ['an option', 'option'],
+      ['a tab', 'tab'],
+      ['a combobox', 'combobox'],
+      ['a text area', 'textarea'],
+    ])('leaves Enter on %s to that element', (_element, kind) => {
+      const onSubmit = renderEnterWizard();
+
+      fireEvent.keyDown(screen.getByTestId(`${kind}-b`), { key: 'Enter' });
+
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('ignores Enter that confirms an input method composition', () => {
+      const onSubmit = renderEnterWizard();
+
+      fireEvent.keyDown(screen.getByTestId('field-b'), { key: 'Enter', isComposing: true });
+
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('ignores Enter on a step that does not offer submit yet', () => {
+      const onSubmit = renderEnterWizard({ layout: 'steps', activeStepId: 'a' });
+
+      fireEvent.keyDown(screen.getByTestId('field-a'), { key: 'Enter' });
+
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('ignores a second Enter while the first submit is running', () => {
+      const onSubmit = renderEnterWizard({ onSubmit: vi.fn(() => new Promise<void>(() => {})) });
+
+      fireEvent.keyDown(screen.getByTestId('field-b'), { key: 'Enter' });
+      fireEvent.keyDown(screen.getByTestId('field-b'), { key: 'Enter' });
+
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('dialog shell', () => {
     it('wraps the wizard in a dialog with the title and reports the close', () => {
       const onClose = vi.fn();
@@ -761,6 +949,33 @@ describe('SelectionWizard', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'Close' }));
       expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores close and Escape and disables cancel while dismissing is disabled', () => {
+      const onClose = vi.fn();
+      const onCancel = vi.fn();
+      render(
+        <SelectionWizard
+          as="dialog"
+          isOpen
+          isDismissDisabled
+          onClose={onClose}
+          onCancel={onCancel}
+          title="Hand out files"
+          steps={[step('a')]}
+          activeStepId="a"
+          onActiveStepChange={vi.fn()}
+          labels={LABELS}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+      fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+      fireEvent.click(screen.getByTestId('selection-wizard-cancel'));
+
+      expect(screen.getByTestId('selection-wizard-cancel')).toBeDisabled();
+      expect(onClose).not.toHaveBeenCalled();
+      expect(onCancel).not.toHaveBeenCalled();
     });
 
     it('renders nothing while closed', () => {
@@ -823,6 +1038,14 @@ describe('SelectionWizard', () => {
 
       expect(screen.getByRole('dialog', { name: 'Start session' })).toHaveClass('rounded-t-lg');
       expect(screen.getByRole('dialog', { name: 'Start session' })).not.toHaveClass('rounded-t-xl');
+    });
+
+    it('keeps the sheet clear of the side safe areas', () => {
+      mediaQueryMatches.mockReturnValue(true);
+
+      renderAdaptive();
+
+      expect(screen.getByRole('dialog', { name: 'Start session' })).toHaveClass('safe-area-inset-x');
     });
 
     it('moves the sheet above the on-screen keyboard, so Start stays in reach while a search field has focus', () => {

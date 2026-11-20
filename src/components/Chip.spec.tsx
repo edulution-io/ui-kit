@@ -14,6 +14,7 @@ vi.mock('class-variance-authority', () => ({
   },
 }));
 
+import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Chip } from './Chip';
 
@@ -57,5 +58,56 @@ describe('Chip', () => {
   it('passes additional HTML attributes', () => {
     render(<Chip data-testid="custom-chip">Tag</Chip>);
     expect(screen.getByTestId('custom-chip')).toBeInTheDocument();
+  });
+
+  it('does not look selected by default', () => {
+    render(<Chip>Tag</Chip>);
+
+    expect(screen.getByRole('button').className).not.toContain('bg-primary');
+  });
+
+  it('fills a selected chip with the primary colour and leaves the ARIA state to the caller', () => {
+    render(
+      <Chip
+        selected
+        aria-pressed
+      >
+        Tag
+      </Chip>,
+    );
+    const classes = screen.getByRole('button', { pressed: true }).className.split(' ');
+
+    expect(classes).toContain('bg-primary');
+    expect(classes).toContain('text-primary-foreground');
+    expect(classes).not.toContain('bg-accent');
+    expect(classes).not.toContain('text-foreground');
+  });
+
+  it('forwards its ref to the button', () => {
+    const ref = React.createRef<HTMLButtonElement>();
+    render(<Chip ref={ref}>Tag</Chip>);
+
+    expect(ref.current).toBe(screen.getByRole('button'));
+  });
+
+  it('renders a static span without button semantics with asChild', () => {
+    const ref = React.createRef<HTMLButtonElement>();
+    render(
+      <Chip
+        asChild
+        ref={ref}
+        className="my-chip"
+      >
+        <span data-testid="static-chip">Last used</span>
+      </Chip>,
+    );
+    const chip = screen.getByTestId('static-chip');
+
+    expect(chip.tagName).toBe('SPAN');
+    expect(chip).not.toHaveAttribute('type');
+    expect(chip).not.toHaveAttribute('aschild');
+    expect(chip).toHaveClass('bg-accent', 'my-chip');
+    expect(ref.current).toBe(chip);
+    expect(screen.queryByRole('button')).toBeNull();
   });
 });

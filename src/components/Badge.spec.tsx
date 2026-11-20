@@ -4,16 +4,6 @@
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-vi.mock('class-variance-authority', () => ({
-  cva: (base: string, config?: any) => (props?: any) => {
-    const variant = props?.variant || config?.defaultVariants?.variant || 'default';
-    const variantClass = config?.variants?.variant?.[variant] || '';
-    return [base, variantClass].filter(Boolean).join(' ');
-  },
-}));
-
 import { render, screen } from '@testing-library/react';
 import { Badge } from './Badge';
 
@@ -56,6 +46,23 @@ describe('Badge', () => {
   it('always applies fixed height', () => {
     const { container } = render(<Badge>Tag</Badge>);
     expect(container.firstElementChild.className).toContain('h-[36px]');
+  });
+
+  it('keeps its fixed height over a height the consumer passes', () => {
+    const { container } = render(<Badge className="h-10">Tag</Badge>);
+    expect(container.firstElementChild.className).toContain('h-[36px]');
+    expect(container.firstElementChild.className).not.toContain('h-10');
+  });
+
+  it('renders the small size lower and with smaller text than the default', () => {
+    const { container } = render(<Badge size="sm">Tag</Badge>);
+    const { className } = container.firstElementChild;
+    expect(className).toContain('h-6');
+    expect(className).toContain('text-xs');
+    expect(className).toContain('px-2');
+    expect(className).not.toContain('h-[36px]');
+    expect(className).not.toContain('text-base');
+    expect(className).not.toContain('px-2.5');
   });
 
   it('caps its width at the width of its container', () => {
@@ -140,5 +147,49 @@ describe('Badge', () => {
   it('passes additional HTML attributes', () => {
     render(<Badge data-testid="custom-badge">Tag</Badge>);
     expect(screen.getByTestId('custom-badge')).toBeInTheDocument();
+  });
+
+  it('keeps the 36px height and default padding when no size is given', () => {
+    const { container } = render(<Badge>Tag</Badge>);
+    const badge = container.firstElementChild;
+
+    expect(badge.className).toContain('h-[36px]');
+    expect(badge.className).toContain('px-2.5');
+    expect(badge.className).not.toContain('h-6');
+    expect(screen.getByText('Tag').className).toBe('min-w-0 truncate');
+  });
+
+  it('sizes the text span of the small size down too, since the frontend sizes every span itself', () => {
+    render(<Badge size="sm">Tag</Badge>);
+
+    expect(screen.getByText('Tag').className.split(' ')).toContain('text-xs');
+  });
+
+  it('keeps the small height when a caller passes another height', () => {
+    const { container } = render(
+      <Badge
+        size="sm"
+        className="h-9"
+      >
+        Tag
+      </Badge>,
+    );
+
+    expect(container.firstElementChild.className.split(' ')).not.toContain('h-9');
+    expect(container.firstElementChild.className).toContain('h-6');
+  });
+
+  it('lets a caller adjust the small padding', () => {
+    const { container } = render(
+      <Badge
+        size="sm"
+        className="px-1.5"
+      >
+        Tag
+      </Badge>,
+    );
+
+    expect(container.firstElementChild.className.split(' ')).toContain('px-1.5');
+    expect(container.firstElementChild.className.split(' ')).not.toContain('px-2');
   });
 });

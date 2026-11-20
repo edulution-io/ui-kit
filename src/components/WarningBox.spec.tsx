@@ -170,6 +170,33 @@ describe('WarningBox', () => {
     expect(box).toHaveTextContent('20 seats · 23 pupils');
   });
 
+  it('truncates an inline description to keep the box on one row', () => {
+    render(
+      <WarningBox
+        layout="inline"
+        title="t"
+        description="A long description"
+      />,
+    );
+
+    expect(screen.getByText('A long description')).toHaveClass('truncate');
+  });
+
+  it('wraps an inline description instead of truncating it when asked to', () => {
+    render(
+      <WarningBox
+        layout="inline"
+        title="t"
+        description="A long description"
+        wrapDescription
+      />,
+    );
+
+    const description = screen.getByText('A long description');
+    expect(description).not.toHaveClass('truncate');
+    expect(description).toHaveClass('min-w-0', 'break-words');
+  });
+
   it('keeps the block layout when no layout is given, so existing boxes do not change', () => {
     const { container } = render(
       <WarningBox
@@ -180,5 +207,107 @@ describe('WarningBox', () => {
     );
 
     expect((container.firstElementChild as HTMLElement).className).toContain('flex-col');
+  });
+
+  it('keeps the box classes and renders no content or action slot by default', () => {
+    const { container } = render(
+      <WarningBox
+        description="Plain"
+        variant="error"
+      />,
+    );
+    const box = container.firstElementChild as HTMLElement;
+
+    expect(box.className).toBe(
+      'border border-colorDanger bg-colorDanger/10 text-colorDanger dark:text-colorDangerLight mb-4 rounded-lg p-3 flex flex-col items-center text-center',
+    );
+    expect(box.children).toHaveLength(1);
+  });
+
+  it('renders children below the description at full width in the block layout', () => {
+    render(
+      <WarningBox
+        title="Check failed"
+        description="Two rows have errors"
+      >
+        <table data-testid="error-table" />
+      </WarningBox>,
+    );
+    const content = screen.getByTestId('error-table').parentElement as HTMLElement;
+
+    expect(content).toHaveClass('w-full');
+    expect(content.previousElementSibling).toBe(screen.getByText('Two rows have errors'));
+  });
+
+  it('renders children in a shrinkable slot without full width in the inline layout', () => {
+    render(
+      <WarningBox
+        layout="inline"
+        description="An unsaved draft exists"
+      >
+        <span data-testid="draft-age">2 minutes ago</span>
+      </WarningBox>,
+    );
+    const content = screen.getByTestId('draft-age').parentElement as HTMLElement;
+
+    expect(content).toHaveClass('min-w-0');
+    expect(content).not.toHaveClass('w-full');
+    expect(content).not.toHaveClass('mt-2');
+  });
+
+  it('renders children without a description', () => {
+    const { container } = render(
+      <WarningBox title="Check incomplete">
+        <p>No details</p>
+      </WarningBox>,
+    );
+
+    expect(screen.getByText('No details')).toBeInTheDocument();
+    expect(container.querySelectorAll('p')).toHaveLength(2);
+  });
+
+  it('puts the actions at the end of the row in the inline layout', () => {
+    const { container } = render(
+      <WarningBox
+        layout="inline"
+        description="An unsaved draft exists"
+        actions={
+          <>
+            <button type="button">Discard</button>
+            <button type="button">Restore</button>
+          </>
+        }
+      />,
+    );
+    const box = container.firstElementChild as HTMLElement;
+    const actions = screen.getByRole('button', { name: 'Restore' }).parentElement as HTMLElement;
+
+    expect(box.lastElementChild).toBe(actions);
+    expect(actions).toHaveClass('ml-auto');
+    expect(screen.getByRole('button', { name: 'Discard' })).toBeInTheDocument();
+  });
+
+  it('centres the actions below the content in the block layout', () => {
+    render(
+      <WarningBox
+        description="Retry later"
+        actions={<button type="button">Retry</button>}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Retry' }).parentElement).toHaveClass('justify-center');
+  });
+
+  it('merges className onto the box so a caller can override a layout class', () => {
+    const { container } = render(
+      <WarningBox
+        description="Flush"
+        className="mb-0"
+      />,
+    );
+    const classes = (container.firstElementChild as HTMLElement).className.split(' ');
+
+    expect(classes).toContain('mb-0');
+    expect(classes).not.toContain('mb-4');
   });
 });

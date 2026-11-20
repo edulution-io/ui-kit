@@ -372,6 +372,51 @@ describe('DropdownSelect', () => {
     expect(input).toBeDisabled();
   });
 
+  it('is not marked disabled when options exist and no disabled prop is given', () => {
+    render(<DropdownSelect {...defaultProps()} />);
+    const combobox = screen.getByRole('combobox');
+
+    expect(combobox.querySelector('input')).toBeEnabled();
+    expect(combobox).not.toHaveAttribute('aria-disabled');
+  });
+
+  it('disables the field and does not open for disabled', async () => {
+    const user = userEvent.setup();
+    render(
+      <DropdownSelect
+        {...defaultProps()}
+        options={FIVE_OPTIONS}
+        disabled
+      />,
+    );
+    const combobox = screen.getByRole('combobox');
+    const input = combobox.querySelector('input');
+
+    await user.click(input);
+    await user.keyboard('al');
+
+    expect(input).toBeDisabled();
+    expect(combobox).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
+  it('closes an open option list when it becomes disabled', async () => {
+    const user = userEvent.setup();
+    const props = defaultProps();
+    const { rerender } = render(<DropdownSelect {...props} />);
+    await user.click(screen.getByRole('combobox').querySelector('input'));
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+    rerender(
+      <DropdownSelect
+        {...props}
+        disabled
+      />,
+    );
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
   it('uses renderLabel to transform option names', async () => {
     const user = userEvent.setup();
     const props = {

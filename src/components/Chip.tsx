@@ -5,6 +5,7 @@
  */
 
 import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import cn from '../utils/cn';
 
@@ -25,16 +26,28 @@ const chipVariants = cva(
 
 export type ChipVariant = NonNullable<VariantProps<typeof chipVariants>['variant']>;
 
-export type ChipProps = React.ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof chipVariants>;
+export type ChipProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
+  VariantProps<typeof chipVariants> & {
+    selected?: boolean;
+    asChild?: boolean;
+  };
 
-const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(({ className, variant, ...props }, ref) => (
-  <button
-    ref={ref}
-    type="button"
-    className={cn(chipVariants({ variant }), className)}
-    {...props}
-  />
-));
+const SELECTED_CLASSES = 'bg-primary text-primary-foreground';
+
+const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
+  ({ className, variant, selected = false, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button';
+
+    return (
+      <Comp
+        ref={ref}
+        type={asChild ? undefined : 'button'}
+        className={cn(chipVariants({ variant }), selected && SELECTED_CLASSES, className)}
+        {...props}
+      />
+    );
+  },
+);
 
 Chip.displayName = 'Chip';
 

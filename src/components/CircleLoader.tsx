@@ -24,6 +24,7 @@ const CircleLoader = ({
 }: CircleLoaderProps) => (
   <div className={cn('relative box-border', height, width, className)}>
     <motion.span
+      data-edu-motion="essential"
       className={cn(
         'absolute left-0 top-0 z-30 box-border block rounded-full border-4 border-t-4',
         forceLightMode ? 'border-lightGrey border-t-primary' : 'border-accent border-t-primary',

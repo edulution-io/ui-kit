@@ -32,6 +32,7 @@ const ProgressBox: React.FC<ProgressBoxProps> = ({ data }) => {
         <Progress
           value={percent}
           className={cn(isIndeterminate && 'animate-pulse')}
+          data-edu-motion={isIndeterminate ? 'essential' : undefined}
         />
         {!isIndeterminate && <span className="whitespace-nowrap text-sm">{percent}%</span>}
       </div>

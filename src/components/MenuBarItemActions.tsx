@@ -41,7 +41,7 @@ const MenuBarItemActions: React.FC<MenuBarItemActionsProps> = ({ actions, label,
           className={cn(
             'shrink-0 p-1 opacity-0 transition-opacity',
             'group-hover/menubar-row:opacity-100 data-[state=open]:opacity-100 focus-visible:opacity-100',
-            '[@media(hover:none)]:opacity-100',
+            '[@media(any-pointer:coarse)]:opacity-100 [@media(hover:none)]:opacity-100',
             className,
           )}
         >

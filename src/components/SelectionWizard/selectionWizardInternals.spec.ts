@@ -8,6 +8,7 @@ import {
   canSubmit,
   findAdjacentStepId,
   isStepReachable,
+  offersSubmit,
   persistentLayoutIdOf,
   resolveColumnSizes,
   resolveRenderedShell,
@@ -88,6 +89,20 @@ describe('selectionWizardInternals', () => {
 
     it('returns null for an unknown active step', () => {
       expect(findAdjacentStepId(steps, 'zzz', 1)).toBeNull();
+    });
+  });
+
+  describe('offersSubmit', () => {
+    const steps = [step('a'), step('b')];
+
+    it('offers submit on every step while the steps sit side by side', () => {
+      expect(offersSubmit(steps, 'a', false)).toBe(true);
+      expect(offersSubmit(steps, 'b', false)).toBe(true);
+    });
+
+    it('offers submit only on the last step while one step shows at a time', () => {
+      expect(offersSubmit(steps, 'a', true)).toBe(false);
+      expect(offersSubmit(steps, 'b', true)).toBe(true);
     });
   });
 

@@ -4,7 +4,13 @@
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
+const motionConfigProps = vi.hoisted(() => vi.fn());
+
 vi.mock('framer-motion', () => ({
+  MotionConfig: ({ children, ...props }: Record<string, unknown>) => {
+    motionConfigProps(props);
+    return children as React.ReactNode;
+  },
   motion: {
     span: ({ children, className }: Record<string, unknown>) => (
       <span
@@ -79,5 +85,10 @@ describe('HorizontalLoader', () => {
     const { container } = render(<HorizontalLoader className="my-loader" />);
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper.className).toContain('my-loader');
+  });
+
+  it('keeps the bar moving under reduced motion, since the motion is the loading signal', () => {
+    render(<HorizontalLoader />);
+    expect(motionConfigProps).toHaveBeenCalledWith({ reducedMotion: 'never' });
   });
 });

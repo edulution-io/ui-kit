@@ -43,9 +43,10 @@ const MenuBarLayout = React.forwardRef<HTMLDivElement, MenuBarLayoutProps>(
       >
         <div
           ref={ref}
+          data-layout="drawer"
           className={cn(
-            'liquid-glass liquid-glass-overlay fixed left-0 h-full w-64 overflow-x-hidden !rounded-lg border-0',
-            'pt-[var(--mobile-top-bar-height,0px)]',
+            'group/menubar liquid-glass liquid-glass-overlay fixed left-0 h-full w-[calc(16rem+env(safe-area-inset-left))] overflow-x-hidden !rounded-lg border-0',
+            'pl-[env(safe-area-inset-left)] pt-[var(--mobile-top-bar-height,0px)]',
             className,
           )}
         >

@@ -49,4 +49,21 @@ describe('TextPreview', () => {
     expect(pre).toBeInTheDocument();
     expect(pre?.textContent).toBe('');
   });
+
+  it('forwards data-testid onto the pre element', () => {
+    render(
+      <TextPreview
+        content="boot log"
+        data-testid="boot-log-content"
+      />,
+    );
+
+    expect(screen.getByTestId('boot-log-content').tagName).toBe('PRE');
+  });
+
+  it('renders no test id when none is given', () => {
+    const { container } = render(<TextPreview content="boot log" />);
+
+    expect(container.querySelector('pre')).not.toHaveAttribute('data-testid');
+  });
 });

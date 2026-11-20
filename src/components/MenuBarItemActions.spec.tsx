@@ -37,6 +37,18 @@ describe('MenuBarItemActions', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it('shows the trigger without hover wherever a touch pointer is present, hybrid devices included', () => {
+    render(
+      <MenuBarItemActions
+        actions={[{ id: 'edit', label: 'Edit', onClick: vi.fn() }]}
+        label="Actions"
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Actions' }).className).toContain(
+      '[@media(any-pointer:coarse)]:opacity-100',
+    );
+  });
+
   it('renders a trigger with the provided accessible label', () => {
     render(
       <MenuBarItemActions

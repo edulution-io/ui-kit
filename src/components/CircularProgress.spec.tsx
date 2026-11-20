@@ -40,4 +40,64 @@ describe('CircularProgress', () => {
     const { container: under } = render(<CircularProgress value={-3} />);
     expect(offset(under)).toBeCloseTo(dasharray(under));
   });
+
+  it('renders a bare ring with the primary arc when no extra props are given', () => {
+    const { container } = render(
+      <CircularProgress
+        value={0.5}
+        className="ml-1"
+      />,
+    );
+
+    expect(container.firstElementChild?.tagName.toLowerCase()).toBe('svg');
+    expect(container.firstElementChild?.getAttribute('class')).toBe('shrink-0 ml-1');
+    expect(progressCircle(container).getAttribute('class')).toBe('stroke-primary');
+  });
+
+  it('colours the arc with the indicator class', () => {
+    const { container } = render(
+      <CircularProgress
+        value={0.5}
+        indicatorClassName="stroke-ciLightGreen"
+      />,
+    );
+
+    expect(progressCircle(container).getAttribute('class')).toBe('stroke-ciLightGreen');
+  });
+
+  it('centres its children inside the ring, outside the hidden svg', () => {
+    const { container, getByText } = render(
+      <CircularProgress
+        value={0.5}
+        size={140}
+        className="mx-auto"
+      >
+        <span>5 / 12</span>
+      </CircularProgress>,
+    );
+
+    const wrapper = container.firstElementChild as HTMLElement;
+    expect(wrapper.tagName).toBe('DIV');
+    expect(wrapper.className).toContain('mx-auto');
+    expect(wrapper.style.width).toBe('140px');
+    expect(container.querySelector('svg')?.getAttribute('class')).toBe('shrink-0');
+    expect(getByText('5 / 12').closest('svg')).toBeNull();
+  });
+
+  it.each([
+    ['false', false],
+    ['null', null],
+  ])('renders the bare ring when its only child is %s', (_label, child) => {
+    const { container } = render(
+      <CircularProgress
+        value={0.5}
+        className="ml-1"
+      >
+        {child}
+      </CircularProgress>,
+    );
+
+    expect(container.firstElementChild?.tagName.toLowerCase()).toBe('svg');
+    expect(container.firstElementChild?.getAttribute('class')).toBe('shrink-0 ml-1');
+  });
 });

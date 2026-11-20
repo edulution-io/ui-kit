@@ -44,6 +44,7 @@ export interface DropdownSelectProps {
   renderOption?: (option: DropdownOptions, label: string) => React.ReactNode;
   groupOf?: (option: DropdownOptions) => string | undefined;
   maxMenuHeight?: number;
+  disabled?: boolean;
 }
 
 const OPTION_ROW_HEIGHT = 38.5;
@@ -73,6 +74,7 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
   renderOption,
   groupOf,
   maxMenuHeight,
+  disabled = false,
 }: DropdownSelectProps) => {
   const searchEnabled = enableSearch && options.length >= searchFromOptionCount;
   const [query, setQuery] = useState('');
@@ -88,6 +90,10 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
     setIsOpen(false);
     setQuery('');
   }, []);
+
+  useEffect(() => {
+    if (disabled) closeMenu();
+  }, [disabled, closeMenu]);
 
   const resolvedMaxHeight = maxMenuHeight ?? MENU_MAX_HEIGHT;
 
@@ -180,9 +186,13 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
     });
   };
 
-  const openMenu = () => setIsOpen(true);
+  const openMenu = () => {
+    if (disabled) return;
+    setIsOpen(true);
+  };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (disabled) return;
     setQuery(event.target.value);
     setIsOpen(true);
   };
@@ -358,6 +368,7 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
       aria-expanded={isOpen}
       aria-haspopup="listbox"
       aria-controls={listboxId}
+      aria-disabled={disabled || undefined}
       onBlur={handleBlur}
     >
       <input
@@ -371,7 +382,7 @@ const DropdownSelect: React.FC<DropdownSelectProps> = ({
         onClick={openMenu}
         onFocus={collapseDisplaySelection}
         readOnly={!searchEnabled}
-        disabled={options.length === 0}
+        disabled={disabled || options.length === 0}
         aria-label={ariaLabel}
         aria-describedby={ariaDescribedBy}
         aria-invalid={ariaInvalid}

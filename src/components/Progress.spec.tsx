@@ -64,4 +64,22 @@ describe('Progress', () => {
     );
     expect(screen.getByTestId('progress-root').className).toContain('custom-progress');
   });
+
+  it('keeps the primary indicator colour when no indicator class is given', () => {
+    render(<Progress value={50} />);
+
+    expect(screen.getByTestId('progress-indicator').className).toBe('h-full w-full flex-1 bg-primary transition-all');
+  });
+
+  it('adds the indicator class to the filled part, not to the track', () => {
+    render(
+      <Progress
+        value={50}
+        indicatorClassName="bg-colorDanger"
+      />,
+    );
+
+    expect(screen.getByTestId('progress-indicator').className).toContain('bg-colorDanger');
+    expect(screen.getByTestId('progress-root').className).not.toContain('bg-colorDanger');
+  });
 });

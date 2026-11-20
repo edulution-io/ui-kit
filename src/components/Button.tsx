@@ -10,6 +10,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import cn from '../utils/cn';
 import synthesizePenClick from '../utils/synthesizePenClick';
 import HexagonIcon from '../assets/HexagonIcon';
+import CircleLoader from './CircleLoader';
 
 const buttonVariants = cva(
   [
@@ -31,6 +32,8 @@ const buttonVariants = cva(
         'btn-white': 'border-none text-black shadow-xl hover:bg-ciGrey/10 hover:text-black',
         'btn-hexagon': 'bg-cover bg-center flex items-center justify-center hover:scale-105',
         'btn-attention': 'bg-colorDanger text-primary-foreground',
+        'btn-attention-outline':
+          'border-[1px] border-colorDanger text-colorDanger hover:bg-muted-light dark:border-colorDangerLight dark:text-colorDangerLight [.light_&]:border-colorDanger [.light_&]:text-colorDanger',
         'btn-small': 'hover:bg-grey-700 mr-1 rounded-lg bg-white px-4 h-9 shadow-md font-normal',
         'btn-table':
           'h-10 items-center rounded-lg bg-white dark:border-none dark:bg-accent border-[1px] border-gray-300',
@@ -49,6 +52,7 @@ const buttonVariants = cva(
         lg: 'h-10 px-8',
         xl: 'h-11 px-8',
         icon: 'h-10 w-10 p-0',
+        'icon-sm': 'h-8 w-8 p-0',
       },
     },
     defaultVariants: {
@@ -64,6 +68,7 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
     asChild?: boolean;
     hexagonIconAltText?: string;
     keepsPenPressUncancelled?: boolean;
+    isLoading?: boolean;
   };
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -75,6 +80,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       hexagonIconAltText,
       asChild = false,
       keepsPenPressUncancelled = false,
+      isLoading = false,
+      disabled,
+      'aria-busy': ariaBusy,
       children,
       onPointerDown,
       ...props
@@ -82,6 +90,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const Comp = asChild ? Slot : 'button';
+    const showsLoader = isLoading && !asChild;
+    const isIconOnly = size === 'icon' || size === 'icon-sm';
     const hasOwnSize = variant === 'btn-ghost' || variant === 'btn-window-control' || variant === 'btn-icon-tile';
     const effectiveSize = size ?? (hasOwnSize ? 'none' : undefined);
 
@@ -91,9 +101,35 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       synthesizePenClick(event);
     };
 
+    const loader = (
+      <span
+        aria-hidden
+        className="inline-flex shrink-0"
+      >
+        <CircleLoader
+          height="h-4"
+          width="w-4"
+        />
+      </span>
+    );
+
+    let content = children;
+    if (showsLoader) {
+      content = isIconOnly ? (
+        loader
+      ) : (
+        <>
+          {loader}
+          {children}
+        </>
+      );
+    }
+
     return (
       <Comp
         {...props}
+        disabled={disabled || showsLoader || undefined}
+        aria-busy={showsLoader ? true : ariaBusy}
         onPointerDown={handlePointerDown}
         className={cn(buttonVariants({ variant, size: effectiveSize, className }))}
         ref={ref}
@@ -104,10 +140,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
               className="absolute"
               aria-label={hexagonIconAltText}
             />
-            {children}
+            {content}
           </div>
         ) : (
-          children
+          content
         )}
       </Comp>
     );

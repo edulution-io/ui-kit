@@ -85,7 +85,9 @@ interface SelectionWizardBaseProps {
   isOpen?: boolean;
   onClose?: () => void;
   onCancel?: () => void;
+  isDismissDisabled?: boolean;
   onSubmit?: () => Promise<void> | void;
+  submitsOnEnter?: boolean;
   autoSaveId?: string;
   maxColumns?: number;
   mobileBreakpointQuery?: string;
@@ -110,6 +112,8 @@ export const SELECTION_WIZARD_DEFAULT_MIN_SIZE = 15;
 export const SELECTION_WIZARD_PANEL_ID_PREFIX = 'selection-wizard-step-';
 export const SELECTION_WIZARD_SUBMIT_ERROR_TAG = 'SelectionWizard: onSubmit rejected';
 export const SELECTION_WIZARD_TEST_ID = 'selection-wizard';
+export const SELECTION_WIZARD_ENTER_HANDLING_TARGETS =
+  'button:not([role="checkbox"]), a[href], textarea, [role="button"], [role="link"], [role="menuitem"], [role="option"], [role="tab"], [role="combobox"]';
 
 export const panelIdOf = (stepId: string): string => `${SELECTION_WIZARD_PANEL_ID_PREFIX}${stepId}`;
 
@@ -143,6 +147,9 @@ export const findAdjacentStepId = (
   if (activeIndex < 0) return null;
   return steps[activeIndex + offset]?.id ?? null;
 };
+
+export const offersSubmit = (steps: SelectionWizardStep[], activeStepId: string, showsNavigation: boolean): boolean =>
+  !showsNavigation || findAdjacentStepId(steps, activeStepId, 1) === null;
 
 export const showsStepsSideBySide = (layout: SelectionWizardLayout, isMobileView: boolean): boolean =>
   !isMobileView && layout === SELECTION_WIZARD_LAYOUTS.COLUMNS;

@@ -6,9 +6,10 @@
 
 vi.mock('framer-motion', () => ({
   motion: {
-    span: ({ children, className, style }: Record<string, unknown>) => (
+    span: ({ children, className, style, 'data-edu-motion': motionRole }: Record<string, unknown>) => (
       <span
         data-testid="motion-span"
+        data-edu-motion={motionRole as string}
         className={className as string}
         style={style as React.CSSProperties}
       >
@@ -53,6 +54,11 @@ describe('CircleLoader', () => {
     const { container } = render(<CircleLoader className="my-loader" />);
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper.className).toContain('my-loader');
+  });
+
+  it('marks the spinner as essential motion so reduced motion keeps it turning', () => {
+    render(<CircleLoader />);
+    expect(screen.getByTestId('motion-span')).toHaveAttribute('data-edu-motion', 'essential');
   });
 
   it('uses light mode border classes when forceLightMode is true', () => {

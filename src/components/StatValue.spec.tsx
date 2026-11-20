@@ -90,4 +90,75 @@ describe('StatValue', () => {
     expect(screen.getByText('42')).toHaveClass('text-4xl');
     expect(screen.getByText('/ 9')).toHaveClass('text-xl');
   });
+
+  it('keeps the label after the value with the foreground value colour by default', () => {
+    const { container } = render(
+      <StatValue
+        value={3}
+        label="Hosts"
+      />,
+    );
+    const root = container.firstElementChild as HTMLElement;
+
+    expect(root.className).toBe('flex items-baseline gap-1.5');
+    expect(root.lastElementChild).toBe(screen.getByText('Hosts'));
+    expect(screen.getByText('3').className).toContain('text-foreground');
+  });
+
+  it('tones the value with valueClassName', () => {
+    render(
+      <StatValue
+        value={3}
+        valueClassName="text-colorDanger"
+      />,
+    );
+    const valueElement = screen.getByText('3');
+
+    expect(valueElement.className).toContain('text-colorDanger');
+    expect(valueElement.className).not.toContain('text-foreground');
+  });
+
+  it('puts the label above the value as an uppercase kicker for labelPosition top', () => {
+    const { container } = render(
+      <StatValue
+        value={5}
+        total={12}
+        label="Hosts"
+        labelPosition="top"
+      />,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    const label = screen.getByText('Hosts');
+
+    expect(root.firstElementChild).toBe(label);
+    expect(label.className).toContain('uppercase');
+    expect(label.className).toContain('tracking-wider');
+    expect(screen.getByText('5').parentElement?.className).toContain('mt-1');
+    expect(screen.getByText('/ 12')).toBeInTheDocument();
+  });
+
+  it('adds no top margin when labelPosition top has no label', () => {
+    render(
+      <StatValue
+        value={5}
+        labelPosition="top"
+      />,
+    );
+
+    expect(screen.getByText('5').parentElement?.className).not.toContain('mt-1');
+  });
+
+  it('puts the className on the root of the top-label layout', () => {
+    const { container } = render(
+      <StatValue
+        value={5}
+        label="Hosts"
+        labelPosition="top"
+        className="w-full"
+      />,
+    );
+
+    expect(container.firstElementChild).toHaveClass('w-full', 'flex-col');
+    expect(screen.getByText('5').parentElement).not.toHaveClass('w-full');
+  });
 });

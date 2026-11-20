@@ -15,6 +15,8 @@ const STAT_VALUE_SIZE = {
 
 type StatValueSize = keyof typeof STAT_VALUE_SIZE;
 
+type StatValueLabelPosition = 'inline' | 'top';
+
 interface StatValueProps {
   value: React.ReactNode;
   total?: React.ReactNode;
@@ -22,14 +24,27 @@ interface StatValueProps {
   label?: React.ReactNode;
   size?: StatValueSize;
   className?: string;
+  valueClassName?: string;
+  labelPosition?: StatValueLabelPosition;
 }
 
-const StatValue: React.FC<StatValueProps> = ({ value, total, unit, label, size = 'md', className }) => {
+const StatValue: React.FC<StatValueProps> = ({
+  value,
+  total,
+  unit,
+  label,
+  size = 'md',
+  className,
+  valueClassName,
+  labelPosition = 'inline',
+}) => {
   const sizeStyles = STAT_VALUE_SIZE[size];
 
-  return (
-    <div className={cn('flex items-baseline gap-1.5', className)}>
-      <span className={cn('font-bold tabular-nums leading-none text-foreground', sizeStyles.value)}>{value}</span>
+  const valueParts = (
+    <>
+      <span className={cn('font-bold tabular-nums leading-none text-foreground', sizeStyles.value, valueClassName)}>
+        {value}
+      </span>
       {total !== undefined && total !== null && (
         <span className={cn('font-bold tabular-nums text-muted-foreground', sizeStyles.secondary)}>
           {'/ '}
@@ -37,10 +52,25 @@ const StatValue: React.FC<StatValueProps> = ({ value, total, unit, label, size =
           {unit ? ` ${unit}` : ''}
         </span>
       )}
+    </>
+  );
+
+  if (labelPosition === 'top') {
+    return (
+      <div className={cn('flex flex-col items-start', className)}>
+        {label && <span className="text-xs uppercase tracking-wider text-muted-foreground">{label}</span>}
+        <div className={cn('flex items-baseline gap-1.5', label && 'mt-1')}>{valueParts}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn('flex items-baseline gap-1.5', className)}>
+      {valueParts}
       {label && <span className="text-xs text-muted-foreground">{label}</span>}
     </div>
   );
 };
 
 export default StatValue;
-export type { StatValueProps, StatValueSize };
+export type { StatValueLabelPosition, StatValueProps, StatValueSize };

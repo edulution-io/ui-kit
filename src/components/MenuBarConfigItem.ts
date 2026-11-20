@@ -22,6 +22,12 @@ interface MenuBarConfigItem {
    */
   excludeFromBadgeAggregation?: boolean;
   groupLabel?: string;
+  /**
+   * When true, tapping this item in the mobile drawer runs its action and leaves
+   * the drawer open, for items that change what the page shows instead of
+   * navigating away (e.g. a visibility toggle). Desktop is unaffected.
+   */
+  keepMenuOpen?: boolean;
   dropData?: MenuBarDropData;
   contextActions?: MenuBarItemAction[];
 }

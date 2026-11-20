@@ -4,6 +4,6 @@
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
-const safeGetDate = (dateValue: unknown): Date => (dateValue instanceof Date ? new Date(dateValue) : new Date());
+const isValidDate = (value: unknown): value is Date => value instanceof Date && !Number.isNaN(value.getTime());
 
-export default safeGetDate;
+export default isValidDate;

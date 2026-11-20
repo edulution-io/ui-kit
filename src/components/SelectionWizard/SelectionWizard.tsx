@@ -18,9 +18,12 @@ import SelectionWizardPersistentColumns from './SelectionWizardPersistentColumns
 import SelectionWizardFooter from './SelectionWizardFooter';
 import SelectionWizardStepRail from './SelectionWizardStepRail';
 import {
+  canSubmit,
+  offersSubmit,
   resolveRenderedShell,
   resolveVisibleColumns,
   SELECTION_WIZARD_DEFAULT_MAX_COLUMNS,
+  SELECTION_WIZARD_ENTER_HANDLING_TARGETS,
   SELECTION_WIZARD_LAYOUTS,
   SELECTION_WIZARD_RENDERED_SHELLS,
   SELECTION_WIZARD_SHELLS,
@@ -32,7 +35,7 @@ import {
 
 const DIALOG_CONTENT_CLASSES =
   'flex h-[min(720px,90vh)] w-[min(1100px,96vw)] max-w-none flex-col gap-0 overflow-hidden p-0';
-const SHEET_CONTENT_CLASSES = 'flex h-[90dvh] flex-col gap-0 overflow-hidden rounded-t-lg p-0';
+const SHEET_CONTENT_CLASSES = 'flex h-[90dvh] flex-col gap-0 overflow-hidden rounded-t-lg p-0 safe-area-inset-x';
 
 const SelectionWizard: React.FC<SelectionWizardProps> = ({
   title,
@@ -45,7 +48,9 @@ const SelectionWizard: React.FC<SelectionWizardProps> = ({
   isOpen = true,
   onClose,
   onCancel,
+  isDismissDisabled = false,
   onSubmit,
+  submitsOnEnter = false,
   autoSaveId,
   maxColumns = SELECTION_WIZARD_DEFAULT_MAX_COLUMNS,
   mobileBreakpointQuery = DEFAULT_MOBILE_BREAKPOINT_QUERY,
@@ -65,7 +70,7 @@ const SelectionWizard: React.FC<SelectionWizardProps> = ({
   const isSheet = renderedShell === SELECTION_WIZARD_RENDERED_SHELLS.SHEET;
 
   const closeOnDismiss = (open: boolean) => {
-    if (!open) onClose?.();
+    if (!open && !isDismissDisabled) onClose?.();
   };
 
   const submit = async () => {
@@ -78,6 +83,16 @@ const SelectionWizard: React.FC<SelectionWizardProps> = ({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const submitOnEnter = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;
+    if (event.target instanceof Element && event.target.matches(SELECTION_WIZARD_ENTER_HANDLING_TARGETS)) return;
+    const isSubmitAvailable =
+      Boolean(onSubmit && labels.submit) && offersSubmit(steps, resolvedStepId, !isSideBySide) && canSubmit(steps);
+    if (!isSubmitAvailable || isSubmitting) return;
+    event.preventDefault();
+    void submit();
   };
 
   const renderBody = () => {
@@ -122,6 +137,8 @@ const SelectionWizard: React.FC<SelectionWizardProps> = ({
       data-layout={isSideBySide ? SELECTION_WIZARD_LAYOUTS.COLUMNS : SELECTION_WIZARD_LAYOUTS.STEPS}
       data-shell={renderedShell}
       className={cn('flex h-full min-h-0 w-full flex-col', className)}
+      role="presentation"
+      onKeyDown={submitsOnEnter ? submitOnEnter : undefined}
     >
       <div className="flex flex-col gap-3 border-b border-accent-light px-4 py-3">
         {isDialog && <DialogTitle className="text-base font-semibold">{title}</DialogTitle>}
@@ -142,6 +159,7 @@ const SelectionWizard: React.FC<SelectionWizardProps> = ({
         onActiveStepChange={onActiveStepChange}
         showsNavigation={!isSideBySide}
         onCancel={onCancel}
+        isCancelDisabled={isDismissDisabled}
         onSubmit={onSubmit ? submit : undefined}
         isSubmitting={isSubmitting}
       />

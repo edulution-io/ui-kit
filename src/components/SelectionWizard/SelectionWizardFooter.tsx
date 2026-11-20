@@ -10,6 +10,7 @@ import {
   canSubmit,
   findAdjacentStepId,
   isStepPassable,
+  offersSubmit,
   type SelectionWizardLabels,
   type SelectionWizardStep,
 } from './selectionWizardInternals';
@@ -21,6 +22,7 @@ interface SelectionWizardFooterProps {
   onActiveStepChange: (stepId: string) => void;
   showsNavigation: boolean;
   onCancel?: () => void;
+  isCancelDisabled?: boolean;
   onSubmit?: () => void;
   isSubmitting?: boolean;
 }
@@ -32,17 +34,17 @@ const SelectionWizardFooter: React.FC<SelectionWizardFooterProps> = ({
   onActiveStepChange,
   showsNavigation,
   onCancel,
+  isCancelDisabled = false,
   onSubmit,
   isSubmitting = false,
 }) => {
   const activeStep = steps.find((step) => step.id === activeStepId);
   const previousStepId = findAdjacentStepId(steps, activeStepId, -1);
   const nextStepId = findAdjacentStepId(steps, activeStepId, 1);
-  const isLastStep = nextStepId === null;
 
   const showsBack = showsNavigation && previousStepId !== null;
   const showsNext = showsNavigation && nextStepId !== null;
-  const showsSubmit = Boolean(onSubmit && labels.submit) && (!showsNavigation || isLastStep);
+  const showsSubmit = Boolean(onSubmit && labels.submit) && offersSubmit(steps, activeStepId, showsNavigation);
   const showsCancel = Boolean(onCancel && labels.cancel);
   const secondaryAction = activeStep?.secondaryAction;
 
@@ -61,6 +63,7 @@ const SelectionWizardFooter: React.FC<SelectionWizardFooterProps> = ({
             variant="btn-outline"
             size="lg"
             data-testid="selection-wizard-cancel"
+            disabled={isCancelDisabled}
             onClick={onCancel}
           >
             {labels.cancel}

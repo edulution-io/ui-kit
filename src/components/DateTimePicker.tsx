@@ -8,9 +8,13 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarDays, faChevronLeft, faChevronRight, faClock, faXmark } from '@fortawesome/free-solid-svg-icons';
 import cn from '../utils/cn';
-import safeGetDate from '../utils/safeGetDate';
-import safeGetHours from '../utils/safeGetHours';
-import safeGetMinutes from '../utils/safeGetMinutes';
+import getUsableTimeZone from '../utils/getUsableTimeZone';
+import readWallClock from '../utils/readWallClock';
+import resolveWallClock from '../utils/resolveWallClock';
+import toCalendarDay from '../utils/toCalendarDay';
+import toDisplayMonth from '../utils/toDisplayMonth';
+import isValidDate from '../utils/isValidDate';
+import withTodayForInvalidBase from '../utils/withTodayForInvalidBase';
 import normalizeWheelDelta from '../utils/normalizeWheelDelta';
 import DATETIME_PICKER_MODES, { TDateTimePickerMode } from '../constants/dateTimePickerModes';
 import { Button } from './Button';
@@ -23,6 +27,7 @@ import buildYearOptions from '../utils/buildYearOptions';
 import HourButton from './HourButton';
 import MinuteButton from './MinuteButton';
 import { DropdownVariant } from './DropdownSelect';
+import type WallClock from '../utils/wallClock';
 import usePopoverOutsideDismiss from '../hooks/usePopoverOutsideDismiss';
 import useEscapeCapture from '../hooks/useEscapeCapture';
 
@@ -36,8 +41,10 @@ const DEFAULT_YEARS_IN_PAST = 120;
 const DEFAULT_YEARS_IN_FUTURE = 10;
 const MONTH_SAMPLE_YEAR = 2000;
 const SINGLE_CLICK_OPEN_DELAY_MS = 180;
+const POPOVER_COLLISION_PADDING_PX = 8;
 const YEAR_DIGITS = 4;
 const REQUIRED_DATE_PART_COUNT = 3;
+const MIN_TYPED_YEAR = 100;
 const TIME_MASK = 'HH:mm';
 const DRAFT_SEGMENT_SEPARATOR = ' ';
 const DEFAULT_DATE_SEPARATOR = '.';
@@ -57,6 +64,22 @@ const DEFAULT_DATE_ORDER: DatePartType[] = ['day', 'month', 'year'];
 
 const isDatePartType = (type: string): type is DatePartType => type === 'day' || type === 'month' || type === 'year';
 
+const scrollSelectedIntoView = (list: HTMLDivElement | null, selectedIndex: number): void => {
+  const selected = list?.children.item(selectedIndex);
+  const viewport = list?.closest<HTMLElement>(SCROLL_AREA_VIEWPORT_SELECTOR);
+  if (!selected || !viewport) return;
+  const viewportRect = viewport.getBoundingClientRect();
+  const selectedRect = selected.getBoundingClientRect();
+  viewport.scrollLeft += selectedRect.left - viewportRect.left - (viewportRect.width - selectedRect.width) / 2;
+  viewport.scrollTop += selectedRect.top - viewportRect.top - (viewportRect.height - selectedRect.height) / 2;
+};
+
+const getHeightHiddenBelow = (container: HTMLElement, target: HTMLElement): number =>
+  target.getBoundingClientRect().bottom -
+  container.getBoundingClientRect().top -
+  container.clientTop -
+  container.clientHeight;
+
 const scrollViewportOnWheel = (event: React.WheelEvent<HTMLDivElement>): void => {
   const viewport = event.currentTarget.closest<HTMLElement>(SCROLL_AREA_VIEWPORT_SELECTOR);
   if (!viewport) return;
@@ -66,6 +89,8 @@ const scrollViewportOnWheel = (event: React.WheelEvent<HTMLDivElement>): void =>
 const padTwo = (value: number): string => value.toString().padStart(2, '0');
 
 const clamp = (value: number, max: number): number => Math.min(Math.max(value, 0), max);
+
+const toValueDate = (value: unknown): Date | null => (value instanceof Date ? value : null);
 
 const getDateFormatInfo = (locale: string): DateFormatInfo => {
   const parts = new Intl.DateTimeFormat(locale, {
@@ -95,18 +120,31 @@ const buildEditMask = (info: DateFormatInfo, showCalendar: boolean, showTime: bo
   return segments.join(DRAFT_SEGMENT_SEPARATOR);
 };
 
-const formatEditDraft = (date: Date, info: DateFormatInfo, showCalendar: boolean, showTime: boolean): string => {
+const formatEditDraft = (
+  date: Date,
+  info: DateFormatInfo,
+  showCalendar: boolean,
+  showTime: boolean,
+  timeZone?: string,
+): string => {
+  const wallClock = readWallClock(date, timeZone);
   const segments: string[] = [];
   if (showCalendar) {
     const tokens: Record<DatePartType, string> = {
-      day: padTwo(date.getDate()),
-      month: padTwo(date.getMonth() + 1),
-      year: String(date.getFullYear()).padStart(YEAR_DIGITS, '0'),
+      day: padTwo(wallClock.day),
+      month: padTwo(wallClock.month),
+      year: String(wallClock.year).padStart(YEAR_DIGITS, '0'),
     };
     segments.push(info.order.map((type) => tokens[type]).join(info.separator));
   }
-  if (showTime) segments.push(`${padTwo(date.getHours())}:${padTwo(date.getMinutes())}`);
+  if (showTime) segments.push(`${padTwo(wallClock.hour)}:${padTwo(wallClock.minute)}`);
   return segments.join(DRAFT_SEGMENT_SEPARATOR);
+};
+
+const isCalendarDate = ({ year, month, day }: Record<DatePartType, number>): boolean => {
+  const date = new Date(0);
+  date.setUTCFullYear(year, month - 1, day);
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 };
 
 const parseEditDraft = (
@@ -114,11 +152,12 @@ const parseEditDraft = (
   info: DateFormatInfo,
   showCalendar: boolean,
   showTime: boolean,
-  base: Date,
+  base: Date | null,
+  timeZone?: string,
 ): Date | null => {
   const trimmed = raw.trim();
   if (!trimmed) return null;
-  const next = new Date(base.getTime());
+  const patch: Partial<WallClock> = { second: 0, millisecond: 0 };
   let working = trimmed;
 
   if (showTime) {
@@ -127,30 +166,24 @@ const parseEditDraft = (
     const hours = Number.parseInt(match[1], 10);
     const minutes = Number.parseInt(match[2], 10);
     if (hours > MAX_HOUR || minutes > MAX_MINUTE) return null;
-    next.setHours(hours, minutes, 0, 0);
+    Object.assign(patch, { hour: hours, minute: minutes });
     working = `${working.slice(0, match.index)} ${working.slice(match.index + match[0].length)}`.trim();
   }
 
-  if (showCalendar) {
-    const numbers = working.match(DATE_NUMBER_PATTERN);
-    if (!numbers || numbers.length < REQUIRED_DATE_PART_COUNT) return null;
-    const values: Record<DatePartType, number> = { day: 1, month: 1, year: MONTH_SAMPLE_YEAR };
-    info.order.forEach((type, index) => {
-      values[type] = Number.parseInt(numbers[index], 10);
-    });
-    const monthIndex = values.month - 1;
-    const candidate = new Date(values.year, monthIndex, values.day, next.getHours(), next.getMinutes(), 0, 0);
-    if (
-      candidate.getFullYear() !== values.year ||
-      candidate.getMonth() !== monthIndex ||
-      candidate.getDate() !== values.day
-    ) {
-      return null;
-    }
-    return candidate;
-  }
+  if (!showCalendar) return resolveWallClock(base, withTodayForInvalidBase(base, patch, timeZone), timeZone);
 
-  return next;
+  const numbers = working.match(DATE_NUMBER_PATTERN);
+  if (!numbers || numbers.length < REQUIRED_DATE_PART_COUNT) return null;
+  const values: Record<DatePartType, number> = { day: 1, month: 1, year: MONTH_SAMPLE_YEAR };
+  info.order.forEach((type, index) => {
+    values[type] = Number.parseInt(numbers[index], 10);
+  });
+  if (values.year < MIN_TYPED_YEAR) return null;
+  const candidate = resolveWallClock(base, { ...patch, ...values }, timeZone);
+  if (timeZone) return isCalendarDate(values) ? candidate : null;
+  const resolved = readWallClock(candidate);
+  if (resolved.year !== values.year || resolved.month !== values.month || resolved.day !== values.day) return null;
+  return candidate;
 };
 
 export interface DateTimePickerProps {
@@ -175,6 +208,15 @@ export interface DateTimePickerProps {
   previousMonthLabel?: string;
   nextMonthLabel?: string;
   calendarLabels?: CalendarProps['labels'];
+  /**
+   * IANA time zone (e.g. `Europe/Berlin`) the value is read and written in. The field, the text draft, the hour and
+   * minute segments and the selected calendar day show the value's wall clock in this zone, and every edit resolves to
+   * the instant with the edited wall-clock fields there. An ambiguous wall clock keeps the value's current offset when
+   * it fits and otherwise resolves to the later instant; a skipped one moves past the jump by the length of the gap.
+   * `disabledDate` receives a calendar day as a browser-local midnight whose fields are that day in this zone. Unset,
+   * or an id `Intl` rejects, reads and writes the browser's own clock.
+   */
+  timeZone?: string;
 }
 
 interface EditableTimeSegmentProps {
@@ -264,9 +306,11 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   previousMonthLabel,
   nextMonthLabel,
   calendarLabels,
+  timeZone,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [displayMonth, setDisplayMonth] = useState<Date>(() => safeGetDate(value));
+  const zone = useMemo(() => getUsableTimeZone(timeZone), [timeZone]);
+  const [displayMonth, setDisplayMonth] = useState<Date>(() => toDisplayMonth(value, zone));
   const [isTextEditing, setIsTextEditing] = useState(false);
   const [textDraft, setTextDraft] = useState('');
   const textInputRef = useRef<HTMLInputElement>(null);
@@ -280,8 +324,11 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   const showCalendar = mode !== DATETIME_PICKER_MODES.TIME;
   const showTime = mode !== DATETIME_PICKER_MODES.DATE;
 
-  const hours = safeGetHours(value);
-  const minutes = safeGetMinutes(value);
+  const wallClock = useMemo(() => (isValidDate(value) ? readWallClock(value, zone) : undefined), [value, zone]);
+  const hours = wallClock?.hour ?? 0;
+  const minutes = wallClock?.minute ?? 0;
+  const selectedDay = useMemo(() => (isValidDate(value) ? toCalendarDay(value, zone) : undefined), [value, zone]);
+  const zoneToday = zone && isOpen ? toCalendarDay(new Date(), zone) : undefined;
 
   const currentYear = new Date().getFullYear();
   const resolvedFromYear = fromYear ?? currentYear - DEFAULT_YEARS_IN_PAST;
@@ -299,18 +346,17 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   const handleOpenChange = useCallback(
     (open: boolean) => {
       setIsOpen(open);
-      if (open) setDisplayMonth(safeGetDate(value));
+      if (open) setDisplayMonth(toDisplayMonth(value, zone));
     },
-    [value],
+    [value, zone],
   );
 
-  const emitWithMutation = useCallback(
-    (mutate: (date: Date) => void) => {
-      const next = safeGetDate(value);
-      mutate(next);
-      onChange(next);
+  const emitWallClock = useCallback(
+    (patch: Partial<WallClock>) => {
+      const base = toValueDate(value);
+      onChange(resolveWallClock(base, withTodayForInvalidBase(base, patch, zone), zone));
     },
-    [onChange, value],
+    [onChange, value, zone],
   );
 
   const handleDateSelect = useCallback(
@@ -319,11 +365,9 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
         onChange(null);
         return;
       }
-      emitWithMutation((next) => {
-        next.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
-      });
+      emitWallClock({ year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate() });
     },
-    [emitWithMutation, onChange],
+    [emitWallClock, onChange],
   );
 
   const handleClear = useCallback(() => onChange(null), [onChange]);
@@ -383,38 +427,32 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
         setIsOpen(false);
         return;
       }
-      setDisplayMonth(safeGetDate(value));
+      setDisplayMonth(toDisplayMonth(value, zone));
       setIsOpen(true);
     }, SINGLE_CLICK_OPEN_DELAY_MS);
-  }, [disabled, clearClickTimer, value]);
+  }, [disabled, clearClickTimer, value, zone]);
 
   const handleTriggerDoubleClick = useCallback(() => {
     if (disabled) return;
     clearClickTimer();
     setIsOpen(false);
-    setTextDraft(value ? formatEditDraft(value, dateFormatInfo, showCalendar, showTime) : '');
+    setTextDraft(isValidDate(value) ? formatEditDraft(value, dateFormatInfo, showCalendar, showTime, zone) : '');
     setIsTextEditing(true);
-  }, [disabled, clearClickTimer, value, dateFormatInfo, showCalendar, showTime]);
+  }, [disabled, clearClickTimer, value, dateFormatInfo, showCalendar, showTime, zone]);
 
   const commitText = useCallback(() => {
-    const parsed = parseEditDraft(textDraft, dateFormatInfo, showCalendar, showTime, safeGetDate(value));
+    const parsed = parseEditDraft(textDraft, dateFormatInfo, showCalendar, showTime, toValueDate(value), zone);
     if (parsed) onChange(parsed);
     setIsTextEditing(false);
-  }, [textDraft, dateFormatInfo, showCalendar, showTime, value, onChange]);
+  }, [textDraft, dateFormatInfo, showCalendar, showTime, value, zone, onChange]);
 
   const cancelTextEditing = useCallback(() => setIsTextEditing(false), []);
 
   useEscapeCapture(isTextEditing, cancelTextEditing);
 
-  const onChangeHour = useCallback(
-    (hour: number) => emitWithMutation((next) => next.setHours(hour)),
-    [emitWithMutation],
-  );
+  const onChangeHour = useCallback((hour: number) => emitWallClock({ hour }), [emitWallClock]);
 
-  const onChangeMinute = useCallback(
-    (minute: number) => emitWithMutation((next) => next.setMinutes(minute)),
-    [emitWithMutation],
-  );
+  const onChangeMinute = useCallback((minute: number) => emitWallClock({ minute }), [emitWallClock]);
 
   const displayYear = displayMonth.getFullYear();
   const displayMonthIndex = displayMonth.getMonth();
@@ -429,6 +467,19 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
     [displayYear, displayMonthIndex],
   );
 
+  const handleMonthYearSelect = useCallback(
+    (year: number, monthIndex: number) => {
+      setDisplayMonth(new Date(year, monthIndex, 1));
+      if (!isValidDate(value)) return;
+      const lastDayOfMonth = new Date(year, monthIndex + 1, 0).getDate();
+      const day = Math.min(readWallClock(value, zone).day, lastDayOfMonth);
+      const moved = resolveWallClock(value, { year, month: monthIndex + 1, day }, zone);
+      if (disabledDate?.(toCalendarDay(moved, zone))) return;
+      onChange(moved);
+    },
+    [value, zone, disabledDate, onChange],
+  );
+
   const triggerText = useMemo(() => {
     if (!value) return placeholder ?? '';
     const dateOptions: Intl.DateTimeFormatOptions =
@@ -436,14 +487,51 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
     const timeOptions: Intl.DateTimeFormatOptions = showTime
       ? { hour: 'numeric', minute: 'numeric', hour12: displayLocale.startsWith('en') }
       : {};
-    return new Date(value).toLocaleString(displayLocale, { ...dateOptions, ...timeOptions });
-  }, [value, placeholder, mode, showTime, displayLocale]);
+    return new Date(value).toLocaleString(displayLocale, { ...dateOptions, ...timeOptions, timeZone: zone });
+  }, [value, placeholder, mode, showTime, displayLocale, zone]);
 
-  const hourValues = useMemo(() => Array.from({ length: HOURS_IN_DAY }, (_, hour) => hour).reverse(), []);
+  const hourValues = useMemo(() => Array.from({ length: HOURS_IN_DAY }, (_, hour) => hour), []);
   const minuteValues = useMemo(
     () => Array.from({ length: Math.ceil(MINUTES_IN_HOUR / minuteStep) }, (_, index) => index * minuteStep),
     [minuteStep],
   );
+
+  const selectedTimeRef = useRef({ hours, minutes, minuteStep });
+
+  useEffect(() => {
+    selectedTimeRef.current = { hours, minutes, minuteStep };
+  }, [hours, minutes, minuteStep]);
+
+  const timeStripsRef = useRef<HTMLDivElement>(null);
+
+  const attachContent = useCallback((content: HTMLDivElement | null) => {
+    contentRef.current = content;
+    if (!content || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(() => {
+      const scrollContainer = contentRef.current;
+      const strips = timeStripsRef.current;
+      if (!scrollContainer || !strips) return;
+      const hiddenBelow = getHeightHiddenBelow(scrollContainer, strips);
+      if (hiddenBelow <= 0) return;
+      scrollContainer.scrollTop += hiddenBelow;
+      observer.disconnect();
+    });
+    observer.observe(content);
+    return () => {
+      observer.disconnect();
+      contentRef.current = null;
+    };
+  }, []);
+
+  const scrollHourListToSelected = useCallback(
+    (list: HTMLDivElement | null) => scrollSelectedIntoView(list, selectedTimeRef.current.hours),
+    [],
+  );
+
+  const scrollMinuteListToSelected = useCallback((list: HTMLDivElement | null) => {
+    const { minutes: selectedMinutes, minuteStep: step } = selectedTimeRef.current;
+    scrollSelectedIntoView(list, Math.floor(selectedMinutes / step));
+  }, []);
 
   return (
     <Popover
@@ -509,8 +597,11 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
       </PopoverAnchor>
 
       <PopoverContent
-        ref={contentRef}
-        className={cn('liquid-glass-panel w-auto rounded-lg p-0 text-foreground')}
+        ref={attachContent}
+        collisionPadding={POPOVER_COLLISION_PADDING_PX}
+        className={cn(
+          'liquid-glass-panel max-h-[var(--radix-popover-content-available-height)] w-auto overflow-y-auto rounded-lg p-0 text-foreground',
+        )}
       >
         <div className="sm:flex">
           {showCalendar && (
@@ -533,14 +624,14 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                     ariaLabel={monthLabel}
                     options={monthOptions}
                     selected={displayMonthIndex}
-                    onSelect={(month) => setDisplayMonth(new Date(displayYear, month, 1))}
+                    onSelect={(month) => handleMonthYearSelect(displayYear, month)}
                   />
                   <MonthYearSelect
                     label={String(displayYear)}
                     ariaLabel={yearLabel}
                     options={yearOptions}
                     selected={displayYear}
-                    onSelect={(year) => setDisplayMonth(new Date(year, displayMonthIndex, 1))}
+                    onSelect={(year) => handleMonthYearSelect(year, displayMonthIndex)}
                   />
                 </div>
                 <Button
@@ -559,7 +650,8 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                 mode="single"
                 month={displayMonth}
                 onMonthChange={setDisplayMonth}
-                selected={value ?? undefined}
+                selected={selectedDay}
+                today={zoneToday}
                 onSelect={handleDateSelect}
                 disabled={disabledDate}
                 locale={locale}
@@ -589,9 +681,13 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                 />
                 {timeSlotLabel ? <span className="ml-1">{timeSlotLabel}</span> : null}
               </div>
-              <div className="flex flex-col divide-y sm:h-[300px] sm:flex-row sm:divide-x sm:divide-y-0">
+              <div
+                ref={timeStripsRef}
+                className="flex flex-col divide-y sm:h-[300px] sm:flex-row sm:divide-x sm:divide-y-0"
+              >
                 <ScrollArea className="w-64 sm:h-[300px] sm:w-auto">
                   <div
+                    ref={scrollHourListToSelected}
                     className="flex p-2 sm:flex-col"
                     onWheel={scrollViewportOnWheel}
                   >
@@ -609,6 +705,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
 
                 <ScrollArea className="w-64 sm:h-[300px] sm:w-auto">
                   <div
+                    ref={scrollMinuteListToSelected}
                     className="flex p-2 sm:flex-col"
                     onWheel={scrollViewportOnWheel}
                   >

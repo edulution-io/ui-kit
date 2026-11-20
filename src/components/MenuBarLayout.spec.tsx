@@ -97,6 +97,19 @@ describe('MenuBarLayout', () => {
     expect(ref.current).not.toHaveClass('liquid-glass-panel');
   });
 
+  it('widens the mobile drawer by the left safe area and keeps its content clear of it', () => {
+    const ref = createRef<HTMLDivElement>();
+    render(
+      <MenuBarLayout
+        ref={ref}
+        isDesktop={false}
+      >
+        Mobile
+      </MenuBarLayout>,
+    );
+    expect(ref.current).toHaveClass('w-[calc(16rem+env(safe-area-inset-left))]', 'pl-[env(safe-area-inset-left)]');
+  });
+
   it('applies -translate-x-full when mobile drawer is closed', () => {
     const { container } = render(
       <MenuBarLayout

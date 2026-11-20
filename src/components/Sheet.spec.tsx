@@ -241,6 +241,20 @@ describe('SheetContent', () => {
     expect(closeBtn.className).toContain('text-foreground');
   });
 
+  it('keeps the content and the close button clear of the side safe areas', () => {
+    render(
+      <Sheet>
+        <SheetContent>Content</SheetContent>
+      </Sheet>,
+    );
+
+    expect(screen.getByTestId('sheet-content')).toHaveClass(
+      'pl-[max(1.5rem,env(safe-area-inset-left))]',
+      'pr-[max(1.5rem,env(safe-area-inset-right))]',
+    );
+    expect(screen.getByTestId('sheet-close')).toHaveClass('right-[max(1rem,env(safe-area-inset-right))]');
+  });
+
   it('applies side=top classes', () => {
     render(
       <Sheet>

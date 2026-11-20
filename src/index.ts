@@ -22,14 +22,17 @@ export { Avatar, AvatarImage, AvatarFallback } from './components/Avatar';
 export type { AvatarProps, AvatarImageProps, AvatarFallbackProps } from './components/Avatar';
 
 /**
- * Badge – A styled label component with variant support for status indicators and tags. It has a fixed height and
- * never grows past its container: text children are truncated with an ellipsis and keep the full text as `title`.
+ * Badge – A styled label component with variant support for status indicators and tags. It has a fixed height, set
+ * by `size` (`default` 36px, `sm` 24px with smaller text), and never grows past its container: text children are
+ * truncated with an ellipsis and keep the full text as `title`.
  */
 export { Badge, badgeVariants } from './components/Badge';
-export type { BadgeProps, BadgeVariant } from './components/Badge';
+export type { BadgeProps, BadgeSize, BadgeVariant } from './components/Badge';
 
 /**
- * Chip – A compact, clickable inline chip/tag button (e.g. for copyable values like email addresses).
+ * Chip – A compact, clickable inline chip/tag button (e.g. for copyable values like email addresses). `selected`
+ * fills it with the primary colour; the ARIA state (`aria-pressed`, `aria-checked`) stays with the caller.
+ * `asChild` renders the chip styles on its child instead, e.g. a `<span>` for a static, non-interactive chip.
  */
 export { Chip, chipVariants } from './components/Chip';
 export type { ChipProps, ChipVariant } from './components/Chip';
@@ -91,7 +94,9 @@ export type {
 } from './components/Command';
 
 /**
- * Button – A customizable button component with multiple style variants.
+ * Button – A customizable button component with multiple style variants. `size="icon-sm"` is a 32px square icon
+ * button. `isLoading` disables the button, sets `aria-busy` and shows a small spinner before the label (instead of the
+ * icon on `icon`/`icon-sm` sizes); it is ignored with `asChild`.
  */
 export { Button, buttonVariants } from './components/Button';
 export type { ButtonProps, ButtonVariant } from './components/Button';
@@ -216,12 +221,14 @@ export type { AddCardProps } from './components/AddCard';
  * and an optional trailing `label` caption. The `size` prop (`sm`, `md`, `lg`) picks
  * the scale: `sm` for dense tiles placing several stats side by side, `md` for a
  * card-sized stat and `lg` for a hero-sized one. All content is supplied via props,
- * so the component stays i18n- and data-source-agnostic. Used by the conference
- * cards and the dashboard quota card. The matching `StatValueProps` and
- * `StatValueSize` types are exported.
+ * so the component stays i18n- and data-source-agnostic. `valueClassName` tones the
+ * value (e.g. a status colour). `labelPosition="top"` puts the label above the value
+ * as a small uppercase kicker instead of after it. Used by the conference
+ * cards and the dashboard quota card. The matching `StatValueProps`,
+ * `StatValueSize` and `StatValueLabelPosition` types are exported.
  */
 export { default as StatValue } from './components/StatValue';
-export type { StatValueProps, StatValueSize } from './components/StatValue';
+export type { StatValueLabelPosition, StatValueProps, StatValueSize } from './components/StatValue';
 
 /**
  * ItemList – A compact list of named items used in confirmation and warning dialogs. Supports a
@@ -389,7 +396,9 @@ export type {
  * active step's `secondaryAction`. State stays with the caller: pass `steps` with `isComplete` and `render`,
  * plus `activeStepId`/`onActiveStepChange`. Render it inline, as a dialog via `as="dialog"`, or via `as="adaptive"`
  * as that dialog on wide screens and as a bottom sheet on narrow ones, both with `isOpen`/`onClose` and a required
- * `title`, which names the dialog for a screen reader. Labels are pre-translated strings.
+ * `title`, which names the dialog for a screen reader. Labels are pre-translated strings. With `submitsOnEnter`, Enter
+ * submits whenever the submit button is shown and enabled; Enter on an element that acts on Enter itself (a button,
+ * a link, a `role="button"` row) stays with that element.
  */
 export { default as SelectionWizard } from './components/SelectionWizard/SelectionWizard';
 export type {
@@ -448,6 +457,7 @@ export { default as useOnClickOutside } from './hooks/useOnClickOutside';
  *
  * @param anchorRef Ref to the popover's anchor/trigger element; pointer downs inside it are left to the trigger.
  * @param onDismiss Called when a pointer goes down outside the anchor and outside every popper.
+ * @param ignoredSelector Optional CSS selector whose matches also keep the popover open, e.g. dialogs the popover opens.
  */
 export { default as usePopoverOutsideDismiss } from './hooks/usePopoverOutsideDismiss';
 
@@ -506,9 +516,11 @@ export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from './compon
 export { ScrollArea, ScrollBar } from './components/ScrollArea';
 
 /**
- * Progress – A progress bar built on Radix UI Progress primitive.
+ * Progress – A progress bar built on Radix UI Progress primitive. `indicatorClassName` styles the filled part,
+ * e.g. to colour it by threshold; without it the indicator stays `bg-primary`.
  */
 export { default as Progress } from './components/Progress';
+export type { ProgressProps } from './components/Progress';
 
 /**
  * Table – Styled HTML table primitives for building data tables.
@@ -557,9 +569,11 @@ export { default as InputWithActionIcons } from './components/InputWithActionIco
 export type { InputWithActionIconsProps, ActionIcon } from './components/InputWithActionIcons';
 
 /**
- * WarningBox – A color-customizable warning box displaying an optional title, a description, and an optional
+ * WarningBox – A color-customizable warning box displaying an optional title, an optional description, and an optional
  * comma-separated inline file list that wraps within the box. `layout="inline"` lays it out as a single row for
- * toolbars and headers.
+ * toolbars and headers, truncating the description unless `wrapDescription` lets it wrap. `children` render below
+ * the description (full width in the block layout), `actions` such as buttons render last: centred below the content
+ * in the block layout, at the end of the row in the inline layout. `className` is merged onto the box.
  */
 export { default as WarningBox } from './components/WarningBox';
 export type { WarningBoxLayout, WarningBoxProps, WarningBoxVariant } from './components/WarningBox';
@@ -572,6 +586,8 @@ export type { CircleLoaderProps } from './components/CircleLoader';
 
 /**
  * CircularProgress – A determinate circular progress ring; pass `value` (0..1) to fill the arc (e.g. context-window usage gauges).
+ * `indicatorClassName` styles the arc (default `stroke-primary`). `children` are centred inside the ring and stay
+ * readable by screen readers; with them, the ring and its content sit in a wrapper that receives `className`.
  */
 export { default as CircularProgress } from './components/CircularProgress';
 export type { CircularProgressProps } from './components/CircularProgress';
@@ -601,7 +617,7 @@ export { default as FileSelectButton } from './components/FileSelectButton';
 export type { FileSelectButtonProps } from './components/FileSelectButton';
 
 /**
- * TextPreview – A preformatted text display with word wrapping.
+ * TextPreview – A preformatted text display with word wrapping. `data-testid` is forwarded onto the `pre`.
  */
 export { default as TextPreview } from './components/TextPreview';
 export type { TextPreviewProps } from './components/TextPreview';
@@ -655,6 +671,10 @@ export { default as CalendarDropdownCaption } from './components/CalendarDropdow
  *
  * While the field is in text-entry mode, `Escape` cancels the edit and stops propagating, so a surrounding dialog
  * stays open and keeps the input entered in it. A second `Escape` then reaches the dialog and closes it.
+ *
+ * Pass an IANA `timeZone` to show and edit the value as the wall clock in that zone instead of the browser's, including
+ * a wall clock the browser's own zone skips. An ambiguous wall clock keeps the value's current offset when it fits and
+ * otherwise resolves to the later instant; a skipped one moves past the jump by the length of the gap.
  */
 export { default as DateTimePicker } from './components/DateTimePicker';
 export type { DateTimePickerProps } from './components/DateTimePicker';
@@ -763,6 +783,9 @@ export type { MinuteButtonProps } from './components/MinuteButton';
  * name as a heading above the first option of each group and wraps that group's options in a `role="group"` the
  * heading labels. The headings follow the filtered list, so they stay correct while the user searches. An option
  * the function names no group for keeps its place without a heading.
+ *
+ * `disabled` disables the field for mouse and keyboard alike, marks the combobox `aria-disabled` and closes an open
+ * option list. A field without options stays disabled as before. It is separate from the per-option `disabled` flag.
  *
  * While the option list is open, `Escape` closes only the list and stops propagating, so a surrounding dialog stays
  * open and keeps the input entered in it. A second `Escape` then reaches the dialog and closes it. Closing the list

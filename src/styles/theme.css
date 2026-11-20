@@ -247,3 +247,8 @@ html :is(.liquid-glass-panel, .liquid-glass.liquid-glass-panel) {
   background-clip: text;
   color: transparent;
 }
+
+html .safe-area-inset-x {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}

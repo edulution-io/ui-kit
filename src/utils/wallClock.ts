@@ -4,6 +4,14 @@
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
-const safeGetMinutes = (dateValue: unknown): number => (dateValue instanceof Date ? dateValue.getMinutes() : 0);
+interface WallClock {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+  millisecond: number;
+}
 
-export default safeGetMinutes;
+export default WallClock;

@@ -39,3 +39,11 @@ describe('liquid glass panel theme styles', () => {
     });
   });
 });
+
+describe('safe area theme styles', () => {
+  it('keeps the side safe-area padding more specific than Tailwind padding utilities', () => {
+    expect(themeCss).toMatch(
+      /html \.safe-area-inset-x \{\s*padding-left: env\(safe-area-inset-left\);\s*padding-right: env\(safe-area-inset-right\);\s*\}/,
+    );
+  });
+});

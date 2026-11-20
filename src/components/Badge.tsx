@@ -18,14 +18,26 @@ const badgeVariants = cva(
         destructive: 'border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80',
         outline: 'text-foreground',
       },
+      size: {
+        default: '',
+        sm: 'px-2 text-xs font-semibold',
+      },
     },
     defaultVariants: {
       variant: 'default',
+      size: 'default',
     },
   },
 );
 
+const BADGE_HEIGHTS = {
+  default: 'h-[36px]',
+  sm: 'h-6',
+} as const;
+
 export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
+
+export type BadgeSize = keyof typeof BADGE_HEIGHTS;
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
 
@@ -39,15 +51,15 @@ const joinAdjacentText = (children: React.ReactNode): React.ReactNode[] =>
     return [...joined, child];
   }, []);
 
-const Badge = ({ className, variant, children, ...props }: BadgeProps) => (
+const Badge = ({ className, variant, size, children, ...props }: BadgeProps) => (
   <div
-    className={cn(badgeVariants({ variant }), className, 'h-[36px]')}
+    className={cn(badgeVariants({ variant, size }), className, BADGE_HEIGHTS[size ?? 'default'])}
     {...props}
   >
     {React.Children.map(joinAdjacentText(children), (child) =>
       isText(child) ? (
         <span
-          className="min-w-0 truncate"
+          className={cn('min-w-0 truncate', size === 'sm' && 'text-xs')}
           title={String(child)}
         >
           {child}

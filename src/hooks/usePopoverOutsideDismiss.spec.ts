@@ -65,6 +65,26 @@ describe('usePopoverOutsideDismiss', () => {
     expect(onDismiss).not.toHaveBeenCalled();
   });
 
+  it('does not dismiss on a pointer down inside an element the extra selector matches', () => {
+    const dialog = appendTo(document.body, 'div');
+    dialog.setAttribute('role', 'dialog');
+    const insideDialog = appendTo(dialog, 'button');
+    renderHook(() => usePopoverOutsideDismiss(anchorRef, onDismiss, '[role="dialog"]'));
+
+    insideDialog.dispatchEvent(pointerDown());
+
+    expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it('still dismisses outside both the poppers and the extra selector', () => {
+    const outside = appendTo(document.body, 'button');
+    renderHook(() => usePopoverOutsideDismiss(anchorRef, onDismiss, '[role="dialog"]'));
+
+    outside.dispatchEvent(pointerDown());
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
   it('dismisses when the pointer down target is not an element', () => {
     renderHook(() => usePopoverOutsideDismiss(anchorRef, onDismiss));
 

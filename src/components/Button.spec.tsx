@@ -45,6 +45,105 @@ describe('Button', () => {
     expect(screen.getByRole('button')).toBeDisabled();
   });
 
+  it('renders a 32px square for size icon-sm', () => {
+    render(
+      <Button
+        variant="btn-ghost"
+        size="icon-sm"
+        aria-label="Reply"
+      >
+        <svg />
+      </Button>,
+    );
+    const button = screen.getByRole('button', { name: 'Reply' });
+
+    expect(button.className).toContain('h-8');
+    expect(button.className).toContain('w-8');
+    expect(button.className).toContain('p-0');
+  });
+
+  it('is neither busy nor disabled and shows no spinner by default', () => {
+    render(<Button>Save</Button>);
+    const button = screen.getByRole('button', { name: 'Save' });
+
+    expect(button).toBeEnabled();
+    expect(button).not.toHaveAttribute('aria-busy');
+    expect(button).not.toHaveAttribute('isLoading');
+    expect(button.querySelector('[aria-hidden]')).toBeNull();
+  });
+
+  it('disables the button and shows a spinner before the kept label while loading', () => {
+    const onClick = vi.fn();
+    render(
+      <Button
+        isLoading
+        onClick={onClick}
+      >
+        Save
+      </Button>,
+    );
+    const button = screen.getByRole('button', { name: 'Save' });
+    fireEvent.click(button);
+
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button.firstElementChild).toHaveAttribute('aria-hidden', 'true');
+    expect(button).toHaveTextContent('Save');
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it.each(['icon', 'icon-sm'] as const)('replaces the icon with the spinner on a %s button while loading', (size) => {
+    render(
+      <Button
+        size={size}
+        aria-label="Export"
+        isLoading
+      >
+        <svg data-testid="export-icon" />
+      </Button>,
+    );
+
+    expect(screen.queryByTestId('export-icon')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Export' }).firstElementChild).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('keeps an aria-busy the caller passes while not loading', () => {
+    render(<Button aria-busy>Sync</Button>);
+
+    expect(screen.getByRole('button', { name: 'Sync' })).toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('ignores isLoading with asChild, since the child has to stay the only element', () => {
+    render(
+      <Button
+        asChild
+        isLoading
+      >
+        <a href="/test">Link button</a>
+      </Button>,
+    );
+    const link = screen.getByRole('link');
+
+    expect(link).not.toHaveAttribute('aria-busy');
+    expect(link.querySelector('[aria-hidden]')).toBeNull();
+  });
+
+  it('does not synthesize a pen click while loading', () => {
+    const onClick = vi.fn();
+    render(
+      <Button
+        isLoading
+        onClick={onClick}
+      >
+        Save
+      </Button>,
+    );
+
+    firePointerDown(screen.getByRole('button', { name: 'Save' }), 'pen');
+
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
   it('renders as child element when asChild is true', () => {
     render(
       <Button asChild>
@@ -68,9 +167,52 @@ describe('Button', () => {
     expect(screen.getByLabelText('hexagon')).toBeInTheDocument();
   });
 
+  it('shows the spinner beside the label inside the hexagon while a hexagon button loads', () => {
+    render(
+      <Button
+        variant="btn-hexagon"
+        hexagonIconAltText="hexagon"
+        isLoading
+      >
+        Hex
+      </Button>,
+    );
+    const hexagonWrapper = screen.getByLabelText('hexagon').parentElement as HTMLElement;
+
+    expect(screen.getByRole('button')).toBeDisabled();
+    expect(hexagonWrapper.querySelector(':scope > span[aria-hidden="true"]')).not.toBeNull();
+    expect(hexagonWrapper).toHaveTextContent('Hex');
+  });
+
   it('does not render HexagonIcon for non-hexagon variants', () => {
     render(<Button variant="btn-collaboration">Normal</Button>);
     expect(screen.queryByLabelText('hexagon')).not.toBeInTheDocument();
+  });
+
+  it('gives btn-attention-outline the light danger colour in the dark theme', () => {
+    render(<Button variant="btn-attention-outline">Decline</Button>);
+
+    const classes = screen.getByRole('button').className.split(' ');
+    expect(classes).toContain('dark:text-colorDangerLight');
+    expect(classes).toContain('dark:border-colorDangerLight');
+  });
+
+  it('keeps the danger colour of btn-attention-outline inside an area forced to the light theme', () => {
+    render(<Button variant="btn-attention-outline">Decline</Button>);
+
+    const classes = screen.getByRole('button').className.split(' ');
+    expect(classes).toContain('[.light_&]:text-colorDanger');
+    expect(classes).toContain('[.light_&]:border-colorDanger');
+  });
+
+  it('draws btn-attention-outline as a danger-coloured frame instead of a filled danger button', () => {
+    render(<Button variant="btn-attention-outline">Decline</Button>);
+    const button = screen.getByRole('button');
+    expect(button.className).toContain('border-colorDanger');
+    expect(button.className).toContain('text-colorDanger');
+    expect(button.className.split(' ')).toContain('hover:bg-muted-light');
+    expect(button.className.split(' ')).not.toContain('bg-colorDanger');
+    expect(button.className.split(' ')).not.toContain('text-primary-foreground');
   });
 
   it('applies btn-ghost variant with size none by default', () => {

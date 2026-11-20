@@ -7,8 +7,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 vi.mock('./Progress', () => ({
-  default: ({ value }: { value: number }) => (
+  default: ({ value, ...props }: { value: number }) => (
     <div
+      {...props}
       data-testid="progress-bar"
       data-value={value}
       role="progressbar"
@@ -30,6 +31,16 @@ describe('ProgressBox', () => {
     render(<ProgressBox data={{ id: '1', percent: 50 }} />);
     const bar = screen.getByTestId('progress-bar');
     expect(bar).toHaveAttribute('data-value', '50');
+  });
+
+  it('keeps the bar of an unknown progress pulsing under reduced motion, since the pulse is its only signal', () => {
+    render(<ProgressBox data={{ id: '1' }} />);
+    expect(screen.getByTestId('progress-bar')).toHaveAttribute('data-edu-motion', 'essential');
+  });
+
+  it('lets a bar with a known percentage follow reduced motion', () => {
+    render(<ProgressBox data={{ id: '1', percent: 50 }} />);
+    expect(screen.getByTestId('progress-bar')).not.toHaveAttribute('data-edu-motion');
   });
 
   it('renders title when provided', () => {

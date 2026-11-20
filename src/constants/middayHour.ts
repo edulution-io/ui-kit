@@ -4,6 +4,6 @@
  * See LICENSE and LICENSES/ in the project root for the full license terms.
  */
 
-const safeGetHours = (dateValue: unknown): number => (dateValue instanceof Date ? dateValue.getHours() : 0);
+const MIDDAY_HOUR = 12;
 
-export default safeGetHours;
+export default MIDDAY_HOUR;
